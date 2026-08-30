@@ -59,6 +59,9 @@ limit 10
 ```sql standings
 select
     tool_name,
+    -- Evidence's `link` takes a column holding the destination path, so build
+    -- the route here rather than linking to a bare tool name.
+    '/tools/' || tool_name as tool_link,
     category,
     stars,
     forks,
@@ -69,7 +72,7 @@ from tool_comparison
 order by stars desc
 ```
 
-<DataTable data={standings} search=true rows=20 link=tool_name>
+<DataTable data={standings} search=true rows=20 link=tool_link>
     <Column id=tool_name title="Tool" />
     <Column id=category title="Category" />
     <Column id=stars title="Stars" fmt='#,##0' contentType=colorscale />
