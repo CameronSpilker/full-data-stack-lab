@@ -1,0 +1,12 @@
+# Evidence reads the same DuckDB file dbt writes, so the dashboard is never
+# more than one pipeline run behind the models.
+title: Full Data Stack Lab
+
+plugins:
+  components:
+    "@evidence-dev/core-components": {}
+  datasources:
+    "@evidence-dev/duckdb": {}
+
+deployment:
+  basePath: ""

@@ -1,0 +1,20 @@
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sources": "evidence sources",
+    "dev": "evidence dev",
+    "build": "evidence build",
+    "preview": "evidence preview"
+  },
+  "dependencies": {
+    "@evidence-dev/core-components": "^5.0.5",
+    "@evidence-dev/duckdb": "^1.0.11",
+    "@evidence-dev/evidence": "^40.1.8"
+  },
+  "devDependencies": {
+    "typescript": "5.4.2"
+  }
+}

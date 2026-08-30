@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: all_days
+    description: >
+      One row per calendar day. Registered as the semantic layer's time spine
+      so metrics can be aggregated to any granularity.
+    time_spine:
+      standard_granularity_column: date_day
+    columns:
+      - name: date_day
+        granularity: day
+        data_tests: [unique, not_null]

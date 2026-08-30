@@ -1,0 +1,5 @@
+# Sourced from git rather than dbt Hub: hub.getdbt.com is not reachable from
+# every build environment, and the git remote is.
+packages:
+  - git: "https://github.com/dbt-labs/dbt-utils.git"
+    revision: 1.4.1

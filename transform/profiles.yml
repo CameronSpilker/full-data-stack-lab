@@ -1,0 +1,13 @@
+# Committed on purpose: DuckDB is a local file, so there is nothing secret
+# here. DUCKDB_PATH is resolved relative to the repo root.
+full_data_stack_lab:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/warehouse.duckdb') }}"
+      threads: 4
+    ci:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/warehouse.duckdb') }}"
+      threads: 4

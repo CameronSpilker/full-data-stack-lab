@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  DUCKDB_PATH: data/warehouse.duckdb
+  DBT_PROFILES_DIR: transform
+
+jobs:
+  transform:
+    name: dbt build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: |
+          pip install -e "ingestion[dev]" dbt-duckdb
+
+      - name: Lint
+        run: ruff check ingestion orchestration scripts
+
+      - name: Unit tests
+        run: pytest ingestion/tests -q
+
+      - name: dbt deps
+        working-directory: transform
+        run: dbt deps
+
+      # The real extractors need network access and an API budget, so CI runs
+      # against deterministic synthetic data. It exercises every model and
+      # test; only the numbers are fabricated.
+      - name: Seed synthetic raw data
+        run: ingest demo
+
+      - name: dbt build
+        working-directory: transform
+        env:
+          DUCKDB_PATH: ../data/warehouse.duckdb
+        run: dbt build --target ci
+
+      - name: dbt docs generate
+        working-directory: transform
+        env:
+          DUCKDB_PATH: ../data/warehouse.duckdb
+        run: dbt docs generate --target ci
+
+  orchestrate:
+    name: Dagster definitions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: |
+          pip install -e ingestion
+          pip install -e orchestration
+
+      - name: dbt deps
+        working-directory: transform
+        run: dbt deps
+
+      - name: Validate the asset graph loads
+        env:
+          DUCKDB_PATH: data/warehouse.duckdb
+        run: dagster definitions validate -m full_data_stack_lab.definitions
+
+  dashboard:
+    name: Evidence build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Build the warehouse the dashboard reads
+        run: |
+          pip install -e ingestion dbt-duckdb
+          ingest demo
+          cd transform && dbt deps && DUCKDB_PATH=../data/warehouse.duckdb dbt build --target ci
+
+      - name: Validate every dashboard query against the warehouse
+        run: python scripts/validate_dashboard_queries.py
+
+      - name: Install dashboard dependencies
+        working-directory: dashboard
+        run: npm ci
+
+      - name: Build
+        working-directory: dashboard
+        run: npm run build
