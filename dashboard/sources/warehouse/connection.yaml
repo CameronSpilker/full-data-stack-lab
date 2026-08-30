@@ -1,4 +1,6 @@
 name: warehouse
 type: duckdb
 options:
-  filename: ../data/warehouse.duckdb
+  # Resolved relative to THIS directory (dashboard/sources/warehouse/), not to
+  # the dashboard root: up three levels to the repo root, then into data/.
+  filename: ../../../data/warehouse.duckdb
