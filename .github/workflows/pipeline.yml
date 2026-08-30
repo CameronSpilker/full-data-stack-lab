@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+env:
+  # Absolute, because the transform steps run with working-directory: transform.
+  DBT_PROFILES_DIR: ${{ github.workspace }}/transform
+
 jobs:
   run:
     runs-on: ubuntu-latest
