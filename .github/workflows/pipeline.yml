@@ -1,0 +1,60 @@
+name: Weekly pipeline
+
+on:
+  schedule:
+    # Mondays at 07:00 America/Denver (13:00 UTC).
+    - cron: "0 13 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # Absolute, because the transform steps run with working-directory: transform.
+  DBT_PROFILES_DIR: ${{ github.workspace }}/transform
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: pip install -e ingestion dbt-duckdb
+
+      - name: Ingest
+        env:
+          # Optional, but raises the GitHub rate limit from 60 to 5,000/hour.
+          GITHUB_TOKEN: ${{ secrets.INGEST_GITHUB_TOKEN }}
+          DUCKDB_PATH: data/warehouse.duckdb
+        run: ingest all
+
+      - name: Transform
+        working-directory: transform
+        env:
+          DUCKDB_PATH: ../data/warehouse.duckdb
+        run: |
+          dbt deps
+          dbt build --target ci
+          dbt docs generate --target ci
+
+      # The warehouse holds only public data and no credentials, so a build
+      # from the real APIs is committed on purpose: the dashboard then builds
+      # from a clean checkout without needing a pipeline run first.
+      # `-f` is required because .gitignore keeps synthetic local builds out.
+      - name: Commit the refreshed warehouse
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f data/warehouse.duckdb
+          if git diff --staged --quiet; then
+            echo "No change in the warehouse; nothing to commit."
+          else
+            git commit -m "Refresh warehouse for $(date -u +%Y-%m-%d)"
+            git push
+          fi

@@ -1,0 +1,27 @@
+name: "full_data_stack_lab"
+version: "0.1.0"
+config-version: 2
+
+profile: "full_data_stack_lab"
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  full_data_stack_lab:
+    +materialized: view
+    staging:
+      +schema: staging
+    intermediate:
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts
+
+seeds:
+  full_data_stack_lab:
+    +schema: seeds

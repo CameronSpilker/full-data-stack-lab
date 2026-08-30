@@ -1,0 +1,87 @@
+version: 2
+
+models:
+  - name: mart_ecosystem_growth
+    description: >
+      Star, fork, contributor, and download trends per tool per week. The
+      primary series behind the Overview and Tool Deep Dive pages.
+    columns:
+      - name: ecosystem_growth_id
+        data_tests: [unique, not_null]
+      - name: tool_name
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('tool_registry')
+                field: tool_name
+      - name: category
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [transformation, orchestration, ingestion, storage, bi]
+      - name: week_start
+        data_tests: [not_null]
+      - name: stars
+        data_tests: [not_null]
+
+  - name: mart_tool_comparison
+    description: >
+      Head-to-head standing within each category as of the latest week, with
+      12-week trailing averages to smooth weekly noise.
+    columns:
+      - name: tool_comparison_id
+        data_tests: [unique, not_null]
+      - name: category
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [transformation, orchestration, ingestion, storage, bi]
+      - name: category_rank_by_stars
+        data_tests: [not_null]
+
+  - name: mart_release_cadence
+    description: >
+      Release frequency per tool. Tools with no published GitHub releases are
+      kept with a zero count rather than dropped.
+    columns:
+      - name: release_cadence_id
+        data_tests: [unique, not_null]
+      - name: tool_name
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('tool_registry')
+                field: tool_name
+      - name: release_count
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: true
+
+  - name: mart_contributor_health
+    description: >
+      Community health signals per tool: contributor movement, issue load
+      relative to project size, and recent release activity.
+    columns:
+      - name: contributor_health_id
+        data_tests: [unique, not_null]
+      - name: tool_name
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('tool_registry')
+                field: tool_name
+      - name: share_of_weeks_growing
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+                inclusive: true

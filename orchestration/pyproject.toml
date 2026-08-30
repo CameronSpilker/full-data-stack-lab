@@ -1,0 +1,26 @@
+[project]
+name = "orchestration"
+version = "0.1.0"
+description = "Dagster definitions for the full data stack lab"
+requires-python = ">=3.11"
+dependencies = [
+    "dagster>=1.9",
+    "dagster-dbt>=0.25",
+    "dagster-duckdb>=0.25",
+    "dbt-duckdb>=1.9",
+    "ingestion",
+]
+
+[project.optional-dependencies]
+dev = ["dagster-webserver>=1.9", "pytest>=8.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["full_data_stack_lab"]
+
+[tool.dagster]
+module_name = "full_data_stack_lab.definitions"
+code_location_name = "full_data_stack_lab"

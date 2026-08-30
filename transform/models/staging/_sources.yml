@@ -1,0 +1,30 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Landing tables written by the ingestion layer. Each GitHub table is a
+      dated snapshot of current state, because the API reports no history;
+      PyPI carries its own trailing history and is deduplicated downstream.
+    schema: raw
+    tables:
+      - name: github_repos
+        description: One row per repo per snapshot date.
+        loaded_at_field: extracted_at
+        freshness:
+          warn_after: { count: 8, period: day }
+          error_after: { count: 30, period: day }
+        columns:
+          - name: snapshot_date
+            data_tests: [not_null]
+          - name: tool_name
+            data_tests: [not_null]
+      - name: github_contributors
+        description: Contributor count per repo per snapshot date.
+        columns:
+          - name: snapshot_date
+            data_tests: [not_null]
+      - name: github_releases
+        description: Release history per repo, re-extracted on each run.
+      - name: pypi_downloads
+        description: Daily download counts per package, excluding mirrors.

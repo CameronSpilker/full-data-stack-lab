@@ -1,0 +1,44 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# dbt
+transform/target/
+transform/dbt_packages/
+transform/logs/
+.user.yml
+
+# dagster
+orchestration/tmp*/
+.dagster_home/
+
+# evidence / node
+node_modules/
+dashboard/.evidence/template/
+dashboard/build/
+dashboard/.svelte-kit/
+
+# data
+# Raw extracts are reproducible from the APIs, so they stay out of git.
+data/raw/**/*.parquet
+
+# The warehouse is ignored while it holds synthetic `ingest demo` output —
+# fabricated numbers should never land in git. The weekly pipeline workflow
+# force-adds it once it is built from the real APIs.
+data/warehouse.duckdb
+data/warehouse.duckdb.wal
+
+!data/.gitkeep
+
+# os
+.DS_Store

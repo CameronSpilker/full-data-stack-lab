@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: int_repos_weekly
+    description: >
+      Weekly repo metrics per tool, with week-over-week deltas. One row per
+      tool per week; the last snapshot in a week wins.
+    columns:
+      - name: repo_week_id
+        data_tests: [unique, not_null]
+      - name: tool_name
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('tool_registry')
+                field: tool_name
+      - name: week_start
+        data_tests: [not_null]
+      - name: category
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [transformation, orchestration, ingestion, storage, bi]
+      - name: stars
+        data_tests: [not_null]
+
+  - name: int_packages_weekly
+    description: >
+      Weekly PyPI downloads per package, joined to that week's repo metrics.
+      Weeks with fewer than seven observed days are flagged, not dropped.
+    columns:
+      - name: package_week_id
+        data_tests: [unique, not_null]
+      - name: tool_name
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('tool_registry')
+                field: tool_name
+      - name: week_start
+        data_tests: [not_null]
+      - name: downloads
+        data_tests: [not_null]
+      - name: is_partial_week
+        data_tests: [not_null]
