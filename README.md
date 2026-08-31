@@ -86,8 +86,12 @@ cp .env.example .env                  # add CBD_API_KEY for live data
 
 # Populate the raw layer. `demo` simulates whole seasons — invented teams,
 # invented results — so this works with no network and no API key.
-# `all` hits the real APIs.
 ingest demo
+
+# Before the first live run, check the sources actually return what the
+# parsers expect. Writes nothing; exits non-zero if a critical field is empty.
+ingest preflight --season 2026
+ingest all --season 2026              # the real APIs
 
 cd transform
 export DBT_PROFILES_DIR=$PWD DUCKDB_PATH=../data/warehouse.duckdb

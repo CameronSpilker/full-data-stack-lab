@@ -7,12 +7,12 @@ import logging
 import sys
 from datetime import date
 
-from . import cbd, demo, load, torvik
+from . import cbd, demo, load, preflight, torvik
 from .config import Season, current_season, load_seasons, utc_today
 
 log = logging.getLogger(__name__)
 
-SOURCES = ["teams", "games", "ratings", "lines", "boxscores", "all", "demo"]
+SOURCES = ["teams", "games", "ratings", "lines", "boxscores", "all", "demo", "preflight"]
 
 
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
@@ -23,7 +23,9 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         help=(
             "Which extractor to run. 'all' runs every live extractor. 'demo' "
             "simulates deterministic synthetic seasons so the whole pipeline "
-            "runs with no network access and no API key."
+            "runs with no network access and no API key. 'preflight' checks "
+            "the live APIs against one season and writes nothing — run it "
+            "before the first backfill."
         ),
     )
     parser.add_argument(
@@ -78,6 +80,11 @@ def main(argv: list[str] | None = None) -> int:
     seasons = _selected_seasons(args)
     tables: dict[str, list] = {}
     replace_all = args.source == "demo"
+
+    # A preflight reports on the live sources and writes nothing, so it
+    # returns before the loading path rather than through it.
+    if args.source == "preflight":
+        return preflight.run(seasons[-1], args.snapshot_date)
 
     if args.source == "demo":
         log.warning("Simulating SYNTHETIC seasons — these teams and results are invented.")

@@ -31,7 +31,12 @@ is a real finding about college basketball until this is done.
 
 - [ ] Register at [collegebasketballdata.com](https://collegebasketballdata.com)
       for a free API key, store it as the `CBD_API_KEY` Actions secret
-- [ ] Run `ingest all` locally against one season first, not five. The two
+- [ ] Run `ingest preflight --season 2026` first. It calls every live source
+      against a single season, writes nothing, and reports what share of each
+      column actually came back — so a parser reading the wrong key shows up as
+      `adj_oe 0.0% FAIL` rather than as a quietly empty column three layers
+      downstream. It exits non-zero until every critical field is populated
+- [ ] Then run `ingest all --season 2026` — one season, not five. The two
       places reality is most likely to differ from the fixtures:
       - **Barttorvik's CSV layout.** `torvik.py` reads it by header when one is
         present and positionally when it is not. The positional map in
