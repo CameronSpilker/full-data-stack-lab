@@ -25,3 +25,32 @@ models:
 seeds:
   full_data_stack_lab:
     +schema: seeds
+
+# Model constants. These live here rather than inside the SQL so the predictor
+# can be retuned without editing a model, and so every mart that makes a
+# prediction is guaranteed to be using the same numbers.
+vars:
+  # Division I averages. Tempo is possessions per team per 40 minutes.
+  league_average_tempo: 68.0
+
+  # Home court is worth about 3.5 points. Applied to the home side only, so a
+  # neutral-site game simply passes 0.
+  home_court_advantage_points: 3.5
+
+  # The conventional Elo-to-points conversion: 25 rating points per point of
+  # expected margin.
+  elo_points_per_rating_point: 25.0
+
+  # How the two ratings are blended into one prediction. Adjusted efficiency
+  # is the stronger signal and carries more weight; Elo contributes recency,
+  # since it moves game to game while a season rating does not.
+  efficiency_model_weight: 0.6
+  elo_model_weight: 0.4
+
+  # Points-to-probability scale for college basketball. A 5.5-point favourite
+  # wins roughly 73% of the time.
+  spread_to_probability_scale: 5.5
+
+  # Monte Carlo runs behind the tournament odds. 20,000 puts the standard
+  # error on a championship probability near a tenth of a point.
+  tournament_simulations: 20000

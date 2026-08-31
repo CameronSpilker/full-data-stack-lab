@@ -3,9 +3,9 @@
 A living analytics engineering project demonstrating the full pipeline, raw
 data to dashboard. Built to evolve.
 
-It tracks the health and growth of the open-source analytics ecosystem using
-public GitHub and PyPI data — the tools this project is built with, measured
-with this project.
+It tracks every NCAA Division I men's basketball team through the season and
+simulates the tournament at the end of it — and then reports how well its own
+predictions did, which is the part most bracket models leave out.
 
 **Cameron Spilker** · [cameronspilker.com](https://cameronspilker.com) ·
 [cameron.spilker@outlook.com](mailto:cameron.spilker@outlook.com) ·
@@ -18,8 +18,8 @@ with this project.
 ```mermaid
 flowchart LR
     subgraph sources[Public APIs]
-        gh[GitHub REST API]
-        pypi[pypistats API]
+        cbd[collegebasketballdata.com<br/>games · box scores · lines]
+        torvik[Barttorvik T-Rank<br/>adjusted efficiency]
     end
 
     subgraph ingest[ingestion/]
@@ -38,8 +38,8 @@ flowchart LR
         evidence[Evidence.dev]
     end
 
-    gh --> extract
-    pypi --> extract
+    cbd --> extract
+    torvik --> extract
     extract --> parquet
     extract --> raw
     raw --> stg --> int --> marts
@@ -51,7 +51,7 @@ flowchart LR
 
 | Layer         | Tool          | Why                                                                       |
 | ------------- | ------------- | ------------------------------------------------------------------------- |
-| Ingestion     | Python + httpx | Two APIs and a handful of endpoints; a connector platform would be scaffolding around a 200-line problem. |
+| Ingestion     | Python + httpx | Two APIs and a handful of endpoints; a connector platform would be scaffolding around a 400-line problem. |
 | Storage       | DuckDB        | Free, runs anywhere, read natively by Evidence, and small enough that a cloud warehouse would buy nothing but a logo. |
 | Transformation | dbt Core     | Layered models, tests at every boundary, and metrics defined in code.     |
 | Orchestration | Dagster       | Asset-oriented scheduling maps onto the dbt DAG, so lineage is one graph rather than two systems that must agree. |
@@ -62,12 +62,12 @@ flowchart LR
 
 ```
 full-data-stack-lab/
-├── ingestion/        # Python extractors for GitHub and PyPI
-│   ├── tools.yml     # The tool registry — the one place tools are added
+├── ingestion/        # Python extractors
+│   ├── seasons.yml   # The season registry — the one place seasons are added
 │   └── src/ingestion/
 ├── transform/        # dbt project: staging → intermediate → marts
 │   ├── models/
-│   ├── seeds/
+│   ├── seeds/        # The team-name crosswalk
 │   └── tests/        # Custom data-quality tests
 ├── orchestration/    # Dagster assets, jobs, schedules, sensor
 ├── dashboard/        # Evidence.dev project
@@ -79,18 +79,19 @@ full-data-stack-lab/
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -e "ingestion[dev]" dbt-duckdb
+pip install -e "ingestion[dev]" -r transform/requirements.txt
 pip install -e orchestration          # optional: for Dagster
 
-cp .env.example .env                  # optional: add a GITHUB_TOKEN
+cp .env.example .env                  # add CBD_API_KEY for live data
 
-# Populate the raw layer. `demo` fabricates deterministic synthetic history so
-# this works with no network and no API budget; `all` hits the real APIs.
+# Populate the raw layer. `demo` simulates whole seasons — invented teams,
+# invented results — so this works with no network and no API key.
+# `all` hits the real APIs.
 ingest demo
 
 cd transform
 export DBT_PROFILES_DIR=$PWD DUCKDB_PATH=../data/warehouse.duckdb
-dbt deps && dbt build                 # 6 models, 1 seed, 87 checks
+dbt deps && dbt build                 # 17 models, 1 seed, 136 checks
 dbt docs generate && dbt docs serve
 ```
 
@@ -111,61 +112,104 @@ dagster dev -m full_data_stack_lab.definitions
 
 ## The data model
 
-**Staging** — one model per source table, renamed and typed, nothing more.
-`stg_github__releases` and `stg_pypi__downloads` also deduplicate: both
-endpoints re-report the same history on every run.
+**Staging** — one model per source table, renamed and typed. `stg_ncaa__games`
+also parses the postseason round out of the free-text note the source puts it
+in, because every downstream model needs it and the wording has changed between
+seasons.
 
-**Intermediate** — `int_repos_weekly` and `int_packages_weekly` roll snapshots
-up to weeks and compute the week-over-week deltas every mart needs, so the
-delta logic is written once.
+**Intermediate** — `int_team_games` turns each game into two rows, one per
+team, which is the shape every aggregate wants. `int_team_season_form` computes
+record, splits, and a strength of schedule. `int_team_elo` computes Elo.
+`int_team_prediction_inputs` gathers everything a prediction needs into one row
+per team. `int_game_predictions` scores every completed game with every model.
 
-**Marts** — `mart_ecosystem_growth` (the growth series), `mart_tool_comparison`
-(head-to-head standing per category), `mart_release_cadence` (how actively each
-tool ships), `mart_contributor_health` (community signals).
+**Marts** — `mart_team_season` (the team scoreboard), `mart_game_results` (the
+game log), `mart_elo_timeline` (ratings over time), `mart_conference_strength`,
+`mart_matchup_odds` (every possible pairing, priced), `mart_bracket` (a
+projected 64-team field), `mart_tournament_odds` (the simulation), and
+`mart_model_accuracy` / `mart_model_calibration` (the backtest).
 
-**Semantic layer** — metrics like `weekly_star_growth_rate`,
-`download_momentum`, and `stars_per_contributor` are defined in
+**Semantic layer** — metrics like `average_efficiency_margin`,
+`prediction_accuracy`, and `brier_score` are defined in
 `models/marts/_semantic_models.yml`, so every consumer computes them the same
 way instead of each dashboard rolling its own.
 
 ## Design decisions worth knowing
 
-**GitHub reports state, not history.** The API returns current star counts with
-no time series, so history is built by appending one dated snapshot per run.
-That makes the ingestion schedule part of the data model: a missed week is a
-missing row, not a gap that can be backfilled later.
+**Two sources, chosen for different reasons.** ESPN's undocumented API was the
+first implementation and was replaced: collegebasketballdata.com publishes an
+OpenAPI spec, serves a season per request instead of a scoreboard walked one
+date at a time, and carries betting lines. Sportradar has better data than
+either, and was rejected — a trial key allows ~1,000 requests a month against a
+five-season backfill, and its licence restricts redistributing data that this
+repo commits to a public warehouse.
 
-**PyPI is the opposite.** pypistats returns a trailing 180-day window on every
-call, so the same day arrives many times. The staging layer keeps the most
-recent observation of each day and the intermediate layer flags partial weeks
-rather than dropping them, so a chart can exclude them without losing the row.
+**The betting line is the benchmark.** "The model went 71% straight up" mostly
+measures whether favourites won. "The model beat the closing spread" is a
+claim. The market consensus is loaded as a first-class model in
+`int_game_predictions` and scored alongside the others.
 
-**Contributor counts are a floor.** GitHub's paginated contributor list caps at
-500. Rather than quietly reporting a wrong number, `is_count_capped` travels
-all the way to the dashboard.
+**Some models are not allowed to claim they forecast.** Barttorvik publishes a
+rating that describes a whole season. Scoring a January game with it means
+using March information, and the resulting accuracy is meaningless as a
+forecast. Rather than hide that model or pretend, every prediction carries an
+`is_point_in_time` flag, and the dashboard separates on it. Elo is honest by
+construction: its pregame rating was built only from games already played.
 
-**Stars can fall, but not far.** A custom test fails the run if any tool's star
-count drops more than 10% week over week — real ecosystems don't move like
-that, so it is far likelier to be a bad extract, and it should never reach a
-dashboard.
+**Elo is the one model written in Python.** Everything else is SQL and should
+be. Elo is irreducibly sequential — a team's rating depends on the result of
+its previous game, for both teams — which in SQL is a recursive CTE tens of
+thousands of levels deep. A loop is the honest shape of that computation.
+
+**The tournament is simulated, not solved.** A team's chance of reaching the
+Final Four depends on who else wins, which has no closed form. So the bracket
+is played 20,000 times. Every probability it draws on comes from
+`mart_matchup_odds`, built in SQL from a shared macro, so the bracket page and
+the head-to-head numbers cannot disagree about the same game.
+
+**Two sources that share no key.** ESPN-style team ids and Barttorvik's school
+names have nothing in common but the name, spelled differently. A macro
+normalises the mechanical differences — punctuation, ampersands, Saint against
+St. — and a seed holds the genuine editorial ones. A custom test fails the
+build naming every rating row that matched no team, which is how the crosswalk
+gets filled in rather than silently dropping teams from the model.
+
+**Blowouts are capped.** A 40-point win says little more about team quality
+than a 20-point win, so the strength-of-schedule maths uses a margin clamped to
+±20 while the real margin stays available. Elo does the same thing differently,
+with a concave margin-of-victory multiplier.
 
 **The DuckDB file is committed — once it is real.** It holds only public data
-and no credentials, so the weekly pipeline commits the warehouse it builds and
+and no credentials, so the daily pipeline commits the warehouse it builds and
 the dashboard can then build from a clean checkout. Local builds are ignored by
 git, because until the pipeline runs against the live APIs the file holds
 synthetic `ingest demo` output, and fabricated numbers should never land in a
 repository that is itself the portfolio piece.
 
+## Synthetic data
+
+`ingest demo` does not generate random numbers. It simulates seasons: every
+team has a latent offensive and defensive strength, games are scored from those
+strengths over a possession estimate, and the published ratings are those
+strengths observed with noise. That matters because the marts backtest a
+predictor — if scores and ratings were drawn independently, the model would
+score no better than chance and a real modelling regression would be
+indistinguishable from the fixture.
+
+The teams are invented on purpose. Fabricated tournament odds attached to real
+school names are the kind of thing that gets screenshotted and believed, so
+nothing in the synthetic data shares a name with a real program.
+
 ## Secrets
 
 `.env` is gitignored from the first commit; `.env.example` lists every variable
-with no values. `GITHUB_TOKEN` is optional — it only raises the rate limit from
-60 to 5,000 requests per hour, and needs no scopes because this project reads
-public data. In CI it lives in GitHub Actions secrets and nowhere else.
+with no values. `CBD_API_KEY` is free and required only for live extracts — the
+whole pipeline runs without it via `ingest demo`. In CI it lives in GitHub
+Actions secrets and nowhere else.
 
 ## Status
 
 Foundation complete: ingestion, the full dbt project with tests and metrics,
-the Dagster asset graph, the Evidence dashboard, and CI all run end to end.
-Live API data, deployment, and hosted dbt docs are the next steps — see
-`ROADMAP.md`.
+the Dagster asset graph, the Evidence dashboard, and CI all run end to end on
+simulated seasons. Live API data, deployment, and hosted dbt docs are the next
+steps — see `ROADMAP.md`.

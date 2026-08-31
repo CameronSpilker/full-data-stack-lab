@@ -1,0 +1,8 @@
+# The transformation layer's dependencies.
+#
+# pandas and numpy are here rather than in `ingestion` because they are not
+# used by the extractors at all: they are needed by the two dbt Python models,
+# `int_team_elo` and `mart_tournament_odds`, which dbt executes in-process.
+dbt-duckdb>=1.9
+pandas>=2.0
+numpy>=1.26

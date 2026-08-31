@@ -1,0 +1,22 @@
+select
+    team_id,
+    season,
+    team_name,
+    conference_name,
+    seed,
+    region_name,
+    overall_seed,
+    bid_type,
+    record,
+    adjusted_efficiency_margin,
+    elo_rating,
+    national_rank,
+    reached_round_of_32,
+    reached_sweet_16,
+    reached_elite_eight,
+    reached_final_four,
+    reached_championship_game,
+    won_championship,
+    expected_wins,
+    simulations
+from marts.mart_tournament_odds

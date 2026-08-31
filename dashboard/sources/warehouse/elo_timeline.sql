@@ -1,0 +1,20 @@
+select
+    team_game_id,
+    season,
+    team_id,
+    team_name,
+    game_id,
+    game_date,
+    game_number,
+    game_type,
+    opponent_name,
+    is_home,
+    is_neutral_site,
+    is_win,
+    margin,
+    elo_before,
+    elo_after,
+    elo_change,
+    pregame_win_probability,
+    was_upset_win
+from marts.mart_elo_timeline

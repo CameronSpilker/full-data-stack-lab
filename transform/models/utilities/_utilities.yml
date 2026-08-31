@@ -3,11 +3,13 @@ version: 2
 models:
   - name: all_days
     description: >
-      One row per calendar day. Registered as the semantic layer's time spine
-      so metrics can be aggregated to any granularity.
+      One row per calendar day, 2000 through 2039. Required by MetricFlow as
+      the project's time spine; useful anywhere a query needs to show days on
+      which nothing was played.
     time_spine:
       standard_granularity_column: date_day
     columns:
       - name: date_day
+        description: The day, at day granularity.
         granularity: day
-        data_tests: [unique, not_null]
+        data_tests: [not_null, unique]

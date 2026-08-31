@@ -1,7 +1,7 @@
 [project]
 name = "ingestion"
 version = "0.1.0"
-description = "GitHub and PyPI extractors for the full data stack lab"
+description = "ESPN and Barttorvik extractors for the full data stack lab"
 requires-python = ">=3.11"
 dependencies = [
     "duckdb>=1.1",

@@ -25,9 +25,12 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 SOURCES_DIR = REPO_ROOT / "dashboard" / "sources" / "warehouse"
 PAGES_DIR = REPO_ROOT / "dashboard" / "pages"
 
-# Evidence interpolates params and inputs at render time. Substitute a real
-# value so the query parses and returns rows.
-PLACEHOLDER = "orchestration"
+# Evidence interpolates params and inputs at render time. Substituting a real
+# id rather than a dummy means a templated page's queries are checked against
+# rows that actually exist, so a broken filter fails here instead of rendering
+# an empty page.
+PLACEHOLDER_QUERY = "select team_id from marts.mart_team_season limit 1"
+FALLBACK_PLACEHOLDER = "1001"
 
 
 def main() -> int:
@@ -39,6 +42,11 @@ def main() -> int:
     con = duckdb.connect(str(warehouse), read_only=True)
     sources: dict[str, str] = {}
     failures: list[str] = []
+
+    try:
+        placeholder = str(con.execute(PLACEHOLDER_QUERY).fetchone()[0])
+    except (duckdb.Error, TypeError):
+        placeholder = FALLBACK_PLACEHOLDER
 
     for path in sorted(SOURCES_DIR.glob("*.sql")):
         sql = path.read_text()
@@ -53,7 +61,7 @@ def main() -> int:
     for page in sorted(PAGES_DIR.rglob("*.md")):
         rel = page.relative_to(REPO_ROOT)
         for name, block in re.findall(r"```sql (\w+)\n(.*?)```", page.read_text(), re.DOTALL):
-            probe = re.sub(r"\$\{[^}]+\}", PLACEHOLDER, block)
+            probe = re.sub(r"\$\{[^}]+\}", placeholder, block)
             for source_name, source_sql in sources.items():
                 probe = re.sub(
                     rf"(?<=\b(?:from|join)\s){source_name}\b", f"({source_sql})", probe

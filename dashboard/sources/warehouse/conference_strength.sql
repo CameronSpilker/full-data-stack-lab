@@ -1,0 +1,19 @@
+select
+    conference_season_id,
+    season,
+    conference_name,
+    team_count,
+    avg_efficiency_margin,
+    median_efficiency_margin,
+    best_efficiency_margin,
+    best_team,
+    avg_elo,
+    avg_tempo,
+    teams_in_top_25,
+    teams_in_top_50,
+    ncaa_bids,
+    ncaa_tournament_wins,
+    wins_per_bid,
+    conference_rank,
+    won_championship
+from marts.mart_conference_strength

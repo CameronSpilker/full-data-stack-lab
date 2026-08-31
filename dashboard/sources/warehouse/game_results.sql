@@ -1,0 +1,26 @@
+select
+    game_id,
+    season,
+    game_date,
+    game_type,
+    tournament_round,
+    is_neutral_site,
+    is_conference_game,
+    is_completed,
+    home_team_id,
+    home_team_name,
+    home_conference,
+    home_score,
+    away_team_id,
+    away_team_name,
+    away_conference,
+    away_score,
+    home_margin,
+    total_points,
+    winning_team_id,
+    elo_home_win_probability,
+    consensus_home_spread,
+    home_cover_margin,
+    was_upset
+from marts.mart_game_results
+where is_completed

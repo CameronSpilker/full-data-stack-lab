@@ -1,87 +1,176 @@
 version: 2
 
 models:
-  - name: mart_ecosystem_growth
+  - name: mart_team_season
     description: >
-      Star, fork, contributor, and download trends per tool per week. The
-      primary series behind the Overview and Tool Deep Dive pages.
+      One row per team per season: record, splits, efficiency, four factors,
+      Elo, schedule strength, and national and conference ranks on each. The
+      table the dashboard's team pages are built from.
     columns:
-      - name: ecosystem_growth_id
-        data_tests: [unique, not_null]
-      - name: tool_name
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('tool_registry')
-                field: tool_name
-      - name: category
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: [transformation, orchestration, ingestion, storage, bi]
-      - name: week_start
+      - name: team_season_id
+        data_tests: [not_null, unique]
+      - name: team_id
         data_tests: [not_null]
-      - name: stars
+      - name: season
         data_tests: [not_null]
-
-  - name: mart_tool_comparison
-    description: >
-      Head-to-head standing within each category as of the latest week, with
-      12-week trailing averages to smooth weekly noise.
-    columns:
-      - name: tool_comparison_id
-        data_tests: [unique, not_null]
-      - name: category
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: [transformation, orchestration, ingestion, storage, bi]
-      - name: category_rank_by_stars
+      - name: national_rank
         data_tests: [not_null]
-
-  - name: mart_release_cadence
-    description: >
-      Release frequency per tool. Tools with no published GitHub releases are
-      kept with a zero count rather than dropped.
-    columns:
-      - name: release_cadence_id
-        data_tests: [unique, not_null]
-      - name: tool_name
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('tool_registry')
-                field: tool_name
-      - name: release_count
-        data_tests:
-          - not_null
-          - dbt_utils.accepted_range:
-              arguments:
-                min_value: 0
-                inclusive: true
-
-  - name: mart_contributor_health
-    description: >
-      Community health signals per tool: contributor movement, issue load
-      relative to project size, and recent release activity.
-    columns:
-      - name: contributor_health_id
-        data_tests: [unique, not_null]
-      - name: tool_name
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('tool_registry')
-                field: tool_name
-      - name: share_of_weeks_growing
+      - name: win_pct
         data_tests:
           - dbt_utils.accepted_range:
               arguments:
                 min_value: 0
                 max_value: 1
-                inclusive: true
+      - name: adjusted_efficiency_margin
+        description: >
+          Adjusted points scored minus adjusted points allowed, per 100
+          possessions. The single best summary of team quality here.
+      - name: made_ncaa_tournament
+        description: Whether the team actually played an NCAA tournament game that season.
+
+  - name: mart_game_results
+    description: >
+      The browsable game log, one row per game, enriched with what Elo and the
+      betting market thought before tip-off.
+    columns:
+      - name: game_id
+        data_tests: [not_null, unique]
+      - name: season
+        data_tests: [not_null]
+      - name: home_cover_margin
+        description: >
+          Home margin plus the closing spread. Positive means the home team
+          covered. Null when no line was published.
+
+  - name: mart_elo_timeline
+    description: >
+      Elo after every game, for charting a season as it happened rather than
+      as it finished.
+    columns:
+      - name: team_game_id
+        data_tests: [not_null, unique]
+      - name: elo_after
+        data_tests: [not_null]
+
+  - name: mart_conference_strength
+    description: >
+      Conference standing per season, measured on depth rather than on the
+      best team in the league.
+    columns:
+      - name: conference_season_id
+        data_tests: [not_null, unique]
+      - name: median_efficiency_margin
+        description: >
+          The median team's rating. A fairer measure of a league than the mean,
+          which one outstanding team can carry on its own.
+
+  - name: mart_matchup_odds
+    description: >
+      Every possible matchup in the current season, priced at a neutral site
+      and at home. The tournament simulation draws its probabilities from here,
+      so the bracket and any head-to-head view cannot disagree.
+    columns:
+      - name: matchup_id
+        data_tests: [not_null, unique]
+      - name: win_probability_neutral
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+
+  - name: mart_bracket
+    description: >
+      A projected 64-team field: automatic bids to conference tournament
+      champions, at-large places to the best remaining teams, seeded S-curve
+      across four regions. Replaced by the official bracket once it exists.
+    columns:
+      - name: bracket_slot_id
+        data_tests: [not_null, unique]
+      - name: team_id
+        data_tests: [not_null, unique]
+      - name: seed
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 16
+      - name: region_name
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['East', 'West', 'South', 'Midwest']
+      - name: bid_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['automatic', 'at large']
+
+  - name: mart_tournament_odds
+    description: >
+      Each team's probability of reaching each round, from 20,000 simulated
+      tournaments. The dashboard's centrepiece.
+    config:
+      # Sourced from the project var so the simulation count lives in one
+      # place; dbt's Python models read model config rather than vars directly.
+      simulations: "{{ var('tournament_simulations') }}"
+    columns:
+      - name: team_id
+        data_tests: [not_null, unique]
+      - name: won_championship
+        description: Share of simulations this team won the title.
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: expected_wins
+        description: >
+          Expected number of tournament games won — the sum of the per-round
+          survival probabilities. Ranks a field better than title odds alone,
+          which are dominated by the top few teams.
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 6
+
+  - name: mart_model_accuracy
+    description: >
+      How well each model predicted, by season and game type, with proper
+      scoring rules alongside raw accuracy.
+
+      Read `is_point_in_time` first. A false there means the model was allowed
+      to see the season it is predicting, and its numbers are not a forecast.
+    columns:
+      - name: model_season_id
+        data_tests: [not_null, unique]
+      - name: log_loss
+        description: Average surprise in nats. A coin flip scores 0.693; lower is better.
+        data_tests: [not_null]
+      - name: brier_score
+        description: Mean squared error on the probability. A coin flip scores 0.25.
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: is_point_in_time
+        data_tests: [not_null]
+
+  - name: mart_model_calibration
+    description: >
+      Reliability by probability bucket: when a model says 70%, how often does
+      it happen? The chart that decides whether the bracket odds can be trusted.
+    columns:
+      - name: calibration_bucket_id
+        data_tests: [not_null, unique]
+      - name: observed_win_rate
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1

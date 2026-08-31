@@ -24,7 +24,7 @@ jobs:
 
       - name: Install
         run: |
-          pip install -e "ingestion[dev]" dbt-duckdb
+          pip install -e "ingestion[dev]" -r transform/requirements.txt
 
       - name: Lint
         run: ruff check ingestion orchestration scripts
@@ -36,10 +36,10 @@ jobs:
         working-directory: transform
         run: dbt deps
 
-      # The real extractors need network access and an API budget, so CI runs
-      # against deterministic synthetic data. It exercises every model and
-      # test; only the numbers are fabricated.
-      - name: Seed synthetic raw data
+      # The live extractors need an API key and a network. CI runs against
+      # deterministic synthetic seasons instead: every model, every test, and
+      # every dashboard query is exercised — only the results are invented.
+      - name: Simulate synthetic seasons
         run: ingest demo
 
       - name: dbt build
@@ -67,7 +67,7 @@ jobs:
 
       - name: Install
         run: |
-          pip install -e ingestion
+          pip install -e ingestion -r transform/requirements.txt
           pip install -e orchestration
 
       - name: Build the dbt manifest the code location reads at import
@@ -100,12 +100,15 @@ jobs:
 
       - name: Build the warehouse the dashboard reads
         run: |
-          pip install -e ingestion dbt-duckdb
+          pip install -e ingestion -r transform/requirements.txt
           ingest demo
           cd transform
           dbt deps
           DUCKDB_PATH=../data/warehouse.duckdb dbt build --target ci
 
+      # Evidence resolves its SQL at build time, so a renamed mart column is a
+      # broken dashboard rather than a failed dbt run. This closes that gap
+      # before the much slower Evidence build runs.
       - name: Validate every dashboard query against the warehouse
         run: python scripts/validate_dashboard_queries.py
 

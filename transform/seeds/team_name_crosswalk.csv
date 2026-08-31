@@ -1,0 +1,13 @@
+rating_team_name,espn_team_location,note
+Connecticut,UConn,ESPN uses the nickname as the school name
+Miami FL,Miami,ESPN drops the state qualifier
+Miami OH,Miami (OH),Different bracket convention for the state qualifier
+Charleston,College of Charleston,ESPN uses the full legal name
+Texas A&M Corpus Chris,Texas A&M-Corpus Christi,Barttorvik truncates long names
+Southern Miss,Southern Mississippi,Abbreviation
+Kansas City,UMKC,The school rebranded and the sources disagree on when
+LIU,Long Island University,Abbreviation
+UT Rio Grande Valley,UTRGV,Abbreviation
+Loyola Chicago,Loyola (IL),Different disambiguation convention
+Saint Francis,St. Francis (PA),Different disambiguation convention
+Grambling St.,Grambling,ESPN drops the State suffix

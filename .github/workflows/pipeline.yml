@@ -1,16 +1,21 @@
-name: Weekly pipeline
+name: Daily pipeline
 
 on:
   schedule:
-    # Mondays at 07:00 America/Denver (13:00 UTC).
-    - cron: "0 13 * * 1"
+    # 06:00 America/Denver (13:00 UTC) — after the last west coast final and
+    # before anyone looks at the dashboard.
+    - cron: "0 13 * * *"
   workflow_dispatch:
+    inputs:
+      backfill:
+        description: "Extract every season in seasons.yml, not just the current one"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
 
 env:
-  # Absolute, because the transform steps run with working-directory: transform.
   DBT_PROFILES_DIR: ${{ github.workspace }}/transform
 
 jobs:
@@ -25,14 +30,21 @@ jobs:
           cache: pip
 
       - name: Install
-        run: pip install -e ingestion dbt-duckdb
+        run: pip install -e ingestion -r transform/requirements.txt
 
+      # Only the season in progress is refreshed on a schedule. Past seasons
+      # are finished, and re-pulling them nightly would spend the API budget
+      # rewriting rows that cannot change. `backfill` overrides that.
       - name: Ingest
         env:
-          # Optional, but raises the GitHub rate limit from 60 to 5,000/hour.
-          GITHUB_TOKEN: ${{ secrets.INGEST_GITHUB_TOKEN }}
+          CBD_API_KEY: ${{ secrets.CBD_API_KEY }}
           DUCKDB_PATH: data/warehouse.duckdb
-        run: ingest all
+        run: |
+          if [ "${{ inputs.backfill }}" = "true" ]; then
+            ingest all
+          else
+            ingest all --current-only
+          fi
 
       - name: Transform
         working-directory: transform

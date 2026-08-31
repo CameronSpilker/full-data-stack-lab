@@ -1,10 +1,10 @@
-"""Shared configuration: the tool registry and environment-driven paths."""
+"""Shared configuration: the season registry and environment-driven paths."""
 
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import yaml
@@ -15,30 +15,69 @@ load_dotenv()
 # .../<repo>/ingestion/src/ingestion/config.py
 _PKG = Path(__file__).resolve()
 REPO_ROOT = _PKG.parents[3]
-TOOLS_FILE = _PKG.parents[2] / "tools.yml"
+SEASONS_FILE = _PKG.parents[2] / "seasons.yml"
+
+# ESPN groups Division I men's basketball under group 50. Without it the
+# scoreboard also returns D2, D3, and exhibition games against non-D1 opponents.
+D1_GROUP = "50"
 
 
 @dataclass(frozen=True)
-class Tool:
-    name: str
-    repo: str
-    pypi: str | None
-    category: str
+class Season:
+    """One season, labelled by the calendar year it ends in."""
+
+    year: int
+    start: date
+    end: date
 
     @property
-    def owner(self) -> str:
-        return self.repo.split("/", 1)[0]
+    def label(self) -> str:
+        """Human-readable form: 2026 -> '2025-26'."""
+        return f"{self.year - 1}-{str(self.year)[2:]}"
 
-    @property
-    def repo_name(self) -> str:
-        return self.repo.split("/", 1)[1]
+    def dates(self) -> list[date]:
+        """Every date in the season, oldest first. One scoreboard call each."""
+        span = (self.end - self.start).days
+        return [self.start + timedelta(days=offset) for offset in range(span + 1)]
+
+    def contains(self, day: date) -> bool:
+        return self.start <= day <= self.end
 
 
-def load_tools(path: Path | None = None) -> list[Tool]:
-    """Read the tool registry from tools.yml."""
-    source = path or TOOLS_FILE
-    payload = yaml.safe_load(source.read_text())
-    return [Tool(**entry) for entry in payload["tools"]]
+def _default_bounds(year: int) -> tuple[date, date]:
+    """November 1 of the prior year through April 15 of the season year.
+
+    Wide enough to cover the exhibition-adjacent opening week and the Monday
+    of the national championship without needing a per-season calendar.
+    """
+    return date(year - 1, 11, 1), date(year, 4, 15)
+
+
+def load_seasons(path: Path | None = None) -> list[Season]:
+    """Read the season registry from seasons.yml."""
+    payload = yaml.safe_load((path or SEASONS_FILE).read_text())
+    seasons = []
+    for entry in payload["seasons"]:
+        year = int(entry["year"])
+        start, end = _default_bounds(year)
+        seasons.append(
+            Season(
+                year=year,
+                start=entry.get("start") or start,
+                end=entry.get("end") or end,
+            )
+        )
+    return sorted(seasons, key=lambda season: season.year)
+
+
+def current_season(path: Path | None = None) -> Season:
+    """The season the ratings and the bracket describe."""
+    payload = yaml.safe_load((path or SEASONS_FILE).read_text())
+    year = int(payload["current_season"])
+    for season in load_seasons(path):
+        if season.year == year:
+            return season
+    raise ValueError(f"current_season {year} is not in the seasons list")
 
 
 def _resolve(value: str) -> Path:
@@ -58,9 +97,14 @@ def duckdb_path() -> Path:
     return path
 
 
-def github_token() -> str | None:
-    """Optional. Without it the GitHub API allows 60 requests/hour."""
-    return os.getenv("GITHUB_TOKEN") or None
+def request_delay() -> float:
+    """Seconds to pause between API calls.
+
+    Neither source publishes a rate limit, so this is politeness rather than
+    compliance: a full backfill is thousands of requests against free
+    endpoints that owe this project nothing.
+    """
+    return float(os.getenv("REQUEST_DELAY_SECONDS", "0.4"))
 
 
 def utc_today() -> date:
