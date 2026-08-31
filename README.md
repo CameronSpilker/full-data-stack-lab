@@ -91,7 +91,7 @@ ingest demo
 
 cd transform
 export DBT_PROFILES_DIR=$PWD DUCKDB_PATH=../data/warehouse.duckdb
-dbt deps && dbt build                 # 17 models, 1 seed, 136 checks
+dbt deps && dbt build                 # 22 models, 1 seed, 113 tests
 dbt docs generate && dbt docs serve
 ```
 

@@ -8,7 +8,7 @@ not by calendar week — the ordering matters more than the dates.
 - Ingestion for collegebasketballdata.com (teams, games, box scores, betting
   lines) and Barttorvik T-Rank, with retries, rate limiting, and error isolation
 - Parquet landing zone and idempotent, partition-aware DuckDB loads
-- dbt project: staging → intermediate → marts, 136 passing checks
+- dbt project: staging → intermediate → marts: 22 models, 113 passing tests
 - Elo computed sequentially as a dbt Python model
 - Strength of schedule solved iteratively in SQL, as an independent control on
   the published ratings
