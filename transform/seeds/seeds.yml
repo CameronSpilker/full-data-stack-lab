@@ -1,34 +1,22 @@
 version: 2
 
 seeds:
-  - name: tool_registry
+  - name: team_name_crosswalk
     description: >
-      The canonical list of tools this project tracks, generated from
-      ingestion/tools.yml. Gives every downstream model a stable dimension to
-      join category metadata from.
-    config:
-      column_types:
-        tool_name: varchar
-        repo_full_name: varchar
-        package_name: varchar
-        category: varchar
+      Editorial name differences between Barttorvik's ratings and ESPN's team
+      dimension that normalisation cannot resolve mechanically. Only genuine
+      exceptions belong here — punctuation, ampersands, and Saint/St. are
+      handled by the `normalize_team_name` macro.
+
+      This list is a STARTING POINT written before the first live extract.
+      `assert_every_rating_matches_a_team` fails the build with the exact names
+      that did not join, which is how the real list gets filled in.
     columns:
-      - name: tool_name
-        description: Short slug used as the join key everywhere downstream.
-        data_tests:
-          - unique
-          - not_null
-      - name: repo_full_name
-        description: GitHub owner/repo.
-        data_tests:
-          - unique
-          - not_null
-      - name: package_name
-        description: PyPI package name; empty for tools that publish no package.
-      - name: category
-        description: Bucket used for head-to-head comparisons.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: [transformation, orchestration, ingestion, storage, bi]
+      - name: rating_team_name
+        description: The name exactly as Barttorvik publishes it.
+        data_tests: [not_null, unique]
+      - name: espn_team_location
+        description: The `location` field on the matching ESPN team.
+        data_tests: [not_null]
+      - name: note
+        description: Why the two disagree. Written for the next person.

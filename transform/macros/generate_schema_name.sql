@@ -1,22 +1,15 @@
 {#
-    Use custom schemas literally instead of prefixing them with the target
-    schema. dbt's default would name the marts `main_marts`; this makes them
-    `marts`, so the warehouse reads as raw / staging / intermediate / marts
-    and the Evidence queries reference the names the README documents.
-
-    This is safe here because the warehouse is a single-developer DuckDB file.
-    On a shared warehouse the default prefixing is what keeps two people from
-    building over each other, and this macro should not be copied across.
+    Write every model to the schema its folder declares, rather than dbt's
+    default of prefixing the target schema. The warehouse is a local DuckDB
+    file with one consumer, so `marts.mart_team_season` reads better than
+    `main_marts.mart_team_season` — and the Evidence queries are written
+    against these names.
 #}
 
 {% macro generate_schema_name(custom_schema_name, node) -%}
-
-    {%- set default_schema = target.schema -%}
-
     {%- if custom_schema_name is none -%}
-        {{ default_schema }}
+        {{ target.schema }}
     {%- else -%}
         {{ custom_schema_name | trim }}
     {%- endif -%}
-
 {%- endmacro %}

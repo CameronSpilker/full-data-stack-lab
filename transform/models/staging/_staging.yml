@@ -1,76 +1,116 @@
 version: 2
 
 models:
-  - name: stg_github__repos
-    description: One cleaned row per tool per snapshot date.
+  - name: stg_ncaa__teams
+    description: >
+      The Division I team dimension, reduced to the most recent snapshot.
+      One row per team.
     columns:
-      - name: repo_snapshot_id
-        description: Surrogate key on (tool_name, snapshot_date).
-        data_tests: [unique, not_null]
-      - name: tool_name
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('tool_registry')
-                field: tool_name
-      - name: snapshot_date
+      - name: team_id
+        description: The source's team id. Stable across seasons, and the join key everywhere.
+        data_tests: [not_null, unique]
+      - name: team_match_key
+        description: >
+          The team's name normalised for joining against sources that share no
+          id with this one — currently Barttorvik. Not unique by construction:
+          two schools can normalise to the same key, which is what the
+          crosswalk seed exists to resolve.
         data_tests: [not_null]
-      - name: stars
+      - name: conference_name
+        description: The conference the team played in as of the latest snapshot.
+
+  - name: stg_ncaa__games
+    description: >
+      One row per game, typed, with the postseason round parsed out of the
+      source's free-text note.
+    columns:
+      - name: game_id
+        data_tests: [not_null, unique]
+      - name: season
+        description: The calendar year the season ends in. 2026 is the 2025-26 season.
+        data_tests: [not_null]
+      - name: game_type
         data_tests:
-          - not_null
+          - accepted_values:
+              arguments:
+                  values:
+                    ['regular_season', 'conference_tournament', 'ncaa_tournament', 'other_postseason']
+      - name: tournament_round
+        description: Populated only for NCAA tournament games.
+        data_tests:
+          - accepted_values:
+              arguments:
+                  values:
+                    ['First Four', 'First Round', 'Second Round', 'Sweet 16',
+                     'Elite Eight', 'Final Four', 'National Championship']
+      - name: home_team_id
+        data_tests: [not_null]
+      - name: away_team_id
+        data_tests: [not_null]
+      - name: home_score
+        description: Null until the game is played.
+      - name: home_margin
+        description: Home score minus away score. Negative means the home team lost.
+
+  - name: stg_ncaa__betting_lines
+    description: One row per game per sportsbook. Spreads are from the home team's perspective.
+    columns:
+      - name: game_id
+        data_tests: [not_null]
+      - name: provider
+        data_tests: [not_null]
+      - name: home_spread
+        description: Negative means the home team is favoured.
+        data_tests: [not_null]
+
+  - name: stg_torvik__ratings
+    description: >
+      Barttorvik T-Rank adjusted efficiency, reduced to the latest snapshot
+      per team per season.
+    columns:
+      - name: season
+        data_tests: [not_null]
+      - name: team_match_key
+        data_tests: [not_null]
+      - name: adjusted_offensive_efficiency
+        description: Points scored per 100 possessions, adjusted for opponent and site.
+        data_tests:
           - dbt_utils.accepted_range:
               arguments:
-                min_value: 0
-                inclusive: true
-      - name: forks
-        data_tests: [not_null]
-
-  - name: stg_github__contributors
-    description: Contributor counts per tool per snapshot date.
-    columns:
-      - name: contributor_snapshot_id
-        data_tests: [unique, not_null]
-      - name: tool_name
+                  min_value: 70
+                  max_value: 145
+              config:
+                  severity: warn
+      - name: adjusted_defensive_efficiency
+        description: Points allowed per 100 possessions, adjusted. Lower is better.
         data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('tool_registry')
-                field: tool_name
-      - name: contributor_count
-        data_tests: [not_null]
-      - name: is_count_capped
-        description: True when GitHub's 500-contributor page cap was hit.
-
-  - name: stg_github__releases
-    description: Deduplicated release history, one row per tool per tag.
-    columns:
-      - name: release_id
-        data_tests: [unique, not_null]
-      - name: tool_name
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('tool_registry')
-                field: tool_name
-      - name: published_at
-        data_tests: [not_null]
-
-  - name: stg_pypi__downloads
-    description: Deduplicated daily download counts, mirrors excluded.
-    columns:
-      - name: download_id
-        data_tests: [unique, not_null]
-      - name: package_name
-        data_tests: [not_null]
-      - name: download_date
-        data_tests: [not_null]
-      - name: downloads
-        data_tests:
-          - not_null
           - dbt_utils.accepted_range:
               arguments:
-                min_value: 0
-                inclusive: true
+                  min_value: 70
+                  max_value: 145
+              config:
+                  severity: warn
+      - name: adjusted_tempo
+        description: Possessions per team per 40 minutes.
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: 50
+                  max_value: 90
+              config:
+                  severity: warn
+
+  - name: stg_ncaa__team_box
+    description: Team box score lines with the shooting and possession rates derived.
+    columns:
+      - name: game_id
+        data_tests: [not_null]
+      - name: effective_fg_pct
+        description: Field goal percentage weighting threes at 1.5 twos.
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: 0
+                  max_value: 1.5
+              config:
+                  severity: warn

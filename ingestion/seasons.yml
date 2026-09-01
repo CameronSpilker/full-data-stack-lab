@@ -1,0 +1,21 @@
+# The seasons this project tracks.
+#
+# A season is labelled by the calendar year it ENDS in: the 2025-26 season is
+# `2026`. ESPN, Barttorvik, and the NCAA all use that convention, so following
+# it here means no translation layer at any source boundary.
+#
+# `start` and `end` bound the scoreboard walk. They default to Nov 1 of the
+# prior year through Apr 15 of the season year, which covers every regular
+# season game, both postseason tournaments, and the Final Four. Override them
+# only for a season that genuinely fell outside that window — 2021 did, because
+# COVID pushed the season late.
+seasons:
+  - year: 2022
+  - year: 2023
+  - year: 2024
+  - year: 2025
+  - year: 2026
+
+# Ratings and the bracket are only meaningful for the season in progress.
+# Everything else is history the predictor is backtested against.
+current_season: 2026

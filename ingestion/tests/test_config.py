@@ -1,25 +1,51 @@
-from ingestion.config import Tool, load_tools
+from datetime import date
+
+import pytest
+
+from ingestion.config import Season, current_season, load_seasons
 
 
-def test_registry_loads_and_is_consistent():
-    tools = load_tools()
+def test_registry_loads_and_is_ordered():
+    seasons = load_seasons()
 
-    assert tools, "the registry should not be empty"
-    assert len({tool.name for tool in tools}) == len(tools), "tool names must be unique"
-    assert len({tool.repo for tool in tools}) == len(tools), "repos must be unique"
-
-
-def test_every_tool_has_a_known_category():
-    allowed = {"transformation", "orchestration", "ingestion", "storage", "bi"}
-
-    # Categories drive the accepted_values test on the marts, so an unknown
-    # value here would fail dbt rather than this test. Catch it earlier.
-    for tool in load_tools():
-        assert tool.category in allowed, f"{tool.name} has category {tool.category!r}"
+    assert seasons, "the registry should not be empty"
+    years = [season.year for season in seasons]
+    assert years == sorted(years), "seasons must come back oldest first"
+    assert len(set(years)) == len(years), "season years must be unique"
 
 
-def test_repo_is_split_into_owner_and_name():
-    tool = Tool(name="dbt", repo="dbt-labs/dbt-core", pypi="dbt-core", category="transformation")
+def test_season_bounds_cover_a_real_season():
+    for season in load_seasons():
+        # November through April. A season that does not span the new year has
+        # been configured wrong, and every date walk would silently miss games.
+        assert season.start.year == season.year - 1
+        assert season.end.year == season.year
+        assert season.start < season.end
 
-    assert tool.owner == "dbt-labs"
-    assert tool.repo_name == "dbt-core"
+
+def test_season_label_reads_the_way_people_write_it():
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2026, 4, 15))
+
+    assert season.label == "2025-26"
+
+
+def test_season_dates_are_contiguous_and_inclusive():
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2025, 11, 5))
+
+    assert season.dates() == [date(2025, 11, day) for day in range(1, 6)]
+    assert season.contains(date(2025, 11, 3))
+    assert not season.contains(date(2025, 10, 31))
+
+
+def test_current_season_is_in_the_registry():
+    season = current_season()
+
+    assert season.year in {registered.year for registered in load_seasons()}
+
+
+def test_current_season_rejects_an_unregistered_year(tmp_path):
+    config = tmp_path / "seasons.yml"
+    config.write_text("seasons:\n  - year: 2026\ncurrent_season: 2031\n")
+
+    with pytest.raises(ValueError, match="not in the seasons list"):
+        current_season(config)

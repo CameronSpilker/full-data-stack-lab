@@ -1,18 +1,10 @@
+-- A row per calendar day: the time spine the semantic layer joins against.
+--
+-- Wide enough to cover every season the project could plausibly hold, in both
+-- directions. It costs a few thousand rows and removes a whole class of
+-- "the metric is missing for weeks nothing happened" problem.
+
 {{ config(materialized='table') }}
 
--- Daily time spine required by the dbt semantic layer. Spans a fixed window
--- rather than the observed data so metric queries can ask for periods that
--- have no rows yet.
-
-with spine as (
-
-    select unnest(generate_series(
-        date '2020-01-01',
-        date '2030-12-31',
-        interval 1 day
-    )) as date_day
-
-)
-
-select cast(date_day as date) as date_day
-from spine
+select cast(range as date) as date_day
+from range(date '2000-01-01', date '2040-01-01', interval 1 day)

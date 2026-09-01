@@ -3,28 +3,68 @@ version: 2
 sources:
   - name: raw
     description: >
-      Landing tables written by the ingestion layer. Each GitHub table is a
-      dated snapshot of current state, because the API reports no history;
-      PyPI carries its own trailing history and is deduplicated downstream.
+      Landing tables written by the ingestion layer. Games and box scores are
+      immutable history keyed on the ESPN game id; teams and ratings are dated
+      snapshots, because both sources report current state rather than history.
     schema: raw
     tables:
-      - name: github_repos
-        description: One row per repo per snapshot date.
+      - name: ncaa_teams
+        description: One row per Division I team per snapshot date.
         loaded_at_field: extracted_at
         freshness:
-          warn_after: { count: 8, period: day }
-          error_after: { count: 30, period: day }
+          warn_after: { count: 120, period: day }
+          error_after: { count: 400, period: day }
         columns:
+          - name: team_id
+            description: ESPN's team id. Stable across seasons.
+            data_tests: [not_null]
           - name: snapshot_date
             data_tests: [not_null]
-          - name: tool_name
-            data_tests: [not_null]
-      - name: github_contributors
-        description: Contributor count per repo per snapshot date.
+
+      - name: ncaa_games
+        description: >
+          One row per game. ESPN lists a game on every date it appears on, so
+          the extractor dedupes on game_id before loading.
+        loaded_at_field: extracted_at
+        freshness:
+          warn_after: { count: 3, period: day }
+          error_after: { count: 14, period: day }
         columns:
-          - name: snapshot_date
+          - name: game_id
+            data_tests: [not_null, unique]
+          - name: season
             data_tests: [not_null]
-      - name: github_releases
-        description: Release history per repo, re-extracted on each run.
-      - name: pypi_downloads
-        description: Daily download counts per package, excluding mirrors.
+          - name: home_team_id
+            data_tests: [not_null]
+          - name: away_team_id
+            data_tests: [not_null]
+
+      - name: ncaa_ratings
+        description: >
+          Barttorvik T-Rank adjusted efficiency, one row per team per season
+          per snapshot date.
+        loaded_at_field: extracted_at
+        columns:
+          - name: team_name
+            data_tests: [not_null]
+          - name: season
+            data_tests: [not_null]
+
+      - name: ncaa_team_box
+        description: >
+          Team-level box score lines, two rows per game. Populated only for
+          the seasons `ingest boxscores` has been run against.
+        columns:
+          - name: game_id
+            data_tests: [not_null]
+
+      - name: ncaa_betting_lines
+        description: >
+          Closing betting lines, one row per game per sportsbook. The spread is
+          quoted from the home team's perspective: negative means the home team
+          is favoured. This is the benchmark the predictor is scored against.
+        columns:
+          - name: game_id
+            data_tests: [not_null]
+          - name: provider
+            data_tests: [not_null]

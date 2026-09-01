@@ -1,47 +1,134 @@
 version: 2
 
 models:
-  - name: int_repos_weekly
+  - name: int_team_games
     description: >
-      Weekly repo metrics per tool, with week-over-week deltas. One row per
-      tool per week; the last snapshot in a week wins.
+      One row per team per game — a game seen from both sides. The workhorse
+      model: season aggregates, streaks, and opponent joins all read from here.
     columns:
-      - name: repo_week_id
-        data_tests: [unique, not_null]
-      - name: tool_name
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('tool_registry')
-                field: tool_name
-      - name: week_start
+      - name: team_game_id
+        data_tests: [not_null, unique]
+      - name: team_id
         data_tests: [not_null]
-      - name: category
+      - name: opponent_team_id
+        data_tests: [not_null]
+      - name: venue_type
         data_tests:
           - accepted_values:
               arguments:
-                values: [transformation, orchestration, ingestion, storage, bi]
-      - name: stars
+                  values: ['home', 'away', 'neutral']
+      - name: capped_margin
+        description: Margin clamped to plus or minus 20, for the schedule-strength maths.
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: -20
+                  max_value: 20
+
+  - name: int_team_ratings
+    description: >
+      Barttorvik ratings resolved to team ids. Rows that match no team keep a
+      null team_id so the crosswalk test can name them.
+    columns:
+      - name: season
+        data_tests: [not_null]
+      - name: rating_team_name
         data_tests: [not_null]
 
-  - name: int_packages_weekly
+  - name: int_team_season_form
     description: >
-      Weekly PyPI downloads per package, joined to that week's repo metrics.
-      Weeks with fewer than seven observed days are flagged, not dropped.
+      Season-to-date record, splits, recent form, and a strength of schedule
+      solved iteratively from results alone.
     columns:
-      - name: package_week_id
-        data_tests: [unique, not_null]
-      - name: tool_name
+      - name: team_season_id
+        data_tests: [not_null, unique]
+      - name: srs_rating
+        description: >
+          Simple Rating System: average margin plus average opponent rating,
+          in points. Zero is an average Division I team.
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: -60
+                  max_value: 60
+      - name: win_pct
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: 0
+                  max_value: 1
+      - name: games_played
+        data_tests: [not_null]
+
+  - name: int_team_elo
+    description: >
+      Elo after every game, computed sequentially in Python. The only rating
+      in the project that is a genuine time series.
+    columns:
+      - name: game_id
+        data_tests: [not_null]
+      - name: team_id
+        data_tests: [not_null]
+      - name: pregame_win_probability
+        description: >
+          What Elo gave this team before tip-off, using only games that had
+          already been played. Point in time, so it can be backtested honestly.
         data_tests:
           - not_null
-          - relationships:
+          - dbt_utils.accepted_range:
               arguments:
-                to: ref('tool_registry')
-                field: tool_name
-      - name: week_start
+                  min_value: 0
+                  max_value: 1
+      - name: elo_after
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: 800
+                  max_value: 2400
+
+  - name: int_game_market
+    description: The betting market's consensus view of each game, one row per game.
+    columns:
+      - name: game_id
+        data_tests: [not_null, unique]
+      - name: market_home_win_probability
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: 0
+                  max_value: 1
+
+  - name: int_team_prediction_inputs
+    description: >
+      Everything the predictor needs about a team, one row per team per season.
+      The marts self-join this to build a matchup.
+    columns:
+      - name: team_season_id
+        data_tests: [not_null, unique]
+      - name: team_id
         data_tests: [not_null]
-      - name: downloads
+
+  - name: int_game_predictions
+    description: >
+      Every completed game scored by every model, stacked long. Read
+      `is_point_in_time` before comparing any two models in this table.
+    columns:
+      - name: model_name
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                  values: ['elo_pregame', 'market_consensus', 'blended_season_ratings']
+      - name: is_point_in_time
+        description: >
+          False means the model saw information from after the game it is
+          predicting. Its accuracy is not a forecast and is not comparable to
+          a model where this is true.
         data_tests: [not_null]
-      - name: is_partial_week
-        data_tests: [not_null]
+      - name: home_win_probability
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: 0
+                  max_value: 1

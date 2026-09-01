@@ -24,7 +24,11 @@ orchestration/tmp*/
 
 # evidence / node
 node_modules/
-dashboard/.evidence/template/
+# The whole .evidence directory is build output: the query cache and the
+# Parquet files `npm run sources` generates from the warehouse. All of it is
+# reproducible from a checkout, and the Parquet copies would double the
+# repository's data weight for nothing.
+dashboard/.evidence/
 dashboard/build/
 dashboard/.svelte-kit/
 

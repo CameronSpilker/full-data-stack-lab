@@ -1,133 +1,185 @@
 version: 2
 
+# Metrics defined once, in code, so that "efficiency margin" means the same
+# thing in the dashboard, in a notebook, and in an ad-hoc query. The
+# definitions live beside the marts they read rather than in a BI tool, which
+# is the only way they stay under review.
+
 semantic_models:
-  - name: ecosystem_growth
-    description: >
-      Weekly ecosystem metrics per tool. Metrics are defined here rather than
-      in the BI tool so every consumer — dashboard, notebook, ad-hoc query —
-      computes them the same way.
-    model: ref('mart_ecosystem_growth')
+  - name: team_season
+    description: Team performance for a season.
+    model: ref('mart_team_season')
     defaults:
-      agg_time_dimension: week_start
-
+      agg_time_dimension: season_start
     entities:
-      - name: tool
+      - name: team
         type: primary
-        expr: tool_name
-
+        expr: team_season_id
+      - name: franchise
+        type: foreign
+        expr: team_id
     dimensions:
-      - name: week_start
+      - name: season_start
         type: time
+        expr: cast(concat(cast(season - 1 as varchar), '-11-01') as date)
         type_params:
-          time_granularity: week
-      - name: category
+          time_granularity: day
+      - name: conference_name
         type: categorical
-      - name: repo_full_name
+      - name: team_name
         type: categorical
-
+      - name: made_ncaa_tournament
+        type: categorical
     measures:
-      - name: stars
-        description: Total stars at the end of the week.
+      - name: teams
+        description: Count of team seasons.
+        agg: count
+        expr: team_season_id
+      - name: total_wins
         agg: sum
-      - name: stars_added
-        description: Stars gained during the week.
+        expr: wins
+      - name: total_losses
         agg: sum
-      - name: star_growth_rate_avg
-        description: Mean week-over-week star growth rate.
-        expr: star_growth_rate
-        agg: average
-      - name: weekly_downloads
-        description: PyPI downloads during the week, mirrors excluded.
+        expr: losses
+      - name: games_played_total
         agg: sum
-      - name: download_momentum_avg
-        description: Mean week-over-week change in downloads.
-        expr: download_momentum
-        agg: average
-      - name: contributors_added
-        description: Net contributors gained during the week.
+        expr: games_played
+      - name: sum_efficiency_margin
         agg: sum
-      - name: contributor_count
-        description: Contributors as of the week.
-        agg: max
+        expr: adjusted_efficiency_margin
+      - name: sum_tempo
+        agg: sum
+        expr: adjusted_tempo
+      - name: ncaa_tournament_wins_total
+        agg: sum
+        expr: ncaa_tournament_wins
 
-  - name: release_cadence
-    description: Release activity per tool.
-    model: ref('mart_release_cadence')
+  - name: game_prediction
+    description: One completed game as scored by one model.
+    model: ref('int_game_predictions')
     defaults:
-      agg_time_dimension: latest_release_date
-
+      agg_time_dimension: game_date
     entities:
-      - name: tool
+      - name: prediction
         type: primary
-        expr: tool_name
-
+        expr: concat(game_id, '-', model_name)
     dimensions:
-      # `category` is deliberately not repeated here — it is already paired
-      # with the `tool` entity on the ecosystem_growth semantic model, and
-      # a dimension + primary entity pairing must be unique across the project.
-      - name: latest_release_date
+      - name: game_date
         type: time
         type_params:
           time_granularity: day
-
+      - name: model_name
+        type: categorical
+      - name: game_type
+        type: categorical
+      - name: is_point_in_time
+        type: categorical
     measures:
-      - name: releases_last_90_days
-        description: Releases published in the trailing 90 days.
+      - name: games_predicted
+        agg: count
+        expr: game_id
+      - name: correct_predictions
         agg: sum
-      - name: median_days_between_releases_avg
-        description: Median gap between releases, averaged across tools.
-        expr: median_days_between_releases
-        agg: average
+        expr: case when (home_win_probability > 0.5) = home_won then 1 else 0 end
+      - name: squared_error_total
+        agg: sum
+        expr: power(home_win_probability - case when home_won then 1.0 else 0.0 end, 2)
 
 metrics:
-  - name: weekly_star_growth_rate
-    description: Mean week-over-week star growth rate.
-    label: Weekly star growth rate
+  # Simple metrics wrap a single measure. The ratio metrics below are built
+  # from these rather than from the measures directly, which is what lets a
+  # consumer ask for either the numerator or the rate and get consistent
+  # answers.
+  - name: total_wins
+    label: Wins
     type: simple
     type_params:
-      measure: star_growth_rate_avg
+      measure: total_wins
 
-  - name: download_momentum
-    description: Mean week-over-week change in PyPI downloads.
-    label: Download momentum
+  - name: total_games
+    label: Games played
     type: simple
     type_params:
-      measure: download_momentum_avg
+      measure: games_played_total
 
-  - name: release_frequency
-    description: Releases published in the trailing 90 days.
-    label: Release frequency (90d)
+  - name: team_seasons
+    label: Team seasons
     type: simple
     type_params:
-      measure: releases_last_90_days
+      measure: teams
 
-  - name: contributor_growth
-    description: Net contributors gained.
-    label: Contributor growth
+  - name: efficiency_margin_total
+    label: Total efficiency margin
     type: simple
     type_params:
-      measure: contributors_added
+      measure: sum_efficiency_margin
 
-  - name: stars_per_contributor
-    description: >
-      Stars per contributor — a rough read on whether attention is outrunning
-      the community maintaining the project.
-    label: Stars per contributor
+  - name: tempo_total
+    label: Total tempo
+    type: simple
+    type_params:
+      measure: sum_tempo
+
+  - name: games_predicted
+    label: Games predicted
+    type: simple
+    type_params:
+      measure: games_predicted
+
+  - name: correct_predictions
+    label: Correct predictions
+    type: simple
+    type_params:
+      measure: correct_predictions
+
+  - name: squared_error_total
+    label: Total squared error
+    type: simple
+    type_params:
+      measure: squared_error_total
+
+  - name: win_rate
+    description: Share of games won.
+    label: Win rate
     type: ratio
     type_params:
-      numerator: total_stars
-      denominator: total_contributors
+      numerator: total_wins
+      denominator: total_games
 
-  - name: total_stars
-    description: Total stars.
-    label: Total stars
-    type: simple
+  - name: average_efficiency_margin
+    description: >
+      Mean adjusted efficiency margin — points per 100 possessions scored minus
+      allowed. The project's headline measure of team quality.
+    label: Average efficiency margin
+    type: ratio
     type_params:
-      measure: stars
+      numerator: efficiency_margin_total
+      denominator: team_seasons
 
-  - name: total_contributors
-    description: Contributors as of the latest week.
-    label: Total contributors
-    type: simple
+  - name: average_tempo
+    description: Mean possessions per team per 40 minutes.
+    label: Average tempo
+    type: ratio
     type_params:
-      measure: contributor_count
+      numerator: tempo_total
+      denominator: team_seasons
+
+  - name: prediction_accuracy
+    description: >
+      Share of games where the model's favourite won. Read alongside Brier
+      score: accuracy alone rewards a model for saying nothing surprising.
+    label: Prediction accuracy
+    type: ratio
+    type_params:
+      numerator: correct_predictions
+      denominator: games_predicted
+
+  - name: brier_score
+    description: >
+      Mean squared error of the predicted probability. Lower is better; a coin
+      flip on every game scores 0.25.
+    label: Brier score
+    type: ratio
+    type_params:
+      numerator: squared_error_total
+      denominator: games_predicted
