@@ -31,7 +31,8 @@ is a real finding about college basketball until this is done.
 
 - [ ] Register at [collegebasketballdata.com](https://collegebasketballdata.com)
       for a free API key, store it as the `CBD_API_KEY` Actions secret
-- [ ] Run `ingest preflight --season 2026` first. It calls every live source
+- [ ] Run the **Preflight** workflow (Actions → Preflight → Run workflow), or
+      `ingest preflight --season 2026` locally. It calls every live source
       against a single season, writes nothing, and reports what share of each
       column actually came back — so a parser reading the wrong key shows up as
       `adj_oe 0.0% FAIL` rather than as a quietly empty column three layers

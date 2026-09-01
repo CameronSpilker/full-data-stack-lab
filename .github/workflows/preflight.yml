@@ -1,0 +1,48 @@
+name: Preflight
+
+# Manual only. This is the check you run before trusting a backfill to the
+# live APIs, and again whenever a source might have changed underneath us.
+#
+# It writes nothing — not to the warehouse, not to the repository. It calls
+# every live source against one season and reports what share of each column
+# actually came back, so a parser reading the wrong key shows up as a named
+# field at 0% rather than as a quietly empty column three layers downstream.
+#
+# It exists as a workflow, and not only as a CLI command, so that the API key
+# can live in Actions secrets and nowhere else.
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: "Season to check, by the year it ends in (2026 = 2025-26)"
+        type: string
+        default: "2026"
+
+jobs:
+  preflight:
+    name: Check the live APIs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: pip install -e ingestion
+
+      - name: Preflight
+        env:
+          CBD_API_KEY: ${{ secrets.CBD_API_KEY }}
+        run: ingest preflight --season ${{ inputs.season }}
+
+      - name: What to do if that failed
+        if: failure()
+        run: |
+          echo "::notice::A field at or near 0% means the parser is reading the wrong key."
+          echo "::notice::Barttorvik: check HEADER_ALIASES and POSITIONAL_COLUMNS in ingestion/src/ingestion/torvik.py"
+          echo "::notice::CBD: add the real field name to the tuple in _first() for that column in ingestion/src/ingestion/cbd.py"
+          echo "::notice::Do not run the pipeline workflow until this run is green."
