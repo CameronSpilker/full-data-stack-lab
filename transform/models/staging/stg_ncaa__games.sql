@@ -4,6 +4,15 @@
 -- consumer needs it and the parsing is source-specific: ESPN puts the round in
 -- a free-text note whose wording has changed over the years, so this matches
 -- on the part that has not.
+--
+-- `scoring_status` is the other thing that has to be settled once, here. The
+-- source calls a row final whenever the game is off the schedule, which
+-- includes fixtures nobody played: COVID forfeits carrying an administrative
+-- 2-0, cancellations left at 0-0, and a handful of records where one side's
+-- score was never filled in. Every one of those is a legitimate row about the
+-- season and a poisonous row for a model that reads margins, so they are
+-- labelled rather than deleted, and `is_completed` means "played", which is
+-- the question every downstream model is actually asking.
 
 with source as (
 
@@ -36,13 +45,9 @@ typed as (
 
         coalesce(is_neutral_site, false) as is_neutral_site,
         coalesce(is_conference_game, false) as is_conference_game,
-        -- The extractor no longer calls a 0-0 fixture completed, but rows
-        -- loaded before that fix are still in raw, and a source that labels a
-        -- cancelled game "final" would slip through again. Scoreless means it
-        -- was not played.
-        coalesce(is_completed, false)
-            and coalesce(home_score, 0) + coalesce(away_score, 0) > 0
-            as is_completed,
+        -- Kept as the source gave it. `scoring_status` below decides what it
+        -- means, and the gap between the two is what the freshness tests watch.
+        coalesce(is_completed, false) as source_says_completed,
         status_state,
         attendance,
         venue_name,
@@ -53,10 +58,40 @@ typed as (
 
 ),
 
+graded as (
+
+    select
+        *,
+
+        case
+            when not source_says_completed then 'scheduled'
+            when home_score is null or away_score is null then 'unrecorded'
+            -- A cancelled fixture the source still calls final.
+            when home_score + away_score = 0 then 'not_played'
+            -- An administrative result. The NCAA records a forfeit as 2-0 (or
+            -- 1-0 for a no-contest), so the win is real and the scoreline is
+            -- not: there is no margin, no pace, and no box score behind it.
+            when least(home_score, away_score) = 0
+                and greatest(home_score, away_score) <= 2 then 'forfeit'
+            -- Everything else outside the band is a bad record. Three exist in
+            -- the seasons this project loads, all of them a game where one
+            -- side's score is missing digits.
+            when least(home_score, away_score) < {{ var('plausible_score_min') }}
+                or greatest(home_score, away_score) > {{ var('plausible_score_max') }}
+                then 'implausible'
+            else 'played'
+        end as scoring_status
+
+    from typed
+
+),
+
 classified as (
 
     select
         *,
+
+        scoring_status = 'played' as is_completed,
 
         case
             when lower(coalesce(tournament_note, '')) like '%ncaa%' then 'ncaa_tournament'
@@ -88,7 +123,7 @@ classified as (
         home_score - away_score as home_margin,
         home_score + away_score as total_points
 
-    from typed
+    from graded
 
 )
 

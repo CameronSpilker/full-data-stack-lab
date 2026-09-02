@@ -61,6 +61,77 @@ renamed as (
 
     from latest
 
+),
+
+-- The source's historical ratings are not all real. Pittsburgh's 2023 season
+-- is published at a 160.4 offensive efficiency, Northwestern's at a 158.1
+-- defensive one, and five teams in 2022 and 2023 carry tempos in the thirties
+-- and forties. Nothing in basketball produces those numbers, so they are not
+-- worth modelling and they are not worth silently rounding into range either.
+-- Out-of-band values become null and `has_plausible_rating` says the row was
+-- screened, which turns a wrong prediction into a missing one.
+screened as (
+
+    select
+        * exclude (
+            adjusted_offensive_efficiency,
+            adjusted_defensive_efficiency,
+            adjusted_efficiency_margin,
+            adjusted_tempo
+        ),
+
+        case when adjusted_offensive_efficiency
+                between {{ var('plausible_efficiency_min') }}
+                    and {{ var('plausible_efficiency_max') }}
+            then adjusted_offensive_efficiency
+        end as adjusted_offensive_efficiency,
+
+        case when adjusted_defensive_efficiency
+                between {{ var('plausible_efficiency_min') }}
+                    and {{ var('plausible_efficiency_max') }}
+            then adjusted_defensive_efficiency
+        end as adjusted_defensive_efficiency,
+
+        -- The margin is the difference of the two, so a bad component makes it
+        -- bad as well, whatever it reads on its own.
+        case when adjusted_offensive_efficiency
+                between {{ var('plausible_efficiency_min') }}
+                    and {{ var('plausible_efficiency_max') }}
+            and adjusted_defensive_efficiency
+                between {{ var('plausible_efficiency_min') }}
+                    and {{ var('plausible_efficiency_max') }}
+            then adjusted_efficiency_margin
+        end as adjusted_efficiency_margin,
+
+        case when adjusted_tempo
+                between {{ var('plausible_tempo_min') }}
+                    and {{ var('plausible_tempo_max') }}
+            then adjusted_tempo
+        end as adjusted_tempo,
+
+        -- What the source said, kept so the warning that reports a screened
+        -- row can print the number that got it screened.
+        adjusted_offensive_efficiency as source_adjusted_offensive_efficiency,
+        adjusted_defensive_efficiency as source_adjusted_defensive_efficiency,
+        adjusted_tempo as source_adjusted_tempo,
+
+        -- A missing rating is not a screened one, so the coalesce keeps the
+        -- flag about this check rather than about coverage.
+        coalesce(
+            adjusted_offensive_efficiency
+                between {{ var('plausible_efficiency_min') }}
+                    and {{ var('plausible_efficiency_max') }}
+            and adjusted_defensive_efficiency
+                between {{ var('plausible_efficiency_min') }}
+                    and {{ var('plausible_efficiency_max') }}
+            and adjusted_tempo
+                between {{ var('plausible_tempo_min') }}
+                    and {{ var('plausible_tempo_max') }},
+            true
+        ) as has_plausible_rating
+
+    from renamed
+
 )
 
-select * from renamed
+select * from screened

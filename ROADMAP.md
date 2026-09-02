@@ -9,7 +9,7 @@ not by calendar week — the ordering matters more than the dates.
   lines, adjusted efficiency), with retries, rate limiting, error isolation,
   and date-window paging around the API's undocumented 3,000 record limit
 - Parquet landing zone and idempotent, partition-aware DuckDB loads
-- dbt project: staging → intermediate → marts: 22 models, 113 passing tests
+- dbt project: staging → intermediate → marts: 22 models, 118 passing tests
 - Elo computed sequentially as a dbt Python model
 - Strength of schedule solved iteratively in SQL, as an independent control on
   the published ratings

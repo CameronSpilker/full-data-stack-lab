@@ -12,22 +12,24 @@ select max(season) as season from team_season
 ```sql totals
 select
     count(*) as teams,
-    count(distinct conference_name) as conferences,
-    sum(games_played) / 2 as games,
-    max(adjusted_efficiency_margin) as best_margin
+    count(distinct conference_name) as conferences
 from team_season
 where season = (select max(season) from team_season)
 ```
 
 ```sql games_played
+-- Played, not scheduled. Mid-season the schedule runs to about six thousand
+-- games and only a fraction of them have happened.
 select count(*) as games from game_results
 where season = (select max(season) from game_results)
+    and is_completed
 ```
 
-<BigValue data={totals} value=teams title="Teams tracked" />
+<BigValue data={totals} value=teams title="Division I teams" />
 <BigValue data={totals} value=conferences title="Conferences" />
-<BigValue data={games_played} value=games title="Games this season" fmt='#,##0' />
-<BigValue data={current} value=season title="Season" />
+<BigValue data={games_played} value=games title="Games played" fmt='#,##0' />
+<!-- A season is a year, not a quantity, so it takes no thousands separator. -->
+<BigValue data={current} value=season title="Season" fmt='0000' />
 
 ## The top of the country
 
