@@ -7,7 +7,7 @@ import logging
 import sys
 from datetime import date
 
-from . import cbd, demo, diagnose, load, preflight, torvik
+from . import cbd, demo, diagnose, load, preflight
 from .config import Season, current_season, load_seasons, utc_today
 
 log = logging.getLogger(__name__)
@@ -119,7 +119,7 @@ def main(argv: list[str] | None = None) -> int:
         tables.update(cbd.extract_lines(seasons))
 
     if args.source in ("ratings", "all"):
-        tables.update(torvik.extract(seasons, args.snapshot_date))
+        tables.update(cbd.extract_ratings(seasons, args.snapshot_date))
 
     counts = load.persist(tables, args.snapshot_date, replace_all=replace_all)
 

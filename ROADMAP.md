@@ -6,7 +6,8 @@ not by calendar week — the ordering matters more than the dates.
 ## Done
 
 - Ingestion for collegebasketballdata.com (teams, games, box scores, betting
-  lines) and Barttorvik T-Rank, with retries, rate limiting, and error isolation
+  lines, adjusted efficiency), with retries, rate limiting, error isolation,
+  and date-window paging around the API's undocumented 3,000 record limit
 - Parquet landing zone and idempotent, partition-aware DuckDB loads
 - dbt project: staging → intermediate → marts: 22 models, 113 passing tests
 - Elo computed sequentially as a dbt Python model
@@ -24,36 +25,31 @@ not by calendar week — the ordering matters more than the dates.
 
 ## Next — in order
 
-### 1. Run the pipeline against the real APIs (blocks everything below)
+### 1. Run the pipeline against the real APIs
 
-Everything currently runs on simulated seasons from `ingest demo`. Nothing here
-is a real finding about college basketball until this is done.
+The first live preflight found three things, all now fixed. Kept here because
+the reasoning matters more than the checkboxes.
 
-- [ ] Register at [collegebasketballdata.com](https://collegebasketballdata.com)
-      for a free API key, store it as the `CBD_API_KEY` Actions secret
-- [ ] Run `ingest preflight --season 2026` first. It calls every live source
-      against a single season, writes nothing, and reports what share of each
-      column actually came back — so a parser reading the wrong key shows up as
-      `adj_oe 0.0% FAIL` rather than as a quietly empty column three layers
-      downstream. It exits non-zero until every critical field is populated
-- [ ] Then run `ingest all --season 2026` — one season, not five. The two
-      places reality is most likely to differ from the fixtures:
-      - **Barttorvik's CSV layout.** `torvik.py` reads it by header when one is
-        present and positionally when it is not. The positional map in
-        `POSITIONAL_COLUMNS` was written without a live response to check
-        against, and is the single most likely thing in this repo to be wrong.
-        The parser refuses to load a result where adjusted efficiency did not
-        come through, so a failure will be loud rather than silent.
-      - **CBD's exact field names.** `_first()` accepts several spellings per
-        field, but a field named something not in that list arrives as null.
-- [ ] Run `dbt build` on the real extract. Expect
-      `assert_every_rating_matches_a_team` to be the first thing that fails —
-      it names every Barttorvik school that did not join to a team, and those
-      names go into `seeds/team_name_crosswalk.csv`. That is the intended
-      workflow, not a defect
-- [ ] Sanity-check the numbers against a public source: the top 25 by adjusted
-      efficiency margin should look broadly like KenPom's or Barttorvik's own
-      top 25. If it does not, the join is wrong somewhere
+- [x] Register for a free API key and store it as the `CBD_API_KEY` secret
+- [x] Run `ingest preflight --season 2026`. It found that the games feed
+      stopped on 2026-01-06, the box score parser returned nothing from 3,000
+      records, and Barttorvik returned 403
+- [x] **The 3,000 record limit.** A season-wide request returns well-formed
+      JSON that simply stops in January, losing the back half of the season
+      including the tournament. Games and lines are now read in date windows
+      that split and retry when one comes back at the limit
+- [x] **The box score shape.** Each `/games/teams` record is one team's line
+      with nested stat objects, not a game with a `teams` array. The parser was
+      written against a fixture that invented the second shape and returned
+      zero rows from real data. The fixture is now copied from a live response
+- [x] **Barttorvik is unreachable from CI.** Its CDN returns 403 to any request
+      from a data centre, under any User-Agent, so no scheduled pipeline could
+      ever read it. Ratings now come from CBD's own `/ratings/adjusted`, keyed
+      on the same team id as every other table, which removed the name
+      crosswalk, its seed, and the build failure that maintained it
+- [ ] Run `ingest all --season 2026` and sanity-check the numbers against a
+      public source: the top 25 by adjusted efficiency margin should look
+      broadly like KenPom's. If it does not, something upstream is wrong
 - [ ] Remove `data/warehouse.duckdb` from `.gitignore` once the committed file
       holds real data, and delete the synthetic-data banner from
       `dashboard/pages/index.md`
@@ -69,8 +65,8 @@ modelling work left.
 - [ ] Change `int_game_predictions` to join the rating snapshot as of the day
       *before* each game rather than the latest one
 - [ ] Re-score. Expect the blended model to get worse and become meaningful
-- [ ] Backfill point-in-time ratings from Barttorvik's date-filtered endpoints
-      if they can be made to work, which would remove the wait entirely
+- [ ] Look for a date-filtered ratings endpoint that would backfill
+      point-in-time ratings and remove the wait entirely
 
 ### 3. Use the real bracket in March
 
@@ -148,6 +144,6 @@ The pipeline is the point, but the predictions are what make it worth reading.
   the slices where a point-in-time model does no better than guessing, and this
   is usually the one that shows up. It is a finding, not a defect: teams from
   the same league at neutral sites strip out most of what a rating knows.
-- **Ratings are season-to-date, not as-of-date.** Barttorvik publishes current
+- **Ratings are season-to-date, not as-of-date.** The feed publishes current
   state, so history exists only from the first pipeline run forward.
 - **No player-level data.** Team ratings cannot see that a starter is out.

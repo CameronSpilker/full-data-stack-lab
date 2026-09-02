@@ -15,9 +15,13 @@
 -- that best predict what that room does: overall quality, wins above the
 -- bubble, and wins against good teams.
 
-{% set auto_bid_weight_efficiency = 0.60 %}
-{% set auto_bid_weight_wab = 0.25 %}
-{% set auto_bid_weight_quality = 0.15 %}
+-- At-large selection weights. These were 0.60 efficiency, 0.25 wins above
+-- bubble, and 0.15 quality wins. Wins above bubble was a Barttorvik figure and
+-- the rating source no longer publishes it, so its weight is redistributed in
+-- the same proportion rather than left as a silent zero: efficiency and
+-- quality wins keep their 4:1 ratio to each other.
+{% set auto_bid_weight_efficiency = 0.80 %}
+{% set auto_bid_weight_quality = 0.20 %}
 
 with teams as (
 
@@ -92,11 +96,6 @@ scored as (
             / nullif(stddev_pop(teams.adjusted_efficiency_margin) over (), 0)
             as efficiency_z,
 
-        (coalesce(teams.wins_above_bubble, 0)
-            - avg(coalesce(teams.wins_above_bubble, 0)) over ())
-            / nullif(stddev_pop(coalesce(teams.wins_above_bubble, 0)) over (), 0)
-            as wab_z,
-
         (teams.wins_vs_top_50 - avg(teams.wins_vs_top_50) over ())
             / nullif(stddev_pop(teams.wins_vs_top_50) over (), 0)
             as quality_z
@@ -112,7 +111,6 @@ ranked as (
     select
         *,
         {{ auto_bid_weight_efficiency }} * coalesce(efficiency_z, 0)
-            + {{ auto_bid_weight_wab }} * coalesce(wab_z, 0)
             + {{ auto_bid_weight_quality }} * coalesce(quality_z, 0)
             as selection_score
 

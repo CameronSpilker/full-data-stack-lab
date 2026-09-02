@@ -41,10 +41,13 @@ sources:
 
       - name: ncaa_ratings
         description: >
-          Barttorvik T-Rank adjusted efficiency, one row per team per season
-          per snapshot date.
+          Adjusted efficiency from collegebasketballdata.com, one row per team
+          per season per snapshot date. Keyed on the same team id as every
+          other table, so it joins without a name crosswalk.
         loaded_at_field: extracted_at
         columns:
+          - name: team_id
+            data_tests: [not_null]
           - name: team_name
             data_tests: [not_null]
           - name: season

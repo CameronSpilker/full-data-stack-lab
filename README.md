@@ -18,8 +18,7 @@ predictions did, which is the part most bracket models leave out.
 ```mermaid
 flowchart LR
     subgraph sources[Public APIs]
-        cbd[collegebasketballdata.com<br/>games · box scores · lines]
-        torvik[Barttorvik T-Rank<br/>adjusted efficiency]
+        cbd[collegebasketballdata.com<br/>games · box scores · lines<br/>adjusted efficiency]
     end
 
     subgraph ingest[ingestion/]
@@ -39,7 +38,6 @@ flowchart LR
     end
 
     cbd --> extract
-    torvik --> extract
     extract --> parquet
     extract --> raw
     raw --> stg --> int --> marts
@@ -51,7 +49,7 @@ flowchart LR
 
 | Layer         | Tool          | Why                                                                       |
 | ------------- | ------------- | ------------------------------------------------------------------------- |
-| Ingestion     | Python + httpx | Two APIs and a handful of endpoints; a connector platform would be scaffolding around a 400-line problem. |
+| Ingestion     | Python + httpx | One API and a handful of endpoints; a connector platform would be scaffolding around a 400-line problem. |
 | Storage       | DuckDB        | Free, runs anywhere, read natively by Evidence, and small enough that a cloud warehouse would buy nothing but a logo. |
 | Transformation | dbt Core     | Layered models, tests at every boundary, and metrics defined in code.     |
 | Orchestration | Dagster       | Asset-oriented scheduling maps onto the dbt DAG, so lineage is one graph rather than two systems that must agree. |
@@ -67,7 +65,6 @@ full-data-stack-lab/
 │   └── src/ingestion/
 ├── transform/        # dbt project: staging → intermediate → marts
 │   ├── models/
-│   ├── seeds/        # The team-name crosswalk
 │   └── tests/        # Custom data-quality tests
 ├── orchestration/    # Dagster assets, jobs, schedules, sensor
 ├── dashboard/        # Evidence.dev project
@@ -91,11 +88,12 @@ ingest demo
 # Before the first live run, check the sources actually return what the
 # parsers expect. Writes nothing; exits non-zero if a critical field is empty.
 ingest preflight --season 2026
+ingest diagnose --season 2026         # why a preflight failed, if it did
 ingest all --season 2026              # the real APIs
 
 cd transform
 export DBT_PROFILES_DIR=$PWD DUCKDB_PATH=../data/warehouse.duckdb
-dbt deps && dbt build                 # 22 models, 1 seed, 113 tests
+dbt deps && dbt build                 # 22 models, 111 tests
 dbt docs generate && dbt docs serve
 ```
 
@@ -140,21 +138,33 @@ way instead of each dashboard rolling its own.
 
 ## Design decisions worth knowing
 
-**Two sources, chosen for different reasons.** ESPN's undocumented API was the
-first implementation and was replaced: collegebasketballdata.com publishes an
-OpenAPI spec, serves a season per request instead of a scoreboard walked one
-date at a time, and carries betting lines. Sportradar has better data than
-either, and was rejected — a trial key allows ~1,000 requests a month against a
-five-season backfill, and its licence restricts redistributing data that this
-repo commits to a public warehouse.
+**One source, after two were tried.** ESPN's undocumented API was the first
+implementation and was replaced by collegebasketballdata.com, which serves a
+season per request instead of a scoreboard walked one date at a time and
+carries betting lines. Barttorvik supplied the efficiency ratings until the
+first live run: its CDN returns 403 to any request from a data centre, under
+any User-Agent, so a scheduled pipeline could never read it. CBD publishes
+adjusted efficiency itself, keyed on the same team id as everything else, so
+the ratings now arrive over a join instead of a name match. Sportradar has
+better data than any of them and was rejected: a trial key allows ~1,000
+requests a month against a five-season backfill, and its licence restricts
+redistributing data that this repo commits to a public warehouse.
+
+**The API truncates at 3,000 records and does not say so.** A season-wide
+request returns well-formed JSON that simply stops in early January, which is
+the kind of failure that reaches a dashboard as confident wrong answers. Games
+and lines are read in date windows, and any window that comes back exactly at
+the limit is split and retried, so the paging adapts instead of trusting a
+hand-picked window size. Box scores ignore the date parameters, so they are
+walked one conference at a time and deduped.
 
 **The betting line is the benchmark.** "The model went 71% straight up" mostly
 measures whether favourites won. "The model beat the closing spread" is a
 claim. The market consensus is loaded as a first-class model in
 `int_game_predictions` and scored alongside the others.
 
-**Some models are not allowed to claim they forecast.** Barttorvik publishes a
-rating that describes a whole season. Scoring a January game with it means
+**Some models are not allowed to claim they forecast.** The ratings feed
+publishes a figure that describes a whole season. Scoring a January game with it means
 using March information, and the resulting accuracy is meaningless as a
 forecast. Rather than hide that model or pretend, every prediction carries an
 `is_point_in_time` flag, and the dashboard separates on it. Elo is honest by
@@ -170,13 +180,6 @@ Final Four depends on who else wins, which has no closed form. So the bracket
 is played 20,000 times. Every probability it draws on comes from
 `mart_matchup_odds`, built in SQL from a shared macro, so the bracket page and
 the head-to-head numbers cannot disagree about the same game.
-
-**Two sources that share no key.** ESPN-style team ids and Barttorvik's school
-names have nothing in common but the name, spelled differently. A macro
-normalises the mechanical differences — punctuation, ampersands, Saint against
-St. — and a seed holds the genuine editorial ones. A custom test fails the
-build naming every rating row that matched no team, which is how the crosswalk
-gets filled in rather than silently dropping teams from the model.
 
 **Blowouts are capped.** A 40-point win says little more about team quality
 than a 20-point win, so the strength-of-schedule maths uses a margin clamped to

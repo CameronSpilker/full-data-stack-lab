@@ -27,10 +27,12 @@ models:
 
   - name: int_team_ratings
     description: >
-      Barttorvik ratings resolved to team ids. Rows that match no team keep a
-      null team_id so the crosswalk test can name them.
+      Ratings joined to the team dimension on team_id. Both sides come from the
+      same source and share that key, so there is no name matching involved.
     columns:
       - name: season
+        data_tests: [not_null]
+      - name: team_id
         data_tests: [not_null]
       - name: rating_team_name
         data_tests: [not_null]

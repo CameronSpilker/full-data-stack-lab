@@ -1,18 +1,19 @@
--- Every Barttorvik team must resolve to an ESPN-style team id.
+-- Every rated team must exist in the team dimension.
 --
--- This is the test that maintains the crosswalk. The two sources share no key,
--- only school names they spell differently, so an unmatched name is silent by
--- nature: the team simply vanishes from every mart that needs a rating, and
--- the dashboard looks fine. Failing the build instead, with the offending
--- names in the output, is the only way that stays visible.
+-- Ratings and teams now come from the same source and share a team id, so this
+-- should hold by construction. It is kept because "should hold by construction"
+-- is exactly the assumption worth testing: a rated team missing from the
+-- dimension would vanish from every mart that needs a rating, and the
+-- dashboard would look fine while quietly dropping teams.
 --
--- To fix a failure: add the reported name to seeds/team_name_crosswalk.csv
--- with the matching ESPN `location`.
+-- Before the rating source moved, this test maintained a hand-written
+-- crosswalk between two sources that shared no key. That crosswalk is gone.
 
 select
     season,
+    team_id,
     rating_team_name,
     rating_conference
 
 from {{ ref('int_team_ratings') }}
-where team_id is null
+where not matched_a_team

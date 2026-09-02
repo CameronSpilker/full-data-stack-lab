@@ -399,15 +399,17 @@ def _ratings(
         wins = standings.get(team.team_id, 0)
         games = played.get(team.team_id, 0)
 
-        # Barthag is a win probability against an average team, which the
-        # Pythagorean form of the efficiency margin approximates well.
         margin = adj_oe - adj_de
-        barthag = 1 / (1 + math.exp(-margin / 9.0))
 
         rows.append(
             {
                 "snapshot_date": snapshot,
                 "season": season.year,
+                # The ratings feed is keyed on the same team id as every other
+                # table, which is what lets the models join without a name
+                # crosswalk. The fixture has to carry that too or it would be
+                # testing a join the real pipeline no longer makes.
+                "team_id": team.team_id,
                 "team_name": team.name,
                 "conference": team.conference,
                 "wins": float(wins),
@@ -415,22 +417,20 @@ def _ratings(
                 "games": float(games),
                 "adj_oe": round(adj_oe, 2),
                 "adj_de": round(adj_de, 2),
-                "barthag": round(barthag, 4),
+                "adj_margin": round(margin, 2),
                 "adj_tempo": round(team.tempo + rng.gauss(0, 0.5), 1),
                 "efg_pct": round(50.0 + team.offense * 0.55 + rng.gauss(0, 1.0), 1),
                 "efg_pct_allowed": round(50.0 - team.defense * 0.55 + rng.gauss(0, 1.0), 1),
                 "turnover_pct": round(17.5 - team.offense * 0.12 + rng.gauss(0, 0.8), 1),
                 "turnover_pct_forced": round(17.5 + team.defense * 0.12 + rng.gauss(0, 0.8), 1),
                 "off_reb_pct": round(29.5 + team.offense * 0.3 + rng.gauss(0, 1.5), 1),
-                "def_reb_pct": round(70.5 + team.defense * 0.3 + rng.gauss(0, 1.5), 1),
+                "off_reb_pct_allowed": round(29.5 - team.defense * 0.3 + rng.gauss(0, 1.5), 1),
                 "ft_rate": round(32.0 + rng.gauss(0, 3.0), 1),
                 "ft_rate_allowed": round(32.0 + rng.gauss(0, 3.0), 1),
                 "two_pt_pct": round(50.5 + team.offense * 0.4 + rng.gauss(0, 1.2), 1),
                 "two_pt_pct_allowed": round(50.5 - team.defense * 0.4 + rng.gauss(0, 1.2), 1),
                 "three_pt_pct": round(34.0 + team.offense * 0.18 + rng.gauss(0, 1.0), 1),
                 "three_pt_pct_allowed": round(34.0 - team.defense * 0.18 + rng.gauss(0, 1.0), 1),
-                "wab": round(team.strength * 0.6 + rng.gauss(0, 1.0), 1),
-                "seed": None,
                 "extracted_at": extracted_at,
             }
         )

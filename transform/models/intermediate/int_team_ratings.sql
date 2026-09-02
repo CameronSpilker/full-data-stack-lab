@@ -1,22 +1,14 @@
--- Barttorvik ratings attached to ESPN team ids.
+-- Ratings attached to the team dimension.
 --
--- The two sources share no key, only school names they spell differently.
--- Normalisation handles the mechanical differences; the crosswalk seed handles
--- the editorial ones. Rows that match neither survive with a null team_id so
--- `assert_every_rating_matches_a_team` can name them.
+-- Both sides come from collegebasketballdata.com and share a team id, so this
+-- is an equi-join on a key rather than a match on school names spelled
+-- differently. That is the whole reason the rating source moved: the old join
+-- went through a normalisation macro and a hand-maintained crosswalk seed, and
+-- every new team that appeared was a build failure until someone added a row.
 
 with ratings as (
 
-    select * from {{ ref('stg_torvik__ratings') }}
-
-),
-
-crosswalk as (
-
-    select
-        rating_team_name,
-        {{ normalize_team_name('espn_team_location') }} as espn_match_key
-    from {{ ref('team_name_crosswalk') }}
+    select * from {{ ref('stg_ncaa__ratings') }}
 
 ),
 
@@ -26,31 +18,18 @@ teams as (
 
 ),
 
-resolved as (
-
-    select
-        ratings.*,
-        coalesce(crosswalk.espn_match_key, ratings.team_match_key) as resolved_match_key,
-        crosswalk.rating_team_name is not null as matched_via_crosswalk
-
-    from ratings
-    left join crosswalk
-        on ratings.rating_team_name = crosswalk.rating_team_name
-
-),
-
 joined as (
 
     select
-        resolved.* exclude (resolved_match_key),
-        teams.team_id,
+        ratings.*,
+        teams.team_id is not null as matched_a_team,
         teams.team_name,
         teams.conference_id,
         teams.conference_name
 
-    from resolved
+    from ratings
     left join teams
-        on resolved.resolved_match_key = teams.team_match_key
+        on ratings.team_id = teams.team_id
 
 )
 
