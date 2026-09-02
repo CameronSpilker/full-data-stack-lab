@@ -1,0 +1,51 @@
+name: Preflight the live sources
+
+# Runs the live extractors against one season, writes nothing, and reports how
+# much of each column actually came back.
+#
+# This is the check to run before the first Daily pipeline run against a new
+# season or after a source changes. Two things in this repo were written
+# against documented schemas rather than observed responses: Barttorvik's
+# positional CSV column map and the exact field spellings CBD uses. Both fail
+# the same quiet way, where the request succeeds, rows parse, and a column the
+# model depends on arrives full of nulls. Preflight makes that loud: a critical
+# field below its threshold prints FAIL and exits non-zero.
+#
+# It touches no warehouse and commits nothing, so it is always safe to run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: "Season to check, by the year it ends in (2026 is 2025-26)"
+        type: string
+        default: "2026"
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: pip install -e ingestion
+
+      - name: Preflight
+        env:
+          CBD_API_KEY: ${{ secrets.CBD_API_KEY }}
+        run: ingest preflight --season ${{ inputs.season }}
+
+      - name: What a failure here means
+        if: failure()
+        run: |
+          echo "::notice::A FAIL above is a parser reading the wrong column, not a"
+          echo "::notice::missing season. Check ingestion/src/ingestion/torvik.py"
+          echo "::notice::POSITIONAL_COLUMNS first: it is the map most likely to be"
+          echo "::notice::wrong, because it was written without a live response to"
+          echo "::notice::check against. Do not run the Daily pipeline until this passes:"
+          echo "::notice::it commits the warehouse it builds."
