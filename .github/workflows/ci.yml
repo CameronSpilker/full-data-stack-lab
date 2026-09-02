@@ -116,6 +116,9 @@ jobs:
         working-directory: dashboard
         run: npm ci
 
+      # Deliberately not `build:deploy`: that fetches the published warehouse,
+      # and CI is checking that this branch's code builds, against the
+      # synthetic seasons generated above.
       - name: Build
         working-directory: dashboard
         run: |

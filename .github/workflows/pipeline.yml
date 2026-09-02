@@ -1,22 +1,37 @@
 name: Daily pipeline
 
+# Extracts the last few days of basketball, rebuilds the models, and publishes
+# the warehouse as a release asset.
+#
+# The warehouse is not committed. It is a 17MB binary that changes on every run
+# even when no games were played, because every row carries the timestamp it was
+# extracted at. Committing it daily would add roughly its own size to the
+# repository's history every day, for a file nobody reads as text and git cannot
+# diff. A release asset is overwritten in place instead, so the repository stays
+# the size of its source and the dashboard still has one URL to fetch.
+
 on:
   schedule:
-    # 06:00 America/Denver (13:00 UTC) — after the last west coast final and
+    # 06:00 America/Denver (13:00 UTC), after the last west coast final and
     # before anyone looks at the dashboard.
     - cron: "0 13 * * *"
   workflow_dispatch:
     inputs:
       backfill:
-        description: "Extract every season in seasons.yml, not just the current one"
+        description: "Extract every season in seasons.yml in full, not just recent days"
         type: boolean
         default: false
+      since_days:
+        description: "Days of games and lines to refresh on a normal run"
+        type: string
+        default: "7"
 
 permissions:
   contents: write
 
 env:
   DBT_PROFILES_DIR: ${{ github.workspace }}/transform
+  WAREHOUSE_RELEASE: warehouse-latest
 
 jobs:
   run:
@@ -32,9 +47,26 @@ jobs:
       - name: Install
         run: pip install -e ingestion -r transform/requirements.txt
 
-      # Only the season in progress is refreshed on a schedule. Past seasons
-      # are finished, and re-pulling them nightly would spend the API budget
-      # rewriting rows that cannot change. `backfill` overrides that.
+      # A daily run corrects and extends the warehouse it built yesterday, so
+      # it has to start from that one. Its absence is not an error: the first
+      # run ever, and any run after the release is deleted, simply builds from
+      # nothing and uploads a complete warehouse at the end.
+      - name: Fetch the previous warehouse
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p data
+          if gh release download "$WAREHOUSE_RELEASE" \
+              --pattern warehouse.duckdb --dir data --clobber 2>/dev/null; then
+            echo "Starting from the previous warehouse ($(du -h data/warehouse.duckdb | cut -f1))."
+          else
+            echo "::notice::No previous warehouse found. Building from scratch."
+          fi
+
+      # Only the season in progress is refreshed, and only its recent days:
+      # finished games do not change, and the loader upserts on the row key, so
+      # a rolling window corrects what it covers and leaves the rest alone.
+      # `backfill` re-extracts every season in full when history is needed.
       - name: Ingest
         env:
           CBD_API_KEY: ${{ secrets.CBD_API_KEY }}
@@ -43,7 +75,7 @@ jobs:
           if [ "${{ inputs.backfill }}" = "true" ]; then
             ingest all
           else
-            ingest all --current-only
+            ingest all --current-only --since-days "${{ inputs.since_days || 7 }}"
           fi
 
       - name: Transform
@@ -63,18 +95,37 @@ jobs:
           DUCKDB_PATH: data/warehouse.duckdb
         run: python scripts/print_test_failures.py
 
-      # The warehouse holds only public data and no credentials, so a build
-      # from the real APIs is committed on purpose: the dashboard then builds
-      # from a clean checkout without needing a pipeline run first.
-      # `-f` is required because .gitignore keeps synthetic local builds out.
-      - name: Commit the refreshed warehouse
+      # dbt's docs site is one page that fetches its manifest and catalog from
+      # beside itself, so those three files are the whole docs deployment. They
+      # ride along with the warehouse so the dashboard build can fetch both
+      # from one place.
+      - name: Package the dbt docs
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f data/warehouse.duckdb
-          if git diff --staged --quiet; then
-            echo "No change in the warehouse; nothing to commit."
-          else
-            git commit -m "Refresh warehouse for $(date -u +%Y-%m-%d)"
-            git push
+          mkdir -p dist/docs
+          cp transform/target/index.html dist/docs/
+          cp transform/target/manifest.json dist/docs/
+          cp transform/target/catalog.json dist/docs/
+          tar -czf dbt-docs.tar.gz -C dist docs
+
+      # Published only after dbt passes, so a warehouse that failed its own
+      # tests is never the one the dashboard builds from.
+      - name: Publish the warehouse
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view "$WAREHOUSE_RELEASE" >/dev/null 2>&1; then
+            gh release create "$WAREHOUSE_RELEASE" \
+              --title "Latest warehouse" \
+              --notes "The current DuckDB warehouse and dbt docs, rebuilt by the daily pipeline. Overwritten in place; see the repository for the code that produced it." \
+              --latest=false
           fi
+
+          gh release upload "$WAREHOUSE_RELEASE" \
+            data/warehouse.duckdb dbt-docs.tar.gz --clobber
+
+          echo "### Warehouse published" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Asset | Size |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| warehouse.duckdb | $(du -h data/warehouse.duckdb | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| dbt-docs.tar.gz | $(du -h dbt-docs.tar.gz | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"

@@ -72,7 +72,7 @@ def test_no_rows_yields_no_checks():
 
 
 def test_every_critical_table_is_a_real_raw_table():
-    from ingestion.load import PARTITION_COLUMNS
+    from ingestion.load import KEY_COLUMNS
 
     # A threshold on a table the loader does not know about would never run.
-    assert set(preflight.CRITICAL) <= set(PARTITION_COLUMNS)
+    assert set(preflight.CRITICAL) <= set(KEY_COLUMNS)

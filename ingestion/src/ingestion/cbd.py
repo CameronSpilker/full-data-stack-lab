@@ -131,10 +131,17 @@ def _to_float(value: Any) -> float | None:
 PAGE_LIMIT = 3000
 
 
-def _windows(season: Season, days: int = 14) -> list[tuple[date, date]]:
-    """The season cut into fixed windows, oldest first."""
+def _windows(season: Season, days: int = 14, since: date | None = None) -> list[tuple[date, date]]:
+    """The season cut into fixed windows, oldest first.
+
+    `since` trims the walk to recent history, which is what a daily run wants:
+    yesterday's finals and any score corrected since, rather than five months
+    of settled results re-fetched every night.
+    """
     spans = []
-    start = season.start
+    start = max(season.start, since) if since else season.start
+    if start > season.end:
+        return []
     while start <= season.end:
         end = min(start + timedelta(days=days - 1), season.end)
         spans.append((start, end))
@@ -143,7 +150,7 @@ def _windows(season: Season, days: int = 14) -> list[tuple[date, date]]:
 
 
 def _paged_by_date(
-    client: httpx.Client, path: str, season: Season, **params: Any
+    client: httpx.Client, path: str, season: Season, since: date | None = None, **params: Any
 ) -> list[dict[str, Any]]:
     """Every record for a season, a date window at a time.
 
@@ -151,7 +158,7 @@ def _paged_by_date(
     and both halves are retried. A single day at the limit cannot be split any
     further and is reported rather than silently accepted.
     """
-    pending = list(reversed(_windows(season)))
+    pending = list(reversed(_windows(season, since=since)))
     collected: list[dict[str, Any]] = []
 
     while pending:
@@ -313,19 +320,23 @@ def parse_game(game: dict[str, Any], season_year: int) -> dict[str, Any] | None:
     }
 
 
-def extract_games(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]:
-    """Every game in each requested season, paged past the record limit.
+def extract_games(
+    seasons: list[Season], since: date | None = None
+) -> dict[str, list[dict[str, Any]]]:
+    """Games in each requested season, paged past the record limit.
 
     A bare season request returns 3,000 games and stops in early January, so
     the season is walked in date windows. Deduping on game_id makes the window
-    boundaries harmless.
+    boundaries harmless. `since` limits the walk to recent dates for a daily
+    run; the loader upserts on game_id, so a partial extract corrects the games
+    it covers and leaves the rest of the season alone.
     """
     rows: dict[str, dict[str, Any]] = {}
 
     with _client() as client:
         for season in seasons:
             try:
-                payload = _paged_by_date(client, "/games", season)
+                payload = _paged_by_date(client, "/games", season, since=since)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
                 log.error("Skipping games for %s: %s", season.label, exc)
                 continue
@@ -506,14 +517,16 @@ def parse_lines(entry: dict[str, Any], season_year: int) -> list[dict[str, Any]]
     return rows
 
 
-def extract_lines(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]:
-    """Closing betting lines — the benchmark the predictor is measured against."""
+def extract_lines(
+    seasons: list[Season], since: date | None = None
+) -> dict[str, list[dict[str, Any]]]:
+    """Closing betting lines, the benchmark the predictor is measured against."""
     rows: list[dict[str, Any]] = []
 
     with _client() as client:
         for season in seasons:
             try:
-                payload = _paged_by_date(client, "/lines", season)
+                payload = _paged_by_date(client, "/lines", season, since=since)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
                 log.error("Skipping lines for %s: %s", season.label, exc)
                 continue

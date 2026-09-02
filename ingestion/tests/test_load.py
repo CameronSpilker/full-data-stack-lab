@@ -94,3 +94,52 @@ def test_persist_writes_parquet_and_returns_counts(warehouse, tmp_path):
 
     assert counts == {"ncaa_games": 1}
     assert (tmp_path / "raw" / "ncaa_games" / f"{SNAPSHOT.isoformat()}.parquet").exists()
+
+
+def test_a_partial_load_replaces_only_what_it_carries(tmp_path, monkeypatch):
+    """The property that makes a daily rolling window safe.
+
+    Games were once keyed on the season, so a load deleted the whole season
+    before inserting. Extracting a single day would have deleted five months of
+    basketball and inserted one evening of it.
+    """
+    warehouse = tmp_path / "warehouse.duckdb"
+    monkeypatch.setenv("DUCKDB_PATH", str(warehouse))
+
+    season = [
+        {"game_id": str(i), "season": 2026, "home_score": 70, "away_score": 68}
+        for i in range(500)
+    ]
+    load.load_to_duckdb("ncaa_games", season)
+
+    # One corrected game, as a daily window would deliver.
+    load.load_to_duckdb(
+        "ncaa_games",
+        [{"game_id": "7", "season": 2026, "home_score": 99, "away_score": 68}],
+    )
+
+    with duckdb.connect(str(warehouse)) as con:
+        total = con.execute("select count(*) from raw.ncaa_games").fetchone()[0]
+        corrected = con.execute(
+            "select home_score from raw.ncaa_games where game_id = '7'"
+        ).fetchone()[0]
+
+    assert total == 500, "a one-game load must not delete the season"
+    assert corrected == 99, "the game it did carry should be corrected"
+
+
+def test_a_snapshot_table_keeps_earlier_snapshots(tmp_path, monkeypatch):
+    warehouse = tmp_path / "warehouse.duckdb"
+    monkeypatch.setenv("DUCKDB_PATH", str(warehouse))
+
+    monday = {"snapshot_date": date(2026, 1, 5), "team_id": "150", "location": "Duke"}
+    tuesday = {"snapshot_date": date(2026, 1, 6), "team_id": "150", "location": "Duke"}
+
+    load.load_to_duckdb("ncaa_teams", [monday])
+    load.load_to_duckdb("ncaa_teams", [tuesday])
+
+    with duckdb.connect(str(warehouse)) as con:
+        total = con.execute("select count(*) from raw.ncaa_teams").fetchone()[0]
+
+    # The same team on a new date is a new row, not a correction of the old one.
+    assert total == 2

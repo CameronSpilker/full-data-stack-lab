@@ -216,46 +216,47 @@ Actions secrets and nowhere else.
 
 ## Deployment
 
-Both published surfaces come out of one GitHub Actions workflow
-(`.github/workflows/publish.yml`) and land on GitHub Pages:
+The dashboard is a static site built from the published warehouse, hosted on
+Vercel at a domain of its own. The dbt docs ship inside the same deployment at
+`/docs`, so there is one thing to deploy and one place to look.
 
-| Surface       | URL                                                          |
-| ------------- | ------------------------------------------------------------ |
-| Dashboard     | `https://cameronspilker.github.io/full-data-stack-lab/`       |
-| dbt docs      | `https://cameronspilker.github.io/full-data-stack-lab/docs/`  |
+| Surface   | Path     |
+| --------- | -------- |
+| Dashboard | `/`      |
+| dbt docs  | `/docs`  |
 
-Pages needs no deploy token, no third-party account, and no build minutes
-beyond the ones this repo already uses, which is why it is the first target
-rather than Vercel.
+**Vercel project settings.** Root directory `dashboard`; everything else is in
+`dashboard/vercel.json`, so the build is described in the repository rather
+than in a control panel nobody can diff. The build command fetches the
+warehouse and the docs from the release below, then runs the normal Evidence
+build. Every push redeploys, and so does every daily pipeline run,
+because the run publishes a new warehouse rather than committing one.
 
-Turning it on, once:
+**The warehouse is a release asset, not a commit.** It is a 17MB binary that
+changes on every run even when no games were played, because every row carries
+the timestamp it was extracted at. Committing it daily would add roughly its
+own size to the repository's history every day, for a file git cannot diff and
+nobody reads as text. The daily pipeline overwrites the `warehouse-latest`
+release in place, and anything that needs the data downloads it:
 
-1. Add `CBD_API_KEY` under Settings > Secrets and variables > Actions.
-2. Run the **Daily pipeline** workflow. It extracts from the live APIs, builds
-   the models, and commits `data/warehouse.duckdb`.
-3. Set Settings > Pages > Source to **GitHub Actions**.
-4. Run the **Publish dashboard and docs** workflow. It builds the Evidence site
-   from the committed warehouse, generates the dbt docs beside it, and deploys
-   both.
+```bash
+curl -fsSL https://github.com/CameronSpilker/full-data-stack-lab/releases/download/warehouse-latest/warehouse.duckdb \
+    -o data/warehouse.duckdb
+```
 
-After that it is automatic: every successful daily pipeline run triggers a
-publish, so the dashboard is never more than a day behind the season.
+`dashboard/scripts/fetch-warehouse.sh` is that download plus the docs, and it
+is what `npm run build:deploy` calls. No credentials: the repository is public.
 
-The publish workflow refuses to run without a committed warehouse. That is
-deliberate: `ingest demo` invents teams and results so the pipeline can run
-offline, and a public dashboard of invented tournament odds is the exact
-failure this project argues against. Nothing synthetic is ever published.
+**Nothing is published until dbt passes.** The pipeline uploads the warehouse
+only after `dbt build`, so a warehouse that failed its own tests is never the
+one the dashboard builds from. The first live run stopped exactly there, on
+eighteen games that had been recorded as completed 0-0.
 
-**Moving it to a domain of its own.** Point the domain at Pages, or build the
-same two artifacts elsewhere. Either way, set `deployment.basePath` in
-`dashboard/evidence.config.yaml` back to `""`, since a project page is served
-under `/full-data-stack-lab` and a root domain is not.
-
-**Deploying the dashboard to Vercel instead.** Root directory `dashboard`,
-build command `npm run sources && npm run build`, output directory `build`, and
-`basePath` back to `""`. It works, and it buys nothing over Pages here: the
-warehouse has to be in the checkout either way, since Evidence reads a file
-rather than a server.
+**Hosting it somewhere else.** The build has no Vercel-specific parts: it is a
+shell script, a static build, and a directory. GitHub Pages works too, and is
+free for public repositories, but it serves a project site under `/<repo>`, so
+set `deployment.basePath` in `dashboard/evidence.config.yaml` to
+`/full-data-stack-lab` first.
 
 ## Status
 

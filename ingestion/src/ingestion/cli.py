@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from datetime import date
+from datetime import date, timedelta
 
 from . import cbd, demo, diagnose, load, preflight
 from .config import Season, current_season, load_seasons, utc_today
@@ -54,6 +54,19 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         "--current-only",
         action="store_true",
         help="Shorthand for --season <current_season>, for a routine in-season run.",
+    )
+    parser.add_argument(
+        "--since-days",
+        type=int,
+        metavar="N",
+        help=(
+            "Only extract games and lines from the last N days. What a daily "
+            "run wants: last night's finals and anything corrected since, "
+            "rather than the whole season re-fetched every night. Loads upsert "
+            "on the row key, so a partial extract leaves the rest alone. Box "
+            "scores and ratings ignore this: the box score endpoint has no "
+            "date filter, and ratings are one row per team per snapshot."
+        ),
     )
     parser.add_argument(
         "--snapshot-date",
@@ -109,14 +122,20 @@ def main(argv: list[str] | None = None) -> int:
     if args.source in ("teams", "all"):
         tables.update(cbd.extract_teams(current_season(), args.snapshot_date))
 
+    since = (
+        args.snapshot_date - timedelta(days=args.since_days) if args.since_days else None
+    )
+    if since:
+        log.info("Extracting games and lines from %s onward", since)
+
     if args.source in ("games", "all"):
-        tables.update(cbd.extract_games(seasons))
+        tables.update(cbd.extract_games(seasons, since=since))
 
     if args.source in ("boxscores", "all"):
         tables.update(cbd.extract_box_scores(seasons))
 
     if args.source in ("lines", "all"):
-        tables.update(cbd.extract_lines(seasons))
+        tables.update(cbd.extract_lines(seasons, since=since))
 
     if args.source in ("ratings", "all"):
         tables.update(cbd.extract_ratings(seasons, args.snapshot_date))
