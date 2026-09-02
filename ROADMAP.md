@@ -87,16 +87,27 @@ modelling work left.
 
 ### 4. Deploy the dashboard
 
-- [ ] Deploy `dashboard/` to Vercel, root directory `dashboard`, build command
-      `npm run sources && npm run build`
+The workflow is written: `.github/workflows/publish.yml` builds the Evidence
+site and the dbt docs from the committed warehouse and deploys both to GitHub
+Pages, refusing to publish if the warehouse is missing. See the Deployment
+section of the README. What is left is the switching on, and all of it depends
+on step 1.
+
+- [x] Build and deploy the dashboard from CI, with no deploy credentials
+- [ ] Set Settings > Pages > Source to GitHub Actions
+- [ ] Run the publish workflow once the pipeline has committed a real warehouse
 - [ ] Confirm the DuckDB file resolves at build time from the repo checkout
-- [ ] Point a subdomain at it and link it from cameronspilker.com
-- [ ] Verify it renders inside an iframe, since the portfolio site embeds it
+- [ ] Set `lab.dashboard` in the portfolio repo's `src/content/site.ts`, which
+      is the one line that lights up the link there
+- [ ] Point a subdomain at it, and set `basePath` back to `""` when you do
+- [ ] Verify it renders inside an iframe, in case the portfolio site embeds it
 
 ### 5. Host the dbt docs
 
-- [ ] Add a workflow step publishing `transform/target/` to GitHub Pages
-- [ ] Link the docs from both the dashboard nav and the portfolio site
+- [x] Add a workflow step publishing `transform/target/` to GitHub Pages. The
+      publish workflow puts it at `/docs`, beside the dashboard
+- [ ] Link the docs from the dashboard nav
+- [ ] Set `lab.docs` in the portfolio repo's `src/content/site.ts`
 
 ### 6. Harden
 
