@@ -226,8 +226,11 @@ Vercel at a domain of its own. The dbt docs ship inside the same deployment at
 | dbt docs  | `/docs`  |
 
 **Vercel project settings.** Root directory `dashboard`; everything else is in
-`dashboard/vercel.json`, so the build is described in the repository rather
-than in a control panel nobody can diff. The build command fetches the
+`dashboard/vercel.json` and `dashboard/package.json`, so the build is described
+in the repository rather than in a control panel nobody can diff. `engines.node`
+pins Node 22 there, matching CI: the DuckDB driver Evidence uses publishes no
+prebuilt binary for Node 24, and without the pin a host defaulting to 24 tries
+to compile DuckDB from source and fails. The build command fetches the
 warehouse and the docs from the release below, then runs the normal Evidence
 build. Every push redeploys, and so does every daily pipeline run,
 because the run publishes a new warehouse rather than committing one.
