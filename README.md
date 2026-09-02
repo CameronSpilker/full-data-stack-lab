@@ -225,10 +225,11 @@ Vercel at a domain of its own. The dbt docs ship inside the same deployment at
 | Dashboard | `/`      |
 | dbt docs  | `/docs`  |
 
-**Vercel project settings.** Root directory `dashboard`, build command
-`npm run build:deploy`, output directory `build`. That build command fetches
-the warehouse and the docs from the release below, then runs the normal
-Evidence build. Every push redeploys, and so does every daily pipeline run,
+**Vercel project settings.** Root directory `dashboard`; everything else is in
+`dashboard/vercel.json`, so the build is described in the repository rather
+than in a control panel nobody can diff. The build command fetches the
+warehouse and the docs from the release below, then runs the normal Evidence
+build. Every push redeploys, and so does every daily pipeline run,
 because the run publishes a new warehouse rather than committing one.
 
 **The warehouse is a release asset, not a commit.** It is a 17MB binary that
