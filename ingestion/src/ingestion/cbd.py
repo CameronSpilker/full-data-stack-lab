@@ -34,6 +34,27 @@ class MissingApiKey(RuntimeError):
     """Raised when a live extract is attempted with no CBD_API_KEY set."""
 
 
+class SourceExhausted(RuntimeError):
+    """Every request for one source failed.
+
+    An extractor that loses a season logs it and carries on, because one bad
+    response should not cost the other four. Losing every season is a different
+    event: it means the source returned nothing at all, and a run that treats
+    that as "no news" writes a warehouse missing a whole table while reporting
+    success. This is raised instead, so the run fails before it publishes and
+    yesterday's complete warehouse stands.
+    """
+
+
+# A general fault gets five tries. A rate limit is not a fault: it is the
+# expected answer when a five-season backfill asks for everything at once, so
+# it gets its own budget and a longer ceiling. Worst case is about two minutes
+# of waiting on one request before the source is called exhausted.
+MAX_ATTEMPTS = 5
+RATE_LIMIT_ATTEMPTS = 7
+RATE_LIMIT_MAX_WAIT = 30.0
+
+
 def api_key() -> str:
     key = os.getenv("CBD_API_KEY")
     if not key:
@@ -58,12 +79,22 @@ def _client() -> httpx.Client:
 
 
 def _get(client: httpx.Client, path: str, **params: Any) -> Any:
-    """GET with retries. 401 fails immediately — a bad key will not fix itself."""
-    for attempt in range(5):
+    """GET with retries. 401 fails immediately: a bad key will not fix itself.
+
+    A 429 does not spend an attempt. Backing off five times in thirty-one
+    seconds and giving up is what lost four seasons of betting lines and
+    ratings on the first successful backfill: the waits were shorter than the
+    window the limit was measured over, so every retry arrived still throttled.
+    """
+    attempt = 0
+    throttled = 0
+
+    while attempt < MAX_ATTEMPTS:
         try:
             response = client.get(path, params=params)
         except httpx.TransportError as exc:
             backoff = 2**attempt
+            attempt += 1
             log.warning("Transport error on %s (%s); retrying in %ss", path, exc, backoff)
             time.sleep(backoff)
             continue
@@ -74,13 +105,22 @@ def _get(client: httpx.Client, path: str, **params: Any) -> Any:
             )
 
         if response.status_code == 429:
-            wait = float(response.headers.get("retry-after", 2**attempt))
+            throttled += 1
+            if throttled > RATE_LIMIT_ATTEMPTS:
+                raise RuntimeError(
+                    f"CBD is still rate limiting {path} after {RATE_LIMIT_ATTEMPTS} waits"
+                )
+            wait = min(
+                float(response.headers.get("retry-after", 2**throttled)),
+                RATE_LIMIT_MAX_WAIT,
+            )
             log.warning("Rate limited on %s; sleeping %.0fs", path, wait)
             time.sleep(wait)
             continue
 
         if response.status_code >= 500:
             backoff = 2**attempt
+            attempt += 1
             log.warning("CBD %s on %s; retrying in %ss", response.status_code, path, backoff)
             time.sleep(backoff)
             continue
@@ -90,6 +130,21 @@ def _get(client: httpx.Client, path: str, **params: Any) -> Any:
         return response.json()
 
     raise RuntimeError(f"CBD request failed after retries: {path}")
+
+
+def _require_a_season(source: str, seasons: list[Season], failed: int) -> None:
+    """Fail the extract if not one requested season came back.
+
+    Losing some seasons is survivable and already logged. Losing all of them
+    means the warehouse would keep whatever it had for this source and the run
+    would still report success, which is how a backfill can publish a table
+    that is four seasons short without anyone noticing.
+    """
+    if seasons and failed == len(seasons):
+        raise SourceExhausted(
+            f"Every request for {source} failed across all {len(seasons)} seasons. "
+            "Nothing was extracted, so nothing is published."
+        )
 
 
 def _first(payload: dict[str, Any], *names: str) -> Any:
@@ -332,12 +387,14 @@ def extract_games(
     it covers and leaves the rest of the season alone.
     """
     rows: dict[str, dict[str, Any]] = {}
+    failed = 0
 
     with _client() as client:
         for season in seasons:
             try:
                 payload = _paged_by_date(client, "/games", season, since=since)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
+                failed += 1
                 log.error("Skipping games for %s: %s", season.label, exc)
                 continue
 
@@ -349,6 +406,7 @@ def extract_games(
                     found += 1
             log.info("CBD %s: %s games", season.label, found)
 
+    _require_a_season("games", seasons, failed)
     return {"ncaa_games": list(rows.values())}
 
 
@@ -440,22 +498,26 @@ def extract_box_scores(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]
     deduped, since a non-conference game is returned under both teams' leagues.
     """
     rows: dict[tuple[str, str], dict[str, Any]] = {}
+    failed = 0
 
     with _client() as client:
         for season in seasons:
             try:
                 conferences = _conferences(client, season)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
+                failed += 1
                 log.error("Skipping box scores for %s: %s", season.label, exc)
                 continue
 
             before = len(rows)
+            lost = 0
             for conference in conferences:
                 try:
                     payload = _get(
                         client, "/games/teams", season=season.year, conference=conference
                     )
                 except (httpx.HTTPStatusError, RuntimeError) as exc:
+                    lost += 1
                     log.error("Box scores for %s %s: %s", season.label, conference, exc)
                     continue
 
@@ -472,6 +534,12 @@ def extract_box_scores(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]
                     for row in parse_team_box(entry, season.year):
                         rows[(row["game_id"], row["team_id"])] = row
 
+            # A season whose every league was refused is a lost season, not a
+            # thin one, and counts the same as one that never got a conference
+            # list at all.
+            if conferences and lost == len(conferences):
+                failed += 1
+
             log.info(
                 "CBD %s: %s box score lines across %s conferences",
                 season.label,
@@ -479,6 +547,7 @@ def extract_box_scores(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]
                 len(conferences),
             )
 
+    _require_a_season("box scores", seasons, failed)
     return {"ncaa_team_box": list(rows.values())}
 
 
@@ -522,12 +591,14 @@ def extract_lines(
 ) -> dict[str, list[dict[str, Any]]]:
     """Closing betting lines, the benchmark the predictor is measured against."""
     rows: list[dict[str, Any]] = []
+    failed = 0
 
     with _client() as client:
         for season in seasons:
             try:
                 payload = _paged_by_date(client, "/lines", season, since=since)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
+                failed += 1
                 log.error("Skipping lines for %s: %s", season.label, exc)
                 continue
 
@@ -537,6 +608,7 @@ def extract_lines(
             rows.extend(season_rows)
             log.info("CBD %s: %s betting lines", season.label, len(season_rows))
 
+    _require_a_season("betting lines", seasons, failed)
     return {"ncaa_betting_lines": rows}
 
 
@@ -649,6 +721,7 @@ def extract_ratings(
     """Adjusted efficiency for every requested season, keyed by team id."""
     snapshot = snapshot or utc_today()
     rows: list[dict[str, Any]] = []
+    failed = 0
 
     with _client() as client:
         for season in seasons:
@@ -656,6 +729,7 @@ def extract_ratings(
                 payload = _get(client, "/ratings/adjusted", season=season.year)
                 stats = _season_stats(client, season)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
+                failed += 1
                 log.error("Skipping ratings for %s: %s", season.label, exc)
                 continue
 
@@ -672,4 +746,5 @@ def extract_ratings(
                 sum(1 for row in season_rows if row["adj_tempo"] is not None),
             )
 
+    _require_a_season("ratings", seasons, failed)
     return {"ncaa_ratings": rows}

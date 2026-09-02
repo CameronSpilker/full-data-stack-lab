@@ -158,6 +158,20 @@ the limit is split and retried, so the paging adapts instead of trusting a
 hand-picked window size. Box scores ignore the date parameters, so they are
 walked one conference at a time and deduped.
 
+**Losing one season is a log line. Losing all of them is a failure.** Each
+extractor loses a season the same way: it logs the error and carries on, so one
+bad response cannot cost the other four. The first successful backfill showed
+what that costs when it is the only rule. CBD rate limited every historical
+request, both the lines and the ratings extractors lost all five seasons, and
+the run published a warehouse with five seasons of games and one of everything
+else while reporting success. Every extractor now counts its losses and raises
+`SourceExhausted` when not one season came back, which fails the run before it
+publishes and leaves yesterday's complete warehouse standing. A 429 also no
+longer spends a retry: five backoffs totalling thirty-one seconds were shorter
+than the window the limit is measured over, so every retry arrived still
+throttled. And a backfill asks more slowly than a daily run, because nobody is
+waiting on it.
+
 **The betting line is the benchmark.** "The model went 71% straight up" mostly
 measures whether favourites won. "The model beat the closing spread" is a
 claim. The market consensus is loaded as a first-class model in

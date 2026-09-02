@@ -412,3 +412,106 @@ def test_a_shutout_half_is_still_a_played_game():
     lopsided = GAME | {"homePoints": 61, "awayPoints": 0, "status": "final"}
 
     assert cbd.parse_game(lopsided, 2026)["is_completed"] is True
+
+
+# --------------------------------------------------------------------------
+# Rate limiting, and the difference between "no news" and "no data"
+# --------------------------------------------------------------------------
+#
+# The first successful backfill published a warehouse with five seasons of
+# games and one season of betting lines and ratings. The API rate limited every
+# historical request, the extractors logged each one and carried on by design,
+# and the run reported success. Both halves of that are fixed below: the waits
+# are long enough to outlast the limit, and losing every season is an error.
+
+
+class _Throttled:
+    """Returns 429 for the first `times` requests, then a real payload."""
+
+    def __init__(self, times, retry_after=None):
+        self.remaining = times
+        self.retry_after = retry_after
+        self.waits = []
+
+    def get(self, path, params=None):
+        if self.remaining:
+            self.remaining -= 1
+            response = _FakeResponse([])
+            response.status_code = 429
+            if self.retry_after is not None:
+                response.headers = {"retry-after": str(self.retry_after)}
+            return response
+        return _FakeResponse([{"id": 1}])
+
+
+def _throttle_waits(monkeypatch):
+    """Record what `_get` sleeps for, minus the courtesy delay after a 200."""
+    waits = []
+    monkeypatch.setattr(cbd, "request_delay", lambda: 0)
+    monkeypatch.setattr(cbd.time, "sleep", waits.append)
+    return [wait for wait in waits if wait], waits
+
+
+def _seasons(*years):
+    return [Season(year=year, start=date(year - 1, 11, 1), end=date(year, 4, 15))
+            for year in years]
+
+
+def test_a_rate_limit_does_not_spend_a_retry(monkeypatch):
+    _, waits = _throttle_waits(monkeypatch)
+    # More 429s than the general retry budget. Under the old rule this gave up.
+    client = _Throttled(times=cbd.MAX_ATTEMPTS + 1)
+
+    assert cbd._get(client, "/lines") == [{"id": 1}]
+    assert len([wait for wait in waits if wait]) == cbd.MAX_ATTEMPTS + 1
+
+
+def test_rate_limit_waits_grow_and_are_capped(monkeypatch):
+    _, all_waits = _throttle_waits(monkeypatch)
+    client = _Throttled(times=cbd.RATE_LIMIT_ATTEMPTS)
+
+    cbd._get(client, "/lines")
+
+    waits = [wait for wait in all_waits if wait]
+    assert waits == sorted(waits), "each wait should be at least as long as the last"
+    assert max(waits) <= cbd.RATE_LIMIT_MAX_WAIT
+    # Long enough to outlast a per-minute window, which 31 seconds was not.
+    assert sum(waits) > 60
+
+
+def test_a_retry_after_header_wins_over_the_backoff(monkeypatch):
+    _, all_waits = _throttle_waits(monkeypatch)
+    client = _Throttled(times=1, retry_after=7)
+
+    cbd._get(client, "/lines")
+
+    assert [wait for wait in all_waits if wait] == [7]
+
+
+def test_endless_rate_limiting_eventually_raises(monkeypatch):
+    _throttle_waits(monkeypatch)
+    client = _Throttled(times=cbd.RATE_LIMIT_ATTEMPTS + 1)
+
+    with pytest.raises(RuntimeError, match="still rate limiting"):
+        cbd._get(client, "/lines")
+
+
+def test_losing_every_season_is_an_error_not_an_empty_extract():
+    seasons = _seasons(2025, 2026)
+
+    with pytest.raises(cbd.SourceExhausted, match="all 2 seasons"):
+        cbd._require_a_season("ratings", seasons, failed=2)
+
+
+def test_losing_some_seasons_is_survivable():
+    seasons = _seasons(2025, 2026)
+
+    # One season lost out of two: logged by the caller, not fatal.
+    cbd._require_a_season("ratings", seasons, failed=1)
+
+
+def test_an_empty_but_successful_extract_is_not_an_error():
+    # The offseason: every request succeeded and there were simply no games.
+    seasons = _seasons(2026)
+
+    cbd._require_a_season("games", seasons, failed=0)
