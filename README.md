@@ -99,6 +99,11 @@ dbt deps && dbt build                 # 22 models, 1 seed, 113 tests
 dbt docs generate && dbt docs serve
 ```
 
+If `ingest` is not found, the package is not installed into the active
+environment. Every new terminal needs the virtualenv activated
+(`source .venv/bin/activate`) — the `ingest` command lives inside it, not on
+the system path. `python -V` must report 3.11 or newer.
+
 Then the dashboard:
 
 ```bash

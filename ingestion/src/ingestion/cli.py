@@ -1,4 +1,9 @@
-"""Command line entry point: `ingest teams`, `games`, `ratings`, `lines`, `all`, `demo`."""
+"""Command line entry point.
+
+`ingest demo` simulates seasons offline. `ingest preflight` checks the live
+APIs and writes nothing. `ingest all` runs every extractor for real; the
+individual sources — teams, games, ratings, lines, boxscores — run alone.
+"""
 
 from __future__ import annotations
 
