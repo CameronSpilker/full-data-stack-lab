@@ -36,7 +36,13 @@ typed as (
 
         coalesce(is_neutral_site, false) as is_neutral_site,
         coalesce(is_conference_game, false) as is_conference_game,
-        coalesce(is_completed, false) as is_completed,
+        -- The extractor no longer calls a 0-0 fixture completed, but rows
+        -- loaded before that fix are still in raw, and a source that labels a
+        -- cancelled game "final" would slip through again. Scoreless means it
+        -- was not played.
+        coalesce(is_completed, false)
+            and coalesce(home_score, 0) + coalesce(away_score, 0) > 0
+            as is_completed,
         status_state,
         attendance,
         venue_name,
