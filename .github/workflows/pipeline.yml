@@ -73,7 +73,10 @@ jobs:
           DUCKDB_PATH: data/warehouse.duckdb
         run: |
           if [ "${{ inputs.backfill }}" = "true" ]; then
-            ingest all
+            # A backfill is thousands of requests in one go, which is what
+            # exhausts the API's rate limit. Nobody is waiting on it, so it
+            # asks more slowly rather than spending the run backing off.
+            REQUEST_DELAY_SECONDS=1.5 ingest all
           else
             ingest all --current-only --since-days "${{ inputs.since_days || 7 }}"
           fi
