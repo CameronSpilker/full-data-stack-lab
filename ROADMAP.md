@@ -116,8 +116,9 @@ on step 1.
       build instead of quietly serving stale marts
 - [ ] Add Dagster asset checks mirroring the dbt tests, so a failure surfaces in
       the orchestrator UI rather than only in dbt logs
-- [ ] Make game ingestion incremental — the current run replaces the whole
-      season nightly, which is fine at 5,500 games and wasteful at five seasons
+- [x] Make game ingestion incremental. Loads upsert on the row key, so a daily
+      run fetches a rolling window (`--since-days`) rather than the whole
+      season, and the offseason costs no requests at all
 - [ ] Add a `dbt build --select state:modified+` slim-CI path
 
 ### 7. Deepen the model

@@ -3,10 +3,15 @@
 Parquet is the durable landing zone — every run is replayable from disk
 without touching an API again. DuckDB is the serving copy that dbt reads.
 
-Loads are idempotent, but what "the same data" means differs by table, so each
-one declares the columns that partition it. A teams snapshot replaces one
-snapshot date; a season of games replaces those seasons and leaves the rest of
-history alone. Re-running any extract is always safe.
+Loads are idempotent upserts: each table declares the columns that identify a
+row, and a load replaces exactly the rows it carries and nothing else.
+
+That matters more than it sounds. Games used to be keyed on the season, so a
+load deleted the whole season before inserting. Re-extracting a season was
+therefore safe, and extracting a single day was catastrophic: it would delete
+five months of basketball and insert one evening of it. Keying on the row makes
+a partial extract safe, which is what lets the daily run fetch a rolling window
+instead of the entire season every night.
 """
 
 from __future__ import annotations
@@ -26,14 +31,18 @@ log = logging.getLogger(__name__)
 
 RAW_SCHEMA = "raw"
 
-# The columns whose incoming values are cleared before a load. A run that
-# re-extracts season 2026 deletes only season 2026.
-PARTITION_COLUMNS: dict[str, tuple[str, ...]] = {
-    "ncaa_teams": ("snapshot_date",),
-    "ncaa_games": ("season",),
-    "ncaa_team_box": ("season",),
-    "ncaa_ratings": ("season", "snapshot_date"),
-    "ncaa_betting_lines": ("season",),
+# What identifies a row in each table. A load deletes the rows matching the
+# keys it is about to insert, so re-running any extract, whole season or single
+# day, replaces exactly what it covers.
+KEY_COLUMNS: dict[str, tuple[str, ...]] = {
+    # Team and rating rows are dated snapshots: the same team on a new date is
+    # a new row, not a correction of the old one.
+    "ncaa_teams": ("snapshot_date", "team_id"),
+    "ncaa_ratings": ("season", "snapshot_date", "team_id"),
+    # Game-level facts are history, corrected in place when a score changes.
+    "ncaa_games": ("game_id",),
+    "ncaa_team_box": ("game_id", "team_id"),
+    "ncaa_betting_lines": ("game_id", "provider"),
 }
 
 
@@ -52,20 +61,27 @@ def write_parquet(table_name: str, rows: list[dict[str, Any]], snapshot: date) -
     return path
 
 
-def _delete_clause(
-    rows: list[dict[str, Any]], columns: tuple[str, ...]
-) -> tuple[str, list[Any]] | None:
-    """Build a DELETE predicate covering exactly the partitions being loaded."""
-    usable = [column for column in columns if column in rows[0]]
-    if not usable:
-        return None
+INCOMING = "incoming_rows"
 
-    combinations = sorted({tuple(row.get(column) for column in usable) for row in rows})
-    predicate = " or ".join(
-        "(" + " and ".join(f"{column} = ?" for column in usable) + ")" for _ in combinations
+
+def _delete_matching(con: Any, qualified: str, table_name: str, columns: list[str]) -> None:
+    """Delete the rows the incoming extract is about to replace.
+
+    Matched by an anti-join against the incoming batch rather than a generated
+    predicate: a season is six thousand games, and an OR of six thousand
+    clauses is a query no planner should be asked to read.
+    """
+    keys = [column for column in KEY_COLUMNS.get(table_name, ()) if column in columns]
+    if not keys:
+        log.warning("No key columns for %s; inserting without replacing", table_name)
+        return
+
+    matched = " and ".join(f"incoming.{key} = existing.{key}" for key in keys)
+    con.execute(
+        f"DELETE FROM {qualified} existing WHERE EXISTS ("
+        f"  SELECT 1 FROM {INCOMING} incoming WHERE {matched}"
+        f")"
     )
-    params = [value for combination in combinations for value in combination]
-    return predicate, params
 
 
 def load_to_duckdb(
@@ -77,9 +93,12 @@ def load_to_duckdb(
     if not rows:
         return 0
 
-    arrow_table = pa.Table.from_pylist(rows)  # noqa: F841 — read by DuckDB below
+    arrow_table = pa.Table.from_pylist(rows)
 
     with duckdb.connect(str(duckdb_path())) as con:
+        # Registered by name rather than left to DuckDB's scan of local
+        # variables, so the helpers below can see it too.
+        con.register(INCOMING, arrow_table)
         con.execute(f"CREATE SCHEMA IF NOT EXISTS {RAW_SCHEMA}")
         qualified = f"{RAW_SCHEMA}.{table_name}"
 
@@ -90,19 +109,16 @@ def load_to_duckdb(
         ).fetchone()[0]
 
         if not exists:
-            con.execute(f"CREATE TABLE {qualified} AS SELECT * FROM arrow_table")
+            con.execute(f"CREATE TABLE {qualified} AS SELECT * FROM {INCOMING}")
             log.info("Created %s with %s rows", qualified, len(rows))
             return len(rows)
 
         if replace_all:
             con.execute(f"DELETE FROM {qualified}")
         else:
-            clause = _delete_clause(rows, PARTITION_COLUMNS.get(table_name, ("snapshot_date",)))
-            if clause:
-                predicate, params = clause
-                con.execute(f"DELETE FROM {qualified} WHERE {predicate}", params)
+            _delete_matching(con, qualified, table_name, list(rows[0]))
 
-        con.execute(f"INSERT INTO {qualified} SELECT * FROM arrow_table")
+        con.execute(f"INSERT INTO {qualified} SELECT * FROM {INCOMING}")
 
     log.info("Loaded %s rows into %s", len(rows), qualified)
     return len(rows)
