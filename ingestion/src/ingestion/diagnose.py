@@ -212,6 +212,13 @@ def sample_shape(season: Season) -> None:
         else:
             print(f"      {key:24} {kind:8} {str(value)[:40]}")
 
+    # The counting stats are nested, and a parser cannot be written against a
+    # list of key names alone. Print the whole object once.
+    stats = first.get("teamStats")
+    if isinstance(stats, dict):
+        print("\n  teamStats in full:\n")
+        print("      " + json.dumps(stats, indent=2)[:2000].replace("\n", "\n      "))
+
 
 def paging(season: Season) -> None:
     """Do the date range parameters filter, or are they ignored?
