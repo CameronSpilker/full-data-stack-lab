@@ -52,8 +52,16 @@ jobs:
           DUCKDB_PATH: ../data/warehouse.duckdb
         run: |
           dbt deps
-          dbt build --target ci
+          dbt build --target ci --store-failures
           dbt docs generate --target ci
+
+      # A count says a test failed. The rows say whether the data is wrong or
+      # the test is. Nobody is watching this run, so they go in the log.
+      - name: Show what failed
+        if: failure()
+        env:
+          DUCKDB_PATH: data/warehouse.duckdb
+        run: python scripts/print_test_failures.py
 
       # The warehouse holds only public data and no credentials, so a build
       # from the real APIs is committed on purpose: the dashboard then builds

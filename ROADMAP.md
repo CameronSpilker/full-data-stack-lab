@@ -47,8 +47,13 @@ the reasoning matters more than the checkboxes.
       ever read it. Ratings now come from CBD's own `/ratings/adjusted`, keyed
       on the same team id as every other table, which removed the name
       crosswalk, its seed, and the build failure that maintained it
-- [ ] Run `ingest all --season 2026` and sanity-check the numbers against a
-      public source: the top 25 by adjusted efficiency margin should look
+- [x] Run the pipeline against the live APIs. It loaded 6,067 games, 12,082
+      box score lines, 10,277 betting lines, and 365 rated teams, then failed
+      `assert_scores_are_plausible` on 18 games. All 18 were 0-0: cancelled
+      fixtures that the extractor had promoted to completed because both
+      scores were present, 0 being a score. Fixed in the parser and again in
+      staging, since raw already held the bad rows
+- [ ] Sanity-check the numbers against a public source: the top 25 by adjusted efficiency margin should look
       broadly like KenPom's. If it does not, something upstream is wrong
 - [ ] Remove `data/warehouse.duckdb` from `.gitignore` once the committed file
       holds real data, and delete the synthetic-data banner from

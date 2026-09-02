@@ -277,10 +277,16 @@ def parse_game(game: dict[str, Any], season_year: int) -> dict[str, Any] | None:
         "tipoff_at": start or None,
         "is_neutral_site": bool(_first(game, "neutralSite", "isNeutralSite") or False),
         "is_conference_game": bool(_first(game, "conferenceGame", "isConferenceGame") or False),
+        # A cancelled or postponed fixture comes back with both scores set to
+        # 0 rather than null, so "both scores are present" was enough to
+        # promote one to completed. A basketball game cannot end 0-0, and an
+        # imaginary tie entered Elo as a real result between two teams that
+        # never played.
         "is_completed": (
             status in ("final", "completed", "post")
             or (home_score is not None and away_score is not None)
-        ),
+        )
+        and bool((home_score or 0) + (away_score or 0)),
         "status_state": status or None,
         "attendance": _to_int(_first(game, "attendance")),
         "venue_name": _first(game, "venue", "venueName"),

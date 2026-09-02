@@ -385,3 +385,30 @@ def test_a_single_day_at_the_limit_is_reported_not_split_forever(monkeypatch, ca
 
     # Terminates, and says which day it could not read rather than looping.
     assert any("record limit" in message for message in caplog.messages)
+
+
+def test_a_cancelled_fixture_is_not_a_completed_game():
+    # Live data: 18 of 6,067 games came back like this, with a 0-0 score. The
+    # old rule read "both scores are present" and promoted them to completed,
+    # which put an imaginary tie into Elo between two teams that never played.
+    cancelled = GAME | {"homePoints": 0, "awayPoints": 0, "status": "cancelled"}
+
+    assert cbd.parse_game(cancelled, 2026)["is_completed"] is False
+
+
+def test_a_final_status_does_not_override_a_scoreless_game():
+    postponed = GAME | {"homePoints": 0, "awayPoints": 0, "status": "final"}
+
+    assert cbd.parse_game(postponed, 2026)["is_completed"] is False
+
+
+def test_a_real_result_is_still_completed():
+    assert cbd.parse_game(GAME, 2026)["is_completed"] is True
+
+
+def test_a_shutout_half_is_still_a_played_game():
+    # Not basketball-plausible, but the rule is "some points were scored", not
+    # "both teams scored", and it should not quietly drop a real result.
+    lopsided = GAME | {"homePoints": 61, "awayPoints": 0, "status": "final"}
+
+    assert cbd.parse_game(lopsided, 2026)["is_completed"] is True
