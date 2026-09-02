@@ -93,7 +93,7 @@ ingest all --season 2026              # the real APIs
 
 cd transform
 export DBT_PROFILES_DIR=$PWD DUCKDB_PATH=../data/warehouse.duckdb
-dbt deps && dbt build                 # 22 models, 111 tests
+dbt deps && dbt build                 # 22 models, 118 tests
 dbt docs generate && dbt docs serve
 ```
 
@@ -186,12 +186,41 @@ than a 20-point win, so the strength-of-schedule maths uses a margin clamped to
 ±20 while the real margin stays available. Elo does the same thing differently,
 with a concave margin-of-victory multiplier.
 
-**The DuckDB file is committed — once it is real.** It holds only public data
-and no credentials, so the daily pipeline commits the warehouse it builds and
-the dashboard can then build from a clean checkout. Local builds are ignored by
-git, because until the pipeline runs against the live APIs the file holds
-synthetic `ingest demo` output, and fabricated numbers should never land in a
-repository that is itself the portfolio piece.
+**The warehouse is published, not committed.** It holds only public data and no
+credentials, so it could go in git, and it should not: it is a 17MB binary that
+changes on every run even when nothing was played, because every row carries
+the time it was extracted. A daily commit would add its own size to the
+repository's history every day, for a file nobody reads as text and git cannot
+diff. The pipeline uploads it to the `warehouse-latest` release instead,
+overwriting in place, and the dashboard build fetches it from there. It is
+published only after `dbt build` passes, so the dashboard is never built from a
+warehouse that failed its own tests.
+
+**Not every finished game was played.** The source calls a row final whenever
+it comes off the schedule, and that sweeps in fixtures nobody played:
+cancellations left at 0-0, the administrative 2-0 the NCAA records for a
+forfeit (seventeen of them across the COVID seasons), and three records where
+one side's score is missing digits. Each is a true row about the season and a
+false one about basketball, so `stg_ncaa__games` labels them in
+`scoring_status` and holds them out of `is_completed` rather than deleting
+them. The bounds live in `dbt_project.yml`, which is also where
+`assert_scores_are_plausible` reads them, so the rule and the test that guards
+it cannot drift apart.
+
+**A rating the source cannot mean is dropped, not clamped.** CBD publishes
+Pittsburgh's 2023 season at a 160.4 offensive efficiency and five teams at
+tempos in the thirties and forties. Nothing in basketball produces those
+numbers, and rounding them into range would invent a season.
+`stg_ncaa__ratings` nulls them and flags the row, and a warning prints what the
+source said, so a prediction goes missing instead of going wrong and the count
+stays visible in the build log.
+
+**Division I only, but every opponent counts.** Roughly 350 of the teams in the
+game data are November buy-game opponents: NAIA schools, Bible colleges, a few
+Division III programmes. Those games happened, and they belong in a Division I
+team's strength of schedule, so `int_team_season_form` rates them. They stop at
+`int_team_prediction_inputs`, which joins the team dimension, so they never
+reach a national rank or a "teams tracked" figure.
 
 ## Synthetic data
 

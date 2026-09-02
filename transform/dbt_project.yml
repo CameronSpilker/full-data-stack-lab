@@ -50,3 +50,20 @@ vars:
   # Monte Carlo runs behind the tournament odds. 20,000 puts the standard
   # error on a championship probability near a tenth of a point.
   tournament_simulations: 20000
+
+  # What a Division I final score can say. No team has scored under 20 in a
+  # regulation game since the shot clock arrived, and no game has finished with
+  # a side over 200. A score outside this band is a forfeit, a cancelled
+  # fixture, or a bad record, so staging classifies it instead of letting it
+  # into the models as a played game.
+  plausible_score_min: 20
+  plausible_score_max: 200
+
+  # What an adjusted rating can say. collegebasketballdata.com publishes a
+  # handful of historical rows outside these bounds: a 160 offensive
+  # efficiency, a 37-possession tempo. Those are dropped to null rather than
+  # used, so a prediction goes missing instead of going wrong.
+  plausible_efficiency_min: 70
+  plausible_efficiency_max: 145
+  plausible_tempo_min: 50
+  plausible_tempo_max: 90

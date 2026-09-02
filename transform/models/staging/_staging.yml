@@ -47,6 +47,27 @@ models:
         data_tests: [not_null]
       - name: away_team_id
         data_tests: [not_null]
+      - name: scoring_status
+        description: >
+          What the final score means. `played` is a real game. `scheduled` has
+          not happened. `not_played` is a cancellation the source still calls
+          final, left at 0-0. `forfeit` is the administrative 2-0 or 1-0 the
+          NCAA records for a no-contest, common through the COVID seasons.
+          `unrecorded` and `implausible` are bad records: a missing score, or
+          one outside anything a Division I game produces.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                  values:
+                    ['played', 'scheduled', 'not_played', 'forfeit',
+                     'unrecorded', 'implausible']
+      - name: is_completed
+        description: >
+          True only for games that were played. A forfeit or a cancellation is
+          a real row about the season and a false one about basketball, so it
+          is excluded here rather than deleted upstream.
+        data_tests: [not_null]
       - name: home_score
         description: Null until the game is played.
       - name: home_margin
@@ -72,33 +93,42 @@ models:
         data_tests: [not_null]
       - name: team_id
         data_tests: [not_null]
+      - name: has_plausible_rating
+        description: >
+          False where the source published a figure no basketball season can
+          produce and this model dropped it to null. The rest of the row is
+          kept: the record and the four factors on it are still good.
+        data_tests: [not_null]
+      # These three now guard the screen rather than the source: an
+      # out-of-band value cannot reach the column any more, so a failure means
+      # the screening in the model broke.
       - name: adjusted_offensive_efficiency
-        description: Points scored per 100 possessions, adjusted for opponent and site.
+        description: >
+          Points scored per 100 possessions, adjusted for opponent and site.
+          Null where the source's figure was outside the plausible band.
         data_tests:
           - dbt_utils.accepted_range:
               arguments:
-                  min_value: 70
-                  max_value: 145
-              config:
-                  severity: warn
+                  min_value: "{{ var('plausible_efficiency_min') }}"
+                  max_value: "{{ var('plausible_efficiency_max') }}"
       - name: adjusted_defensive_efficiency
-        description: Points allowed per 100 possessions, adjusted. Lower is better.
+        description: >
+          Points allowed per 100 possessions, adjusted. Lower is better. Null
+          where the source's figure was outside the plausible band.
         data_tests:
           - dbt_utils.accepted_range:
               arguments:
-                  min_value: 70
-                  max_value: 145
-              config:
-                  severity: warn
+                  min_value: "{{ var('plausible_efficiency_min') }}"
+                  max_value: "{{ var('plausible_efficiency_max') }}"
       - name: adjusted_tempo
-        description: Possessions per team per 40 minutes.
+        description: >
+          Possessions per team per 40 minutes. Null where the source's figure
+          was outside the plausible band.
         data_tests:
           - dbt_utils.accepted_range:
               arguments:
-                  min_value: 50
-                  max_value: 90
-              config:
-                  severity: warn
+                  min_value: "{{ var('plausible_tempo_min') }}"
+                  max_value: "{{ var('plausible_tempo_max') }}"
 
   - name: stg_ncaa__team_box
     description: Team box score lines with the shooting and possession rates derived.
