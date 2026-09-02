@@ -25,7 +25,24 @@ from .config import Season
 
 log = logging.getLogger(__name__)
 
-SPEC_URL = "https://api.collegebasketballdata.com/openapi.json"
+SPEC_CANDIDATES = (
+    "https://api.collegebasketballdata.com/openapi.json",
+    "https://api.collegebasketballdata.com/openapi",
+    "https://api.collegebasketballdata.com/swagger.json",
+    "https://api.collegebasketballdata.com/docs/json",
+)
+
+# Barttorvik is refused at the CDN edge, so the ratings have to come from
+# somewhere reachable. CBD is already authenticated and already trusted here,
+# and its football sibling publishes ratings, so these are the paths worth
+# asking for by name.
+RATING_CANDIDATES = (
+    "/ratings/adjusted",
+    "/ratings/srs",
+    "/ratings",
+    "/stats/team/season",
+    "/lines/providers",
+)
 ENDPOINTS = ("/games", "/games/teams", "/lines", "/teams")
 
 # Barttorvik refused a request carrying the project's own User-Agent. The most
@@ -47,13 +64,24 @@ def spec_parameters() -> dict[str, Any]:
     """The parameters CBD's own spec says each endpoint takes."""
     _rule("CBD OpenAPI spec: what these endpoints actually accept")
 
-    try:
-        with httpx.Client(timeout=60.0, follow_redirects=True) as client:
-            response = client.get(SPEC_URL)
-            response.raise_for_status()
-            spec = response.json()
-    except (httpx.HTTPError, json.JSONDecodeError) as exc:
-        print(f"  Could not read the spec: {exc}")
+    spec = None
+    with httpx.Client(timeout=60.0, follow_redirects=True) as client:
+        for url in SPEC_CANDIDATES:
+            try:
+                response = client.get(url)
+            except httpx.HTTPError as exc:
+                print(f"  {url}: {type(exc).__name__}")
+                continue
+            print(f"  {url}: {response.status_code}")
+            if response.status_code == 200:
+                try:
+                    spec = response.json()
+                    break
+                except json.JSONDecodeError:
+                    print("      returned 200 but not JSON")
+
+    if not spec:
+        print("\n  No machine-readable spec found at any candidate URL.")
         return {}
 
     paths = spec.get("paths", {})
@@ -156,12 +184,100 @@ def barttorvik(season: Season) -> None:
     )
 
 
+def sample_shape(season: Season) -> None:
+    """Print the keys of one record, so a parser can be written against fact.
+
+    The box score extractor reads `entry["teams"]` and gets nothing, while the
+    endpoint returns 3,000 entries. One of those two is wrong about the shape.
+    """
+    _rule(f"/games/teams?season={season.year}: what does one record look like?")
+
+    with cbd._client() as client:
+        payload = cbd._get(client, "/games/teams", season=season.year)
+
+    rows = payload or []
+    if not rows:
+        print("\n  No rows returned, so there is no shape to report.")
+        return
+
+    first = rows[0]
+    print(f"\n  {len(rows):,} entries. The first one has these keys:\n")
+    for key, value in sorted(first.items()):
+        kind = type(value).__name__
+        if isinstance(value, list):
+            inner = sorted(value[0].keys()) if value and isinstance(value[0], dict) else value[:3]
+            print(f"      {key:24} list[{len(value)}] -> {inner}")
+        elif isinstance(value, dict):
+            print(f"      {key:24} dict -> {sorted(value)}")
+        else:
+            print(f"      {key:24} {kind:8} {str(value)[:40]}")
+
+
+def paging(season: Season) -> None:
+    """Do the date range parameters filter, or are they ignored?
+
+    A narrow window that still returns exactly 3,000 rows means the parameter
+    was ignored and paging has to be done another way.
+    """
+    _rule(f"/games?season={season.year}: do date filters actually filter?")
+
+    windows = [
+        ("whole season", {}),
+        ("one week", {"startDateRange": f"{season.year - 1}-11-03",
+                      "endDateRange": f"{season.year - 1}-11-09"}),
+        ("one month", {"startDateRange": f"{season.year - 1}-12-01",
+                       "endDateRange": f"{season.year - 1}-12-31"}),
+        ("march only", {"startDateRange": f"{season.year}-03-01",
+                        "endDateRange": f"{season.year}-03-31"}),
+    ]
+
+    with cbd._client() as client:
+        for label, extra in windows:
+            try:
+                payload = cbd._get(client, "/games", season=season.year, **extra)
+            except (httpx.HTTPError, RuntimeError) as exc:
+                print(f"\n  {label:14} ERROR {type(exc).__name__}: {exc}")
+                continue
+
+            rows = payload or []
+            dates = sorted(str(g.get("startDate") or "")[:10] for g in rows)
+            dates = [d for d in dates if d]
+            span = f"{dates[0]} to {dates[-1]}" if dates else "no dates"
+            print(f"\n  {label:14} {len(rows):>6,} rows   {span}")
+
+    print(
+        "\n  A narrow window returning exactly 3,000 means the filter was ignored.\n"
+        "  A March window returning rows means the season is reachable by paging."
+    )
+
+
+def ratings_alternatives(season: Season) -> None:
+    """Barttorvik is blocked at the edge. Does CBD serve ratings itself?"""
+    _rule("Is there a rating source that is not blocked?")
+
+    with cbd._client() as client:
+        for path in RATING_CANDIDATES:
+            try:
+                payload = cbd._get(client, path, season=season.year)
+            except (httpx.HTTPError, RuntimeError, cbd.MissingApiKey) as exc:
+                print(f"\n  {path:24} {type(exc).__name__}: {str(exc)[:80]}")
+                continue
+
+            rows = payload or []
+            print(f"\n  {path:24} {len(rows):,} rows")
+            if rows and isinstance(rows[0], dict):
+                print(f"      keys: {sorted(rows[0])}")
+
+
 def run(season: Season) -> int:
     print(f"\nDiagnosing the live sources against {season.label}. Nothing is written.")
     spec_parameters()
     try:
         games_shape(season)
+        paging(season)
         box_scores(season)
+        sample_shape(season)
+        ratings_alternatives(season)
     except cbd.MissingApiKey as exc:
         print(f"\n  Skipping the CBD probes: {exc}")
     barttorvik(season)
