@@ -9,4 +9,7 @@ plugins:
     "@evidence-dev/duckdb": {}
 
 deployment:
-  basePath: ""
+  # GitHub Pages serves a project site under /<repo>, so every asset and link
+  # has to be built with that prefix. Set this back to "" when the dashboard
+  # moves to a domain of its own, where it sits at the root.
+  basePath: "/full-data-stack-lab"

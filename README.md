@@ -211,6 +211,49 @@ with no values. `CBD_API_KEY` is free and required only for live extracts — th
 whole pipeline runs without it via `ingest demo`. In CI it lives in GitHub
 Actions secrets and nowhere else.
 
+## Deployment
+
+Both published surfaces come out of one GitHub Actions workflow
+(`.github/workflows/publish.yml`) and land on GitHub Pages:
+
+| Surface       | URL                                                          |
+| ------------- | ------------------------------------------------------------ |
+| Dashboard     | `https://cameronspilker.github.io/full-data-stack-lab/`       |
+| dbt docs      | `https://cameronspilker.github.io/full-data-stack-lab/docs/`  |
+
+Pages needs no deploy token, no third-party account, and no build minutes
+beyond the ones this repo already uses, which is why it is the first target
+rather than Vercel.
+
+Turning it on, once:
+
+1. Add `CBD_API_KEY` under Settings > Secrets and variables > Actions.
+2. Run the **Daily pipeline** workflow. It extracts from the live APIs, builds
+   the models, and commits `data/warehouse.duckdb`.
+3. Set Settings > Pages > Source to **GitHub Actions**.
+4. Run the **Publish dashboard and docs** workflow. It builds the Evidence site
+   from the committed warehouse, generates the dbt docs beside it, and deploys
+   both.
+
+After that it is automatic: every successful daily pipeline run triggers a
+publish, so the dashboard is never more than a day behind the season.
+
+The publish workflow refuses to run without a committed warehouse. That is
+deliberate: `ingest demo` invents teams and results so the pipeline can run
+offline, and a public dashboard of invented tournament odds is the exact
+failure this project argues against. Nothing synthetic is ever published.
+
+**Moving it to a domain of its own.** Point the domain at Pages, or build the
+same two artifacts elsewhere. Either way, set `deployment.basePath` in
+`dashboard/evidence.config.yaml` back to `""`, since a project page is served
+under `/full-data-stack-lab` and a root domain is not.
+
+**Deploying the dashboard to Vercel instead.** Root directory `dashboard`,
+build command `npm run sources && npm run build`, output directory `build`, and
+`basePath` back to `""`. It works, and it buys nothing over Pages here: the
+warehouse has to be in the checkout either way, since Evidence reads a file
+rather than a server.
+
 ## Status
 
 Foundation complete: ingestion, the full dbt project with tests and metrics,

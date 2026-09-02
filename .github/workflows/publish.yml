@@ -1,0 +1,111 @@
+name: Publish dashboard and docs
+
+# Builds the Evidence dashboard and the dbt docs from the warehouse in the
+# repository and publishes both to GitHub Pages: the dashboard at the site root
+# and the docs at /docs.
+#
+# Pages needs no credentials of its own, which is the reason it is the first
+# deployment target here. Enable it once, at Settings > Pages > Source: GitHub
+# Actions, and every later publish is this workflow.
+#
+# It refuses to publish synthetic data. `ingest demo` invents teams and results
+# so the pipeline can run offline, and publishing invented tournament odds under
+# a real-looking dashboard is exactly the thing this project exists to argue
+# against. The guard below is the enforcement.
+
+on:
+  # Publish whatever the daily pipeline just built and committed.
+  workflow_run:
+    workflows: ["Daily pipeline"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One publish at a time, and let a newer build supersede a queued one. Never
+# cancel a running deploy: half a deploy is a broken site.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # A failed pipeline run has nothing worth publishing.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The warehouse is committed by the pipeline workflow once it has been
+      # built from the live APIs. Its absence means either the pipeline has
+      # never run against real data or someone published from a fork, and
+      # either way there is nothing honest to deploy.
+      - name: Require a real warehouse
+        run: |
+          if [ ! -f data/warehouse.duckdb ]; then
+            echo "::error::data/warehouse.duckdb is not in the repository."
+            echo "Run the Daily pipeline workflow with CBD_API_KEY set. It commits"
+            echo "the warehouse it builds, and this workflow publishes that."
+            exit 1
+          fi
+          echo "Warehouse present: $(du -h data/warehouse.duckdb | cut -f1)"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Install dbt
+        run: pip install -r transform/requirements.txt
+
+      # The docs are generated from the same warehouse the dashboard reads, so
+      # the lineage on the docs site matches the numbers on the dashboard.
+      - name: Generate dbt docs
+        working-directory: transform
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}/transform
+          DUCKDB_PATH: ../data/warehouse.duckdb
+        run: |
+          dbt deps
+          dbt docs generate --target ci
+
+      - name: Build the dashboard
+        working-directory: dashboard
+        run: |
+          npm ci
+          npm run sources
+          npm run build
+
+      # dbt's docs site is a single page that fetches manifest.json and
+      # catalog.json from beside itself, so copying those three files is the
+      # whole deployment.
+      - name: Assemble the site
+        run: |
+          mkdir -p dashboard/build/docs
+          cp transform/target/index.html dashboard/build/docs/
+          cp transform/target/manifest.json dashboard/build/docs/
+          cp transform/target/catalog.json dashboard/build/docs/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dashboard/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
