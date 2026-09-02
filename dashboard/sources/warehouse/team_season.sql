@@ -14,8 +14,6 @@ select
     adjusted_defensive_efficiency,
     adjusted_efficiency_margin,
     adjusted_tempo,
-    barthag,
-    wins_above_bubble,
     elo_rating,
     srs_rating,
     strength_of_schedule,

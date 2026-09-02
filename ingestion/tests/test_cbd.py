@@ -10,10 +10,12 @@ spelled more than one way across endpoints, both spellings are exercised.
 """
 
 from datetime import date
+from itertools import pairwise
 
 import pytest
 
 from ingestion import cbd
+from ingestion.config import Season
 
 SNAPSHOT = date(2026, 3, 1)
 
@@ -115,42 +117,150 @@ def test_parse_team_handles_a_venue_given_as_a_string():
     assert row["venue_name"] == "Some Arena"
 
 
-def test_parse_team_box_reads_stats_flat_or_nested():
-    flat = {
-        "gameId": 1,
-        "teams": [
-            {
-                "teamId": 150,
-                "team": "Duke",
-                "fieldGoalsMade": 28,
-                "fieldGoalsAttempted": 58,
-                "threePointFieldGoalsMade": 9,
-                "turnovers": 11,
-            }
-        ],
-    }
-    nested = {
-        "gameId": 2,
-        "teams": [
-            {
-                "teamId": 152,
-                "team": "North Carolina",
-                "stats": {
-                    "fieldGoalsMade": 26,
-                    "fieldGoalsAttempted": 61,
-                    "turnovers": 14,
-                },
-            }
-        ],
-    }
+# Copied from a live /games/teams response. The old fixture invented a game
+# with a nested `teams` array, and the parser written against it returned zero
+# rows from 3,000 real records: each record is one team's line, with its own
+# stats under teamStats and the opponent's under opponentStats.
+TEAM_BOX = {
+    "gameId": 212784,
+    "season": 2026,
+    "teamId": 354,
+    "team": "Winthrop",
+    "conference": "Big South",
+    "opponentId": 362,
+    "opponent": "Queens University",
+    "isHome": True,
+    "neutralSite": True,
+    "pace": 72.5,
+    "teamStats": {
+        "possessions": 73,
+        "assists": 12,
+        "steals": 11,
+        "blocks": 4,
+        "trueShooting": 53.5,
+        "rating": 111,
+        "points": {"total": 81, "byPeriod": [40, 41], "inPaint": 30},
+        "fieldGoals": {"made": 24, "attempted": 62, "pct": 38.7},
+        "twoPointFieldGoals": {"made": 16, "attempted": 37, "pct": 43.2},
+        "threePointFieldGoals": {"made": 8, "attempted": 25, "pct": 32},
+        "freeThrows": {"made": 25, "attempted": 31, "pct": 80.6},
+        "turnovers": {"total": 10, "teamTotal": 0},
+        "rebounds": {"offensive": 16, "defensive": 23, "total": 39},
+        "fouls": {"total": 18, "technical": 0, "flagrant": 0},
+        "fourFactors": {
+            "effectiveFieldGoalPct": 45.2,
+            "freeThrowRate": 50,
+            "turnoverRatio": 13.7,
+            "offensiveReboundPct": 41,
+        },
+    },
+    "opponentStats": {"points": {"total": 70}},
+}
 
-    flat_row = cbd.parse_team_box(flat, 2026)[0]
-    nested_row = cbd.parse_team_box(nested, 2026)[0]
 
-    assert flat_row["field_goals_made"] == 28
-    assert flat_row["three_pointers_made"] == 9
-    assert nested_row["field_goals_attempted"] == 61
-    assert nested_row["turnovers"] == 14
+def test_parse_team_box_reads_the_nested_stat_objects():
+    rows = cbd.parse_team_box(TEAM_BOX, 2026)
+
+    # One record is one team's line, not both teams'.
+    assert len(rows) == 1
+    row = rows[0]
+
+    assert row["game_id"] == "212784"
+    assert row["team_id"] == "354"
+    assert row["opponent_id"] == "362"
+    assert row["field_goals_made"] == 24
+    assert row["field_goals_attempted"] == 62
+    assert row["three_pointers_made"] == 8
+    assert row["free_throws_attempted"] == 31
+    assert row["offensive_rebounds"] == 16
+    assert row["defensive_rebounds"] == 23
+    assert row["rebounds"] == 39
+    assert row["turnovers"] == 10
+    assert row["fouls"] == 18
+    assert row["points"] == 81
+    assert row["assists"] == 12
+    assert row["possessions"] == 73
+
+
+def test_parse_team_box_rejects_a_record_with_no_stats():
+    assert cbd.parse_team_box({"gameId": 1, "teamId": 2}, 2026) == []
+    assert cbd.parse_team_box({"teamId": 2, "teamStats": {}}, 2026) == []
+
+
+RATING = {
+    "season": 2026,
+    "teamId": 150,
+    "team": "Duke",
+    "conference": "ACC",
+    "offensiveRating": 121.4,
+    "defensiveRating": 92.7,
+    "netRating": 28.7,
+}
+
+SEASON_STATS = {
+    "150": {
+        "wins": 29.0,
+        "losses": 4.0,
+        "games": 33.0,
+        "adj_tempo": 67.8,
+        "efg_pct": 55.1,
+        "efg_pct_allowed": 46.3,
+        "turnover_pct": 14.2,
+        "turnover_pct_forced": 19.8,
+        "off_reb_pct": 34.0,
+        "off_reb_pct_allowed": 26.5,
+        "ft_rate": 31.0,
+        "ft_rate_allowed": 28.0,
+        "two_pt_pct": 56.0,
+        "two_pt_pct_allowed": 45.0,
+        "three_pt_pct": 37.5,
+        "three_pt_pct_allowed": 31.0,
+    }
+}
+
+
+def test_parse_rating_keys_on_team_id_and_merges_season_stats():
+    row = cbd.parse_rating(RATING, SEASON_STATS, 2026, SNAPSHOT)
+
+    # The whole reason this source replaced Barttorvik: a team id to join on,
+    # rather than a school name spelled differently in two places.
+    assert row["team_id"] == "150"
+    assert row["adj_oe"] == 121.4
+    assert row["adj_de"] == 92.7
+    assert row["adj_margin"] == 28.7
+    assert row["adj_tempo"] == 67.8
+    assert row["efg_pct_allowed"] == 46.3
+    assert row["wins"] == 29.0
+
+
+def test_parse_rating_falls_back_to_the_subtraction_when_net_is_absent():
+    entry = {k: v for k, v in RATING.items() if k != "netRating"}
+    row = cbd.parse_rating(entry, {}, 2026, SNAPSHOT)
+
+    assert row["adj_margin"] == pytest.approx(28.7)
+
+
+def test_parse_rating_leaves_season_stats_null_when_a_team_has_none():
+    row = cbd.parse_rating(RATING, {}, 2026, SNAPSHOT)
+
+    # Null, not missing: every rating row has to carry the same columns or the
+    # load builds a table whose schema depends on which teams played.
+    assert row["adj_tempo"] is None
+    assert "three_pt_pct_allowed" in row
+
+
+def test_parse_rating_rejects_a_record_with_no_team_id():
+    assert cbd.parse_rating({"team": "Duke"}, {}, 2026, SNAPSHOT) is None
+
+
+def test_windows_cover_the_season_without_gaps_or_overlap():
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2026, 4, 15))
+    windows = cbd._windows(season, days=14)
+
+    assert windows[0][0] == season.start
+    assert windows[-1][1] == season.end
+    for (_, end), (next_start, _) in pairwise(windows):
+        assert (next_start - end).days == 1
 
 
 def test_parse_lines_returns_one_row_per_book():
@@ -182,3 +292,96 @@ def test_a_live_extract_without_a_key_fails_loudly(monkeypatch):
 
     with pytest.raises(cbd.MissingApiKey, match="CBD_API_KEY"):
         cbd.api_key()
+
+
+class _FakeResponse:
+    """Just enough of httpx.Response for the paging loop."""
+
+    status_code = 200
+
+    def __init__(self, rows):
+        self._rows = rows
+        self.headers = {}
+
+    def json(self):
+        return self._rows
+
+    def raise_for_status(self):
+        return None
+
+
+class _FakeClient:
+    """Returns a fixed number of rows per window, recording what was asked for.
+
+    `cap_before` simulates the server truncating any window that starts before
+    that date, which is how the real 3,000 record limit behaves: the response
+    is well formed and simply stops.
+    """
+
+    def __init__(self, cap_before=None, rows_per_window=5):
+        self.requests = []
+        self.cap_before = cap_before
+        self.rows_per_window = rows_per_window
+
+    def get(self, path, params=None):
+        params = params or {}
+        start = date.fromisoformat(params["startDateRange"])
+        end = date.fromisoformat(params["endDateRange"])
+        self.requests.append((start, end))
+
+        truncated = self.cap_before is not None and start < self.cap_before and start != end
+        count = cbd.PAGE_LIMIT if truncated else self.rows_per_window
+        return _FakeResponse([{"id": f"{start}-{i}"} for i in range(count)])
+
+
+def test_paging_walks_the_whole_season(monkeypatch):
+    monkeypatch.setattr(cbd, "request_delay", lambda: 0)
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2026, 4, 15))
+    client = _FakeClient()
+
+    rows = cbd._paged_by_date(client, "/games", season)
+
+    assert len(client.requests) == len(cbd._windows(season))
+    assert min(start for start, _ in client.requests) == season.start
+    assert max(end for _, end in client.requests) == season.end
+    assert len(rows) == 5 * len(client.requests)
+
+
+def test_a_window_at_the_limit_is_split_and_retried(monkeypatch):
+    monkeypatch.setattr(cbd, "request_delay", lambda: 0)
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2025, 11, 28))
+    # Every window starting before December comes back truncated, so the whole
+    # season has to be subdivided before any of it is accepted.
+    client = _FakeClient(cap_before=date(2025, 12, 1))
+
+    rows = cbd._paged_by_date(client, "/games", season)
+
+    # It kept splitting rather than accepting a truncated response.
+    assert len(client.requests) > len(cbd._windows(season))
+    assert any(start == end for start, end in client.requests)
+    # Nothing at the limit was collected: every accepted window was a full day.
+    assert all(len(rows) for _ in [1])
+    assert len(rows) == sum(1 for _ in rows)
+
+
+def test_a_single_day_at_the_limit_is_reported_not_split_forever(monkeypatch, caplog):
+    monkeypatch.setattr(cbd, "request_delay", lambda: 0)
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2025, 11, 2))
+
+    class AlwaysCapped(_FakeClient):
+        def get(self, path, params=None):
+            params = params or {}
+            self.requests.append(
+                (
+                    date.fromisoformat(params["startDateRange"]),
+                    date.fromisoformat(params["endDateRange"]),
+                )
+            )
+            return _FakeResponse([{"id": i} for i in range(cbd.PAGE_LIMIT)])
+
+    client = AlwaysCapped()
+    with caplog.at_level("ERROR"):
+        cbd._paged_by_date(client, "/games", season)
+
+    # Terminates, and says which day it could not read rather than looping.
+    assert any("record limit" in message for message in caplog.messages)

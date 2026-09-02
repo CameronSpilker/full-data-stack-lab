@@ -20,7 +20,7 @@ from dagster import (
 from dagster_dbt import DbtCliResource, dbt_assets
 from ingestion.config import current_season, load_seasons, utc_today
 
-from ingestion import cbd, load, torvik
+from ingestion import cbd, load
 
 from .project import dbt_project
 
@@ -112,7 +112,7 @@ def betting_lines(context: AssetExecutionContext):
 
 
 @multi_asset(
-    specs=_specs(RATING_TABLES, "Barttorvik adjusted efficiency ratings."),
+    specs=_specs(RATING_TABLES, "Adjusted efficiency ratings, keyed by team id."),
     compute_kind="python",
     can_subset=False,
 )
@@ -123,7 +123,7 @@ def efficiency_ratings(context: AssetExecutionContext):
     request each) and a rebuilt history is what lets the backtest run.
     """
     snapshot = utc_today()
-    counts = load.persist(torvik.extract(load_seasons(), snapshot), snapshot)
+    counts = load.persist(cbd.extract_ratings(load_seasons(), snapshot), snapshot)
     yield from _materialize(RATING_TABLES, counts, snapshot_date=snapshot.isoformat())
 
 

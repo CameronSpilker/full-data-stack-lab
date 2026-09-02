@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -117,6 +117,76 @@ def _to_float(value: Any) -> float | None:
         return float(str(value).strip())
     except (TypeError, ValueError):
         return None
+
+
+# --------------------------------------------------------------------------
+# Paging
+# --------------------------------------------------------------------------
+
+# CBD truncates a response at 3,000 records. It does not say so: the request
+# succeeds, the JSON is well formed, and the season simply stops in January.
+# A whole season of Division I basketball is roughly 6,000 games, so every
+# season-wide request has to be split into windows small enough to come back
+# under the ceiling.
+PAGE_LIMIT = 3000
+
+
+def _windows(season: Season, days: int = 14) -> list[tuple[date, date]]:
+    """The season cut into fixed windows, oldest first."""
+    spans = []
+    start = season.start
+    while start <= season.end:
+        end = min(start + timedelta(days=days - 1), season.end)
+        spans.append((start, end))
+        start = end + timedelta(days=1)
+    return spans
+
+
+def _paged_by_date(
+    client: httpx.Client, path: str, season: Season, **params: Any
+) -> list[dict[str, Any]]:
+    """Every record for a season, a date window at a time.
+
+    A window that comes back exactly at the limit was truncated, so it is split
+    and both halves are retried. A single day at the limit cannot be split any
+    further and is reported rather than silently accepted.
+    """
+    pending = list(reversed(_windows(season)))
+    collected: list[dict[str, Any]] = []
+
+    while pending:
+        start, end = pending.pop()
+        payload = _get(
+            client,
+            path,
+            season=season.year,
+            startDateRange=start.isoformat(),
+            endDateRange=end.isoformat(),
+            **params,
+        )
+        batch = payload or []
+
+        if len(batch) >= PAGE_LIMIT:
+            if start == end:
+                log.error(
+                    "%s: %s alone returns the %s record limit. Some of that day is "
+                    "unreachable by date and needs another filter.",
+                    path,
+                    start,
+                    PAGE_LIMIT,
+                )
+            else:
+                middle = start + timedelta(days=(end - start).days // 2)
+                log.info(
+                    "%s: %s to %s hit the limit; splitting at %s", path, start, end, middle
+                )
+                pending.append((middle + timedelta(days=1), end))
+                pending.append((start, middle))
+                continue
+
+        collected.extend(batch)
+
+    return collected
 
 
 # --------------------------------------------------------------------------
@@ -238,19 +308,24 @@ def parse_game(game: dict[str, Any], season_year: int) -> dict[str, Any] | None:
 
 
 def extract_games(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]:
-    """Every game in each requested season. One request per season."""
+    """Every game in each requested season, paged past the record limit.
+
+    A bare season request returns 3,000 games and stops in early January, so
+    the season is walked in date windows. Deduping on game_id makes the window
+    boundaries harmless.
+    """
     rows: dict[str, dict[str, Any]] = {}
 
     with _client() as client:
         for season in seasons:
             try:
-                payload = _get(client, "/games", season=season.year)
+                payload = _paged_by_date(client, "/games", season)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
                 log.error("Skipping games for %s: %s", season.label, exc)
                 continue
 
             found = 0
-            for game in payload or []:
+            for game in payload:
                 parsed = parse_game(game, season.year)
                 if parsed:
                     rows[parsed["game_id"]] = parsed
@@ -264,79 +339,130 @@ def extract_games(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]:
 # Team box scores
 # --------------------------------------------------------------------------
 
-BOX_FIELDS = {
-    "field_goals_made": ("fieldGoalsMade", "fgm"),
-    "field_goals_attempted": ("fieldGoalsAttempted", "fga"),
-    "three_pointers_made": ("threePointFieldGoalsMade", "threePointersMade", "tpm"),
-    "three_pointers_attempted": (
-        "threePointFieldGoalsAttempted", "threePointersAttempted", "tpa",
-    ),
-    "free_throws_made": ("freeThrowsMade", "ftm"),
-    "free_throws_attempted": ("freeThrowsAttempted", "fta"),
-    "rebounds": ("totalRebounds", "rebounds"),
-    "offensive_rebounds": ("offensiveRebounds",),
-    "defensive_rebounds": ("defensiveRebounds",),
-    "assists": ("assists",),
-    "steals": ("steals",),
-    "blocks": ("blocks",),
-    "turnovers": ("turnovers", "totalTurnovers"),
-    "fouls": ("fouls", "personalFouls"),
+# CBD nests the counting stats: `fieldGoals` is an object with made,
+# attempted, and pct rather than three flat keys. This maps each warehouse
+# column to the object and the key inside it. A stat that is a plain number
+# names no inner key.
+BOX_FIELDS: dict[str, tuple[str, str | None]] = {
+    "field_goals_made": ("fieldGoals", "made"),
+    "field_goals_attempted": ("fieldGoals", "attempted"),
+    "three_pointers_made": ("threePointFieldGoals", "made"),
+    "three_pointers_attempted": ("threePointFieldGoals", "attempted"),
+    "two_pointers_made": ("twoPointFieldGoals", "made"),
+    "two_pointers_attempted": ("twoPointFieldGoals", "attempted"),
+    "free_throws_made": ("freeThrows", "made"),
+    "free_throws_attempted": ("freeThrows", "attempted"),
+    "rebounds": ("rebounds", "total"),
+    "offensive_rebounds": ("rebounds", "offensive"),
+    "defensive_rebounds": ("rebounds", "defensive"),
+    "turnovers": ("turnovers", "total"),
+    "fouls": ("fouls", "total"),
+    "points": ("points", "total"),
+    "assists": ("assists", None),
+    "steals": ("steals", None),
+    "blocks": ("blocks", None),
+    "possessions": ("possessions", None),
 }
 
 
-def parse_team_box(entry: dict[str, Any], season_year: int) -> list[dict[str, Any]]:
-    """Team box lines from one `/games/teams` entry.
+def _stat(stats: dict[str, Any], group: str, key: str | None) -> Any:
+    """One counting stat, whether it is nested or flat."""
+    value = stats.get(group)
+    if isinstance(value, dict):
+        return value.get(key) if key else None
+    return value if key is None else None
 
-    CBD nests both teams under a game, with the counting stats either flat on
-    the team object or under a `stats` object depending on the endpoint version.
+
+def parse_team_box(entry: dict[str, Any], season_year: int) -> list[dict[str, Any]]:
+    """One row from one `/games/teams` record.
+
+    Each record is a single team's line in a single game, with its own stats
+    under `teamStats` and the opponent's under `opponentStats`. The opponent
+    gets its own record elsewhere in the feed, so this emits one row, not two.
     """
     game_id = _first(entry, "gameId", "id")
-    if game_id is None:
+    team_id = _first(entry, "teamId")
+    if game_id is None or team_id is None:
         return []
 
-    extracted_at = datetime.now(UTC)
-    rows = []
+    stats = entry.get("teamStats")
+    if not isinstance(stats, dict):
+        return []
 
-    for side in entry.get("teams") or []:
-        team_id = _first(side, "teamId", "id")
-        if team_id is None:
-            continue
+    row: dict[str, Any] = {
+        "season": season_year,
+        "game_id": str(game_id),
+        "team_id": str(team_id),
+        "team_name": _first(entry, "team", "school", "teamName"),
+        "opponent_id": str(_first(entry, "opponentId") or "") or None,
+        "is_home": entry.get("isHome"),
+        "extracted_at": datetime.now(UTC),
+    }
+    for column, (group, key) in BOX_FIELDS.items():
+        row[column] = _to_int(_stat(stats, group, key))
 
-        stats = side.get("stats") if isinstance(side.get("stats"), dict) else side
+    return [row]
 
-        row: dict[str, Any] = {
-            "season": season_year,
-            "game_id": str(game_id),
-            "team_id": str(team_id),
-            "team_name": _first(side, "team", "school", "teamName"),
-            "extracted_at": extracted_at,
-        }
-        for column, names in BOX_FIELDS.items():
-            row[column] = _to_int(_first(stats, *names))
-        rows.append(row)
 
-    return rows
+def _conferences(client: httpx.Client, season: Season) -> list[str]:
+    """Every conference in a season, read off the team dimension."""
+    payload = _get(client, "/teams", season=season.year)
+    names = {
+        str(_first(team, "conference", "conferenceName") or "").strip()
+        for team in payload or []
+    }
+    return sorted(name for name in names if name)
 
 
 def extract_box_scores(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]:
-    """Team box scores for whole seasons — one request each, not one per game."""
-    rows: list[dict[str, Any]] = []
+    """Team box score lines, paged by conference.
+
+    Unlike /games, this endpoint ignores the date range parameters: a November
+    window comes back at the same 3,000 record limit as the whole season. It
+    does honour `conference`, so the season is walked one league at a time and
+    deduped, since a non-conference game is returned under both teams' leagues.
+    """
+    rows: dict[tuple[str, str], dict[str, Any]] = {}
 
     with _client() as client:
         for season in seasons:
             try:
-                payload = _get(client, "/games/teams", season=season.year)
+                conferences = _conferences(client, season)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
                 log.error("Skipping box scores for %s: %s", season.label, exc)
                 continue
 
-            season_rows = [
-                row for entry in payload or [] for row in parse_team_box(entry, season.year)
-            ]
-            rows.extend(season_rows)
-            log.info("CBD %s: %s box score lines", season.label, len(season_rows))
+            before = len(rows)
+            for conference in conferences:
+                try:
+                    payload = _get(
+                        client, "/games/teams", season=season.year, conference=conference
+                    )
+                except (httpx.HTTPStatusError, RuntimeError) as exc:
+                    log.error("Box scores for %s %s: %s", season.label, conference, exc)
+                    continue
 
-    return {"ncaa_team_box": rows}
+                batch = payload or []
+                if len(batch) >= PAGE_LIMIT:
+                    log.error(
+                        "%s %s returned the %s record limit; that league is truncated.",
+                        season.label,
+                        conference,
+                        PAGE_LIMIT,
+                    )
+
+                for entry in batch:
+                    for row in parse_team_box(entry, season.year):
+                        rows[(row["game_id"], row["team_id"])] = row
+
+            log.info(
+                "CBD %s: %s box score lines across %s conferences",
+                season.label,
+                len(rows) - before,
+                len(conferences),
+            )
+
+    return {"ncaa_team_box": list(rows.values())}
 
 
 # --------------------------------------------------------------------------
@@ -381,15 +507,150 @@ def extract_lines(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]:
     with _client() as client:
         for season in seasons:
             try:
-                payload = _get(client, "/lines", season=season.year)
+                payload = _paged_by_date(client, "/lines", season)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
                 log.error("Skipping lines for %s: %s", season.label, exc)
                 continue
 
             season_rows = [
-                row for entry in payload or [] for row in parse_lines(entry, season.year)
+                row for entry in payload for row in parse_lines(entry, season.year)
             ]
             rows.extend(season_rows)
             log.info("CBD %s: %s betting lines", season.label, len(season_rows))
 
     return {"ncaa_betting_lines": rows}
+
+
+# --------------------------------------------------------------------------
+# Ratings
+# --------------------------------------------------------------------------
+#
+# This replaced Barttorvik's T-Rank export. That source is refused at the CDN
+# edge for requests from a data centre: `ingest diagnose` shows CloudFront
+# returning 403 to a GitHub Actions runner under any User-Agent, so a scheduled
+# pipeline could never read it. CBD serves adjusted efficiency itself, keyed on
+# the same team id as every other table here, which also removes the name
+# crosswalk the old join needed.
+
+# The four factors, and where the "allowed" half of each pair comes from. A
+# team's defensive four factors are its opponents' offensive ones.
+FOUR_FACTORS = {
+    "efg_pct": "effectiveFieldGoalPct",
+    "turnover_pct": "turnoverRatio",
+    "off_reb_pct": "offensiveReboundPct",
+    "ft_rate": "freeThrowRate",
+}
+
+
+def _season_stats(client: httpx.Client, season: Season) -> dict[str, dict[str, Any]]:
+    """Tempo, record, and four factors per team, keyed by team id.
+
+    /ratings/adjusted carries the efficiency numbers and nothing else, so the
+    tempo the prediction needs and the shooting splits the dashboard shows come
+    from the season stats endpoint alongside it.
+    """
+    payload = _get(client, "/stats/team/season", season=season.year)
+    stats: dict[str, dict[str, Any]] = {}
+
+    for entry in payload or []:
+        team_id = _first(entry, "teamId")
+        if team_id is None:
+            continue
+
+        team = entry.get("teamStats") or {}
+        opponent = entry.get("opponentStats") or {}
+        team_factors = team.get("fourFactors") or {}
+        opponent_factors = opponent.get("fourFactors") or {}
+
+        row: dict[str, Any] = {
+            "wins": _to_float(_first(entry, "wins")),
+            "losses": _to_float(_first(entry, "losses")),
+            "games": _to_float(_first(entry, "games")),
+            "adj_tempo": _to_float(_first(entry, "pace")),
+            "two_pt_pct": _to_float(_stat(team, "twoPointFieldGoals", "pct")),
+            "two_pt_pct_allowed": _to_float(_stat(opponent, "twoPointFieldGoals", "pct")),
+            "three_pt_pct": _to_float(_stat(team, "threePointFieldGoals", "pct")),
+            "three_pt_pct_allowed": _to_float(_stat(opponent, "threePointFieldGoals", "pct")),
+        }
+        for column, key in FOUR_FACTORS.items():
+            row[column] = _to_float(team_factors.get(key))
+            row[f"{column}_allowed" if column != "turnover_pct" else "turnover_pct_forced"] = (
+                _to_float(opponent_factors.get(key))
+            )
+
+        stats[str(team_id)] = row
+
+    return stats
+
+
+def parse_rating(
+    entry: dict[str, Any], stats: dict[str, dict[str, Any]], season_year: int, snapshot: date
+) -> dict[str, Any] | None:
+    team_id = _first(entry, "teamId")
+    if team_id is None:
+        return None
+
+    offensive = _to_float(_first(entry, "offensiveRating"))
+    defensive = _to_float(_first(entry, "defensiveRating"))
+    net = _to_float(_first(entry, "netRating"))
+
+    row: dict[str, Any] = {
+        "snapshot_date": snapshot,
+        "season": season_year,
+        "team_id": str(team_id),
+        "team_name": _first(entry, "team", "school", "teamName"),
+        "conference": _first(entry, "conference"),
+        "adj_oe": offensive,
+        "adj_de": defensive,
+        # CBD publishes the margin directly. Preferring it to a subtraction
+        # keeps this consistent with the rankings on the same record.
+        "adj_margin": net if net is not None else _subtract(offensive, defensive),
+        "extracted_at": datetime.now(UTC),
+    }
+
+    blank = dict.fromkeys(
+        (
+            "wins", "losses", "games", "adj_tempo",
+            "efg_pct", "efg_pct_allowed", "turnover_pct", "turnover_pct_forced",
+            "off_reb_pct", "off_reb_pct_allowed", "ft_rate", "ft_rate_allowed",
+            "two_pt_pct", "two_pt_pct_allowed", "three_pt_pct", "three_pt_pct_allowed",
+        )
+    )
+    row.update(blank | stats.get(str(team_id), {}))
+    return row
+
+
+def _subtract(left: float | None, right: float | None) -> float | None:
+    return None if left is None or right is None else left - right
+
+
+def extract_ratings(
+    seasons: list[Season], snapshot: date | None = None
+) -> dict[str, list[dict[str, Any]]]:
+    """Adjusted efficiency for every requested season, keyed by team id."""
+    snapshot = snapshot or utc_today()
+    rows: list[dict[str, Any]] = []
+
+    with _client() as client:
+        for season in seasons:
+            try:
+                payload = _get(client, "/ratings/adjusted", season=season.year)
+                stats = _season_stats(client, season)
+            except (httpx.HTTPStatusError, RuntimeError) as exc:
+                log.error("Skipping ratings for %s: %s", season.label, exc)
+                continue
+
+            season_rows = [
+                parsed
+                for entry in payload or []
+                if (parsed := parse_rating(entry, stats, season.year, snapshot))
+            ]
+            rows.extend(season_rows)
+            log.info(
+                "CBD %s: %s rated teams, %s with season stats",
+                season.label,
+                len(season_rows),
+                sum(1 for row in season_rows if row["adj_tempo"] is not None),
+            )
+
+    return {"ncaa_ratings": rows}

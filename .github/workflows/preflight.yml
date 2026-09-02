@@ -20,6 +20,10 @@ on:
         description: "Season to check, by the year it ends in (2026 is 2025-26)"
         type: string
         default: "2026"
+      diagnose:
+        description: "Also report WHY a source failed: spec parameters, probes, raw refusals"
+        type: boolean
+        default: false
 
 jobs:
   preflight:
@@ -36,9 +40,18 @@ jobs:
         run: pip install -e ingestion
 
       - name: Preflight
+        id: preflight
         env:
           CBD_API_KEY: ${{ secrets.CBD_API_KEY }}
         run: ingest preflight --season ${{ inputs.season }}
+
+      # Runs even when preflight fails, which is the case that needs it. Also
+      # read-only: it asks the sources what they accept and prints the answers.
+      - name: Diagnose
+        if: ${{ always() && inputs.diagnose }}
+        env:
+          CBD_API_KEY: ${{ secrets.CBD_API_KEY }}
+        run: ingest diagnose --season ${{ inputs.season }}
 
       - name: What a failure here means
         if: failure()

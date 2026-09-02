@@ -2,15 +2,6 @@
 title: NCAA Division I Men's Basketball
 ---
 
-<Alert status="warning">
-
-The numbers on this dashboard are currently <strong>synthetic</strong>, produced by
-<code>ingest demo</code>, which simulates whole seasons so the pipeline runs without
-network access. The teams are invented — no real program appears anywhere in it. Run
-<code>ingest all</code> against the live APIs to replace them.
-
-</Alert>
-
 Tracking every Division I team through the season, and simulating the tournament
 at the end of it.
 

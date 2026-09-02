@@ -63,14 +63,14 @@ models:
         description: Negative means the home team is favoured.
         data_tests: [not_null]
 
-  - name: stg_torvik__ratings
+  - name: stg_ncaa__ratings
     description: >
-      Barttorvik T-Rank adjusted efficiency, reduced to the latest snapshot
-      per team per season.
+      Adjusted efficiency from collegebasketballdata.com, reduced to the latest
+      snapshot per team per season.
     columns:
       - name: season
         data_tests: [not_null]
-      - name: team_match_key
+      - name: team_id
         data_tests: [not_null]
       - name: adjusted_offensive_efficiency
         description: Points scored per 100 possessions, adjusted for opponent and site.

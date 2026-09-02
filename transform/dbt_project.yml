@@ -22,10 +22,6 @@ models:
       +materialized: table
       +schema: marts
 
-seeds:
-  full_data_stack_lab:
-    +schema: seeds
-
 # Model constants. These live here rather than inside the SQL so the predictor
 # can be retuned without editing a model, and so every mart that makes a
 # prediction is guaranteed to be using the same numbers.

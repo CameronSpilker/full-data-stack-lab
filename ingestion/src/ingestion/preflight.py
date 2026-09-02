@@ -1,7 +1,7 @@
 """Check the live APIs before trusting a backfill to them.
 
 Two things in this project were written against documented schemas rather than
-observed responses: Barttorvik's positional CSV column map, and the exact field
+observed responses: the nested shape of CBD's stat objects, and the exact field
 spellings collegebasketballdata.com uses. Both fail in the same quiet way — the
 request succeeds, rows parse, and a column the model depends on arrives full of
 nulls.
@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
-from . import cbd, torvik
+from . import cbd
 from .config import Season, utc_today
 
 log = logging.getLogger(__name__)
@@ -45,7 +45,9 @@ CRITICAL: dict[str, dict[str, float]] = {
         "away_team_id": 1.0,
     },
     "ncaa_ratings": {
-        # The rating the entire predictor rests on.
+        # The rating the entire predictor rests on, and the id that joins it to
+        # every other table in the warehouse.
+        "team_id": 1.0,
         "team_name": 1.0,
         "adj_oe": 0.95,
         "adj_de": 0.95,
@@ -133,7 +135,10 @@ def run(season: Season, snapshot: date | None = None) -> int:
         ("collegebasketballdata.com /games", lambda: cbd.extract_games([season])),
         ("collegebasketballdata.com /games/teams", lambda: cbd.extract_box_scores([season])),
         ("collegebasketballdata.com /lines", lambda: cbd.extract_lines([season])),
-        ("barttorvik.com /trank.php", lambda: torvik.extract([season], snapshot)),
+        (
+            "collegebasketballdata.com /ratings/adjusted",
+            lambda: cbd.extract_ratings([season], snapshot),
+        ),
     ]
 
     for label, extract in sources:
@@ -170,8 +175,8 @@ def run(season: Season, snapshot: date | None = None) -> int:
             )
         print(
             "\nA field at or near 0% means the parser is reading the wrong key or the\n"
-            "wrong column. For Barttorvik, check HEADER_ALIASES and POSITIONAL_COLUMNS\n"
-            "in torvik.py. For CBD, add the real field name to the tuple in `_first()`\n"
+            "wrong column. Add the real field name to the tuple in `_first()`, or check\n"
+            "the nested group it is read from in BOX_FIELDS. `ingest diagnose` prints\n"
             "for that column in cbd.py. Do not run a backfill until this is clean."
         )
         return 1
