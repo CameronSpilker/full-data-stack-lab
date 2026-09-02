@@ -7,12 +7,22 @@ import logging
 import sys
 from datetime import date
 
-from . import cbd, demo, load, preflight, torvik
+from . import cbd, demo, diagnose, load, preflight, torvik
 from .config import Season, current_season, load_seasons, utc_today
 
 log = logging.getLogger(__name__)
 
-SOURCES = ["teams", "games", "ratings", "lines", "boxscores", "all", "demo", "preflight"]
+SOURCES = [
+    "teams",
+    "games",
+    "ratings",
+    "lines",
+    "boxscores",
+    "all",
+    "demo",
+    "preflight",
+    "diagnose",
+]
 
 
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
@@ -25,7 +35,9 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
             "simulates deterministic synthetic seasons so the whole pipeline "
             "runs with no network access and no API key. 'preflight' checks "
             "the live APIs against one season and writes nothing — run it "
-            "before the first backfill."
+            "before the first backfill. 'diagnose' reports why a preflight "
+            "failed: what the API spec says an endpoint accepts, and what a "
+            "refused request actually returned."
         ),
     )
     parser.add_argument(
@@ -85,6 +97,10 @@ def main(argv: list[str] | None = None) -> int:
     # returns before the loading path rather than through it.
     if args.source == "preflight":
         return preflight.run(seasons[-1], args.snapshot_date)
+
+    # Diagnose is preflight's follow-up question and is equally read-only.
+    if args.source == "diagnose":
+        return diagnose.run(seasons[-1])
 
     if args.source == "demo":
         log.warning("Simulating SYNTHETIC seasons — these teams and results are invented.")
