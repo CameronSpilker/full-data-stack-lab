@@ -250,6 +250,21 @@ The teams are invented on purpose. Fabricated tournament odds attached to real
 school names are the kind of thing that gets screenshotted and believed, so
 nothing in the synthetic data shares a name with a real program.
 
+## Light and dark
+
+The dashboard follows the reader's operating system by default, and remembers a
+different choice if they make one. `appearance` in `dashboard/evidence.config.yaml`
+turns Evidence's own switcher on: it is the Appearance item in the header menu,
+or Ctrl/Cmd + Shift + L.
+
+The default is `system` rather than `dark` on purpose. Evidence stamps the
+resolved appearance on the page from a script that runs before the first paint,
+and that script assumes `system` when nothing is stored yet, so any other
+default shows one frame of the wrong palette on a first visit.
+
+cameronspilker.com, which links here, is set up the same way: same default,
+same three settings.
+
 ## Secrets
 
 `.env` is gitignored from the first commit; `.env.example` lists every variable

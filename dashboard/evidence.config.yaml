@@ -2,6 +2,13 @@
 # more than one pipeline run behind the models.
 title: Full Data Stack Lab
 
+# Light and dark, matching cameronspilker.com: both follow the operating system
+# unless the reader says otherwise, and both remember the choice. The switcher
+# is in the header menu, or Ctrl/Cmd + Shift + L.
+appearance:
+  default: system
+  switcher: true
+
 plugins:
   components:
     "@evidence-dev/core-components": {}
