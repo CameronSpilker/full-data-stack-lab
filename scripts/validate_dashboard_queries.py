@@ -32,6 +32,29 @@ PAGES_DIR = REPO_ROOT / "dashboard" / "pages"
 PLACEHOLDER_QUERY = "select team_id from marts.mart_team_season limit 1"
 FALLBACK_PLACEHOLDER = "1001"
 
+# Evidence lets one query reference another by name: `from ${other_query}`
+# inlines that query's results. That has to be resolved before the placeholder
+# substitution below, or a chained reference turns into `from 1080` and fails
+# here while working perfectly well in the built dashboard.
+QUERY_REF = re.compile(r"\$\{(\w+)\}")
+MAX_CHAIN_DEPTH = 8
+
+
+def resolve_chain(sql: str, blocks: dict[str, str], depth: int = 0) -> str:
+    """Inline every ${query_name} reference to another block on the same page."""
+    if depth > MAX_CHAIN_DEPTH:
+        raise ValueError("query references are cyclic")
+
+    def replace(match: re.Match[str]) -> str:
+        referenced = blocks.get(match.group(1))
+        if referenced is None:
+            # Not a chained query: an input or a route param, left for the
+            # placeholder substitution to handle.
+            return match.group(0)
+        return f"({resolve_chain(referenced, blocks, depth + 1)})"
+
+    return QUERY_REF.sub(replace, sql)
+
 
 def main() -> int:
     warehouse = REPO_ROOT / os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
@@ -60,8 +83,16 @@ def main() -> int:
 
     for page in sorted(PAGES_DIR.rglob("*.md")):
         rel = page.relative_to(REPO_ROOT)
-        for name, block in re.findall(r"```sql (\w+)\n(.*?)```", page.read_text(), re.DOTALL):
-            probe = re.sub(r"\$\{[^}]+\}", placeholder, block)
+        found = re.findall(r"```sql (\w+)\n(.*?)```", page.read_text(), re.DOTALL)
+        blocks = dict(found)
+        for name, block in found:
+            try:
+                probe = resolve_chain(block, blocks)
+            except ValueError as exc:
+                failures.append(f"{rel}:{name}: {exc}")
+                print(f"FAIL query  {rel}:{name}: {exc}")
+                continue
+            probe = re.sub(r"\$\{[^}]+\}", placeholder, probe)
             for source_name, source_sql in sources.items():
                 probe = re.sub(
                     rf"(?<=\b(?:from|join)\s){source_name}\b", f"({source_sql})", probe

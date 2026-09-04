@@ -12,7 +12,6 @@
     "build": "evidence build",
     "preview": "evidence preview",
     "fetch": "bash scripts/fetch-warehouse.sh",
-    "verify": "node scripts/verify-page-sql.mjs",
     "build:deploy": "npm run fetch && npm run sources && npm run build"
   },
   "dependencies": {
