@@ -69,6 +69,9 @@ local run.
 - [Conferences](/conferences): ranked on the median team's rating rather than
   the best one, because one outstanding program can carry a mediocre league's
   reputation.
+- [Team scorecard](/scorecard): one team on one page, defaulting to BYU. Where
+  they rank, how their season has moved, the wins that count, and what the
+  simulations make of their March.
 - [How good is the model?](/model): accuracy, log loss, Brier score and
   calibration curves for each predictor, with real forecasts kept separate from
   the ones that saw the future.
