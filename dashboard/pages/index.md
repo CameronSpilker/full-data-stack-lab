@@ -3,7 +3,8 @@ title: NCAA Division I Men's Basketball
 ---
 
 Tracking every Division I team through the season, and simulating the tournament
-at the end of it.
+at the end of it. Every number here comes out of a tested dbt model:
+[how it works](/how-it-works).
 
 ```sql current
 select max(season) as season from team_season
