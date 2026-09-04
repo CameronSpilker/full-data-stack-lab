@@ -6,7 +6,7 @@ Everything on this site is built by one repository, from the API call to the
 page you are reading. This is what each stage does and why it is the way it is.
 
 [Read the source on GitHub](https://github.com/CameronSpilker/full-data-stack-lab)
-· [Browse the dbt docs and lineage](/docs/)
+· [Browse the dbt docs and lineage](https://lab.cameronspilker.com/docs/)
 
 ## The pipeline, in order
 
