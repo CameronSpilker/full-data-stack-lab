@@ -6,6 +6,8 @@ Tracking every Division I team through the season, and simulating the tournament
 at the end of it. Every number here comes out of a tested dbt model:
 [how it works](/how-it-works).
 
+For one team on one screen, open the [team scorecard](/scorecard).
+
 ```sql current
 select max(season) as season from team_season
 ```
@@ -26,11 +28,13 @@ where season = (select max(season) from game_results)
     and is_completed
 ```
 
-<BigValue data={totals} value=teams title="Division I teams" />
-<BigValue data={totals} value=conferences title="Conferences" />
-<BigValue data={games_played} value=games title="Games played" fmt='#,##0' />
-<!-- A season is a year, not a quantity, so it takes no thousands separator. -->
-<BigValue data={current} value=season title="Season" fmt='0000' />
+<Grid cols=4>
+    <BigValue data={totals} value=teams title="Division I teams" />
+    <BigValue data={totals} value=conferences title="Conferences" />
+    <BigValue data={games_played} value=games title="Games played" fmt='#,##0' />
+    <!-- A season is a year, not a quantity, so it takes no thousands separator. -->
+    <BigValue data={current} value=season title="Season" fmt='0000' />
+</Grid>
 
 ## The top of the country
 
@@ -82,20 +86,25 @@ select
     adjusted_offensive_efficiency,
     adjusted_defensive_efficiency,
     adjusted_efficiency_margin,
-    national_rank
+    national_rank,
+    case when national_rank <= 25 then 'Top 25' else 'Everyone else' end as tier,
+    -- The top 25 are drawn last so they land on top of the cloud.
+    case when national_rank <= 25 then 1 else 0 end as is_top
 from team_season
 where season = (select max(season) from team_season)
+order by is_top
 ```
 
 <ScatterPlot
     data={quadrant}
     x=adjusted_offensive_efficiency
     y=adjusted_defensive_efficiency
-    series=conference_name
+    series=tier
+    seriesColors={{'Top 25': 'viz-model', 'Everyone else': 'viz-muted'}}
     xAxisTitle="Adjusted offense (points per 100)"
     yAxisTitle="Adjusted defense (points allowed per 100)"
     yInverted=true
-    legend=false
+    chartAreaHeight=300
     tooltipTitle=team_name
 />
 
