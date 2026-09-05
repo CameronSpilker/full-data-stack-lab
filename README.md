@@ -348,6 +348,16 @@ curl -fsSL https://github.com/CameronSpilker/full-data-stack-lab/releases/downlo
 `dashboard/scripts/fetch-warehouse.sh` is that download plus the docs, and it
 is what `npm run build:deploy` calls. No credentials: the repository is public.
 
+**A new model needs a pipeline run before the page that reads it.** The deploy
+fetches the warehouse rather than building one, so it gets whatever the last
+pipeline run published — which, for a branch that adds a model, does not
+contain that model yet. Evidence does not fail the build over it: the deploy
+succeeds and the queries against the missing table render an error on the page
+that runs them, leaving the rest of the dashboard working. The fix is to run
+`Daily pipeline` from the Actions tab (it takes `workflow_dispatch`) after
+merging, which publishes a warehouse built from the new models, and then
+redeploy. Waiting for the 06:00 run does the same thing a day later.
+
 **Nothing is published until dbt passes.** The pipeline uploads the warehouse
 only after `dbt build`, so a warehouse that failed its own tests is never the
 one the dashboard builds from. The first live run stopped exactly there, on
