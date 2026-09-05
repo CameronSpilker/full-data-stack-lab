@@ -2,8 +2,8 @@
 title: Team scorecard
 ---
 
-One team, one page, the numbers that decide whether they are any good. Pick a team
-below. It opens on BYU.
+Every number that decides whether a team is any good, on one screen. Pick a team.
+It opens on BYU.
 
 ```sql teams
 select
@@ -78,8 +78,21 @@ select
     strength_of_schedule,
     schedule_strength_rank,
     wins_vs_top_50,
+    games_vs_top_50,
     last_10_wins,
-    last_10_games
+    last_10_games,
+    -- How many teams a rank is out of. Counted rather than written down, so a
+    -- season that adds or loses a team does not make the page wrong.
+    --
+    -- Every rank below is handed to BigValue as this integer with an explicit
+    -- format, never as a string built here. A column like '#24 of 365' looks
+    -- like the tidier option and is not: Evidence infers a format for the
+    -- column it is given, and on a string of that shape it infers a numeric
+    -- one and renders '#24.0 of 365.0'.
+    (
+        select count(*) from team_season
+        where season = (select max(season) from team_season)
+    ) as field_size
 from team_season
 where team_id::varchar = (select team_id from ${chosen})
     and season = (select max(season) from team_season)
@@ -89,25 +102,116 @@ where team_id::varchar = (select team_id from ${chosen})
 
 <Value data={team} column=conference_name /> · <Value data={team} column=record /> overall
 · <Value data={team} column=conference_record /> in conference · ranked
-<Value data={team} column=national_rank /> of 365 nationally, and
-<Value data={team} column=conference_rank /> in the league
+<Value data={team} column=national_rank fmt='0' /> of <Value data={team} column=field_size fmt='0' />
+nationally and <Value data={team} column=conference_rank fmt='0' /> in the league
+· <Value data={team} column=season fmt='0000' /> season
 
-<BigValue data={team} value=adjusted_efficiency_margin title="Net efficiency" fmt='+0.0' />
-<BigValue data={team} value=adjusted_offensive_efficiency title="Offense" fmt='0.0' />
-<BigValue data={team} value=adjusted_defensive_efficiency title="Defense" fmt='0.0' />
-<BigValue data={team} value=elo_rating title="Elo" fmt='#,##0' />
-<BigValue data={team} value=adjusted_tempo title="Tempo" fmt='0.0' />
-<BigValue data={team} value=wins_vs_top_50 title="Wins vs top 50" fmt='0' />
+<Grid cols=4>
+    <BigValue
+        data={team}
+        value=adjusted_efficiency_margin
+        title="Net efficiency"
+        fmt='+0.0'
+        comparison=national_rank
+        comparisonFmt='0'
+        comparisonDelta=false
+        comparisonTitle="nationally"
+        description="Points scored minus points allowed per 100 possessions, adjusted for the quality of the opponent. Every other number on this page is context for this one."
+    />
+    <BigValue
+        data={team}
+        value=adjusted_offensive_efficiency
+        title="Offense"
+        fmt='0.0'
+        comparison=offense_rank
+        comparisonFmt='0'
+        comparisonDelta=false
+        comparisonTitle="nationally for scoring"
+        description="Points scored per 100 possessions, opponent adjusted."
+    />
+    <BigValue
+        data={team}
+        value=adjusted_defensive_efficiency
+        title="Defense"
+        fmt='0.0'
+        comparison=defense_rank
+        comparisonFmt='0'
+        comparisonDelta=false
+        comparisonTitle="nationally for conceding"
+        description="Points allowed per 100 possessions, opponent adjusted. Lower is better."
+    />
+    <BigValue
+        data={team}
+        value=strength_of_schedule
+        title="Schedule faced"
+        fmt='0.0'
+        comparison=schedule_strength_rank
+        comparisonFmt='0'
+        comparisonDelta=false
+        comparisonTitle="hardest nationally"
+        description="Average opponent quality. A rating built on nobody is a rating built on nothing."
+    />
+</Grid>
 
-Net efficiency is points scored minus points allowed per 100 possessions, adjusted
-for the quality of the opponent. Everything else on this page is context for that
-one number.
+```sql elo_recent
+-- The sparkline under the Elo tile, and the value it prints: BigValue shows the
+-- last row, so this is ordered oldest first and cut to the last twenty games.
+select game_date, elo_after
+from (
+    select game_date, elo_after
+    from elo_timeline
+    where team_id::varchar = (select team_id from ${chosen})
+        and season = (select max(season) from elo_timeline)
+    order by game_date desc
+    limit 20
+)
+order by game_date
+```
+
+<Grid cols=4>
+    <BigValue
+        data={elo_recent}
+        value=elo_after
+        title="Elo, last twenty games"
+        fmt='#,##0'
+        sparkline=game_date
+        sparklineColor=viz-model
+        description="A running rating that moves with every result: up for a win, further up for beating someone good."
+    />
+    <BigValue
+        data={team}
+        value=adjusted_tempo
+        title="Tempo"
+        fmt='0.0'
+        comparison=tempo_rank
+        comparisonFmt='0'
+        comparisonDelta=false
+        comparisonTitle="fastest nationally"
+        description="Possessions per 40 minutes. Neither fast nor slow is better, but it shapes every other number."
+    />
+    <BigValue
+        data={team}
+        value=wins_vs_top_50
+        title="Wins vs top 50"
+        fmt='0'
+        comparison=games_vs_top_50
+        comparisonFmt='0'
+        comparisonDelta=false
+        comparisonTitle="games against them"
+    />
+    <BigValue
+        data={team}
+        value=last_10_wins
+        title="Won of the last ten"
+        fmt='0'
+        comparison=last_10_games
+        comparisonFmt='0'
+        comparisonDelta=false
+        comparisonTitle="games played"
+    />
+</Grid>
 
 ## Where they stand
-
-Percentile against every Division I team, so a rank reads as a position rather than
-as a number you have to hold the field size in your head to interpret. Schedule
-strength is included because a rating built on nobody is a rating built on nothing.
 
 ```sql percentiles
 with field as (
@@ -140,22 +244,87 @@ select 'Schedule faced', subject.schedule_strength_rank,
 from subject, field
 ```
 
-<BarChart
-    data={percentiles}
-    x=measure
-    y=percentile
-    swapXY=true
-    sort=false
-    yFmt='pct0'
-    yAxisTitle="Percentile among Division I"
-    title="Percentile by measure, higher is better"
-/>
+```sql four_factors
+-- The four factors, plus what the defence does about them, as percentiles
+-- rather than raw values. The underlying columns are not on one scale (a
+-- turnover rate is a fraction, a rebound rate is a percentage), and a
+-- percentile is what a reader wants from them anyway. Direction is applied
+-- here: for turnovers committed and shooting allowed, lower is better.
+with season as (
+    select *
+    from team_season
+    where season = (select max(season) from team_season)
+),
+
+ranked as (
+    select
+        team_id,
+        percent_rank() over (order by effective_fg_pct) as shooting,
+        percent_rank() over (order by turnover_pct desc) as ball_security,
+        percent_rank() over (order by offensive_rebound_pct) as offensive_boards,
+        percent_rank() over (order by free_throw_rate) as free_throws,
+        percent_rank() over (order by effective_fg_pct_allowed desc) as shooting_allowed,
+        percent_rank() over (order by turnover_pct_forced) as turnovers_forced,
+        percent_rank() over (order by defensive_rebound_pct) as defensive_boards
+    from season
+),
+
+subject as (
+    select * from ranked
+    where team_id::varchar = (select team_id from ${chosen})
+)
+
+select factor, percentile from (
+    select 'Shooting' as factor, shooting as percentile, 1 as ordering from subject
+    union all select 'Ball security', ball_security, 2 from subject
+    union all select 'Offensive boards', offensive_boards, 3 from subject
+    union all select 'Free throw rate', free_throws, 4 from subject
+    union all select 'Shooting allowed', shooting_allowed, 5 from subject
+    union all select 'Turnovers forced', turnovers_forced, 6 from subject
+    union all select 'Defensive boards', defensive_boards, 7 from subject
+)
+order by ordering
+```
+
+<Grid cols=2>
+    <BarChart
+        data={percentiles}
+        x=measure
+        y=percentile
+        swapXY=true
+        sort=false
+        yFmt='pct0'
+        yMin=0
+        yMax=1
+        yGridlines=false
+        labels=true
+        labelFmt='pct0'
+        chartAreaHeight=220
+        title="Rank as a position"
+        subtitle="Percentile among all Division I teams. Higher is better on every row, schedule included."
+    />
+    <BarChart
+        data={four_factors}
+        x=factor
+        y=percentile
+        swapXY=true
+        sort=false
+        yFmt='pct0'
+        yMin=0
+        yMax=1
+        yGridlines=false
+        labels=true
+        labelFmt='pct0'
+        chartAreaHeight=220
+        title="The four factors, both ends"
+        subtitle="Shooting, turnovers, rebounding and free throws decide games. Percentile, direction applied, so higher is always better."
+    />
+</Grid>
 
 ## The season as it happened
 
 Elo after every game. The level says how good they are. The slope says whether they
-are getting there: a line climbing through February is a team peaking at the right
-time, and a line sagging is a team that will be an early exit whatever the seed says.
+are getting there.
 
 ```sql timeline
 select
@@ -178,14 +347,115 @@ order by game_date
     x=game_date
     y=elo_after
     yAxisTitle="Elo"
+    lineColor=viz-model
+    lineWidth=2
+    markers=false
+    chartAreaHeight=220
     title="Elo rating through the season"
 />
+
+## Form and March
+
+```sql form
+select
+    game_date,
+    opponent_name,
+    margin,
+    case when is_win then 'Won' else 'Lost' end as result,
+    pregame_win_probability
+from elo_timeline
+where team_id::varchar = (select team_id from ${chosen})
+    and season = (select max(season) from elo_timeline)
+order by game_date desc
+limit 10
+```
+
+```sql odds
+select
+    seed,
+    region_name,
+    reached_round_of_32,
+    reached_sweet_16,
+    reached_elite_eight,
+    reached_final_four,
+    reached_championship_game,
+    won_championship,
+    expected_wins
+from tournament_odds
+where team_id::varchar = (select team_id from ${chosen})
+```
+
+```sql rounds
+select round, probability from (
+    select 'Round of 32' as round, reached_round_of_32 as probability, 1 as step
+    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
+    union all
+    select 'Sweet 16', reached_sweet_16, 2
+    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
+    union all
+    select 'Elite Eight', reached_elite_eight, 3
+    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
+    union all
+    select 'Final Four', reached_final_four, 4
+    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
+    union all
+    select 'Title game', reached_championship_game, 5
+    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
+    union all
+    select 'Champion', won_championship, 6
+    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
+)
+order by step
+```
+
+<Grid cols=2>
+    <BarChart
+        data={form}
+        x=game_date
+        y=margin
+        series=result
+        seriesColors={{Won: 'positive', Lost: 'negative'}}
+        yAxisTitle="Margin"
+        chartAreaHeight=200
+        title="The last ten games"
+        subtitle="Height is the winning or losing margin. Colour and the legend both say which."
+    />
+    <BarChart
+        data={rounds}
+        x=round
+        y=probability
+        sort=false
+        yFmt='pct1'
+        labels=true
+        labelFmt='pct1'
+        chartAreaHeight=200
+        title="How far the simulations take them"
+        subtitle="Share of 20,000 simulated brackets reaching each round. Empty if the projected field does not include them."
+    />
+</Grid>
+
+{#if odds.length > 0}
+
+Projected a <Value data={odds} column=seed /> seed in the
+<Value data={odds} column=region_name /> region.
+
+<Grid cols=4>
+    <BigValue data={odds} value=reached_sweet_16 title="Sweet 16" fmt='pct1' />
+    <BigValue data={odds} value=reached_final_four title="Final Four" fmt='pct1' />
+    <BigValue data={odds} value=won_championship title="Title" fmt='pct1' />
+    <BigValue data={odds} value=expected_wins title="Expected wins" fmt='0.00' />
+</Grid>
+
+{:else}
+
+Not in the projected field. The [bracket page](/bracket) has the 64 teams that are.
+
+{/if}
 
 ## Good offense or good defense
 
 Every Division I team placed by what they do at each end, with this team marked.
-Defense is inverted, so up and to the right is good at both. The teams in the top
-right corner are the ones who win in March.
+Defense is inverted, so up and to the right is good at both.
 
 ```sql landscape
 select
@@ -209,38 +479,12 @@ order by is_subject
     x=adjusted_offensive_efficiency
     y=adjusted_defensive_efficiency
     series=highlight
+    seriesColors={{'Every other team': 'viz-muted'}}
     yInverted=true
     xAxisTitle="Adjusted offense (points per 100)"
     yAxisTitle="Adjusted defense (points allowed per 100)"
+    chartAreaHeight=280
     tooltipTitle=team_name
-/>
-
-## Form
-
-The last ten games, by margin. Height is how much they won or lost by, and the
-colour is which of the two it was.
-
-```sql form
-select
-    game_date,
-    opponent_name,
-    margin,
-    case when is_win then 'Won' else 'Lost' end as result,
-    pregame_win_probability
-from elo_timeline
-where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from elo_timeline)
-order by game_date desc
-limit 10
-```
-
-<BarChart
-    data={form}
-    x=game_date
-    y=margin
-    series=result
-    yAxisTitle="Margin"
-    title="Last ten games"
 />
 
 ## The wins that count
@@ -272,64 +516,6 @@ limit 5
     <Column id=pregame_win_probability title="Pregame odds" fmt='pct0' contentType=colorscale colorScale=negative />
     <Column id=elo_change title="Elo +/-" fmt='+0.0' />
 </DataTable>
-
-## March
-
-```sql odds
-select
-    seed,
-    region_name,
-    reached_round_of_32,
-    reached_sweet_16,
-    reached_elite_eight,
-    reached_final_four,
-    reached_championship_game,
-    won_championship,
-    expected_wins
-from tournament_odds
-where team_id::varchar = (select team_id from ${chosen})
-```
-
-{#if odds.length > 0}
-
-Projected a <Value data={odds} column=seed /> seed in the
-<Value data={odds} column=region_name /> region, from 20,000 simulated brackets.
-
-<BigValue data={odds} value=reached_sweet_16 title="Sweet 16" fmt='pct1' />
-<BigValue data={odds} value=reached_final_four title="Final Four" fmt='pct1' />
-<BigValue data={odds} value=won_championship title="Title" fmt='pct1' />
-<BigValue data={odds} value=expected_wins title="Expected wins" fmt='0.00' />
-
-```sql rounds
-select 'Round of 32' as round, reached_round_of_32 as probability, 1 as step from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-union all
-select 'Sweet 16', reached_sweet_16, 2 from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-union all
-select 'Elite Eight', reached_elite_eight, 3 from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-union all
-select 'Final Four', reached_final_four, 4 from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-union all
-select 'Title game', reached_championship_game, 5 from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-union all
-select 'Champion', won_championship, 6 from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-order by step
-```
-
-<BarChart
-    data={rounds}
-    x=round
-    y=probability
-    sort=false
-    yFmt='pct1'
-    yAxisTitle="Chance of reaching"
-    title="How far the simulations take them"
-/>
-
-{:else}
-
-Not in the projected field. The bracket page has the 64 teams that are.
-
-{/if}
 
 ## Every game
 

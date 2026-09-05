@@ -9,6 +9,90 @@ appearance:
   default: system
   switcher: true
 
+# The palette is the one cameronspilker.com already ships, ported token for
+# token rather than picked again here. Its categorical set is validated rather
+# than chosen: three hues that clear colour-vision separation on both surfaces,
+# four fixed status colours that always appear beside a label, and one
+# sequential ramp. A fourth category folds into "other" instead of taking a new
+# hue, and the dark steps are selected for the dark surface rather than flipped
+# from the light ones.
+#
+# `colors` entries can be named from a page, so a chart says `lineColor=viz-model`
+# and gets the right hex in whichever appearance the reader is in.
+theme:
+  colors:
+    # Surfaces and text, from the site's --ink / --surface / --raised set.
+    base-100:
+      light: "#fbfcfd"
+      dark: "#07090c"
+    base-200:
+      light: "#f2f5f8"
+      dark: "#0d1117"
+    base-300:
+      light: "#e9edf3"
+      dark: "#141b24"
+    base-heading:
+      light: "#0a1119"
+      dark: "#e8eef5"
+    base-content:
+      light: "#4a5b6d"
+      dark: "#9fb0c3"
+    base-content-muted:
+      light: "#7c8a99"
+      dark: "#6d7d8f"
+
+    # The site's accent green, used for links and interactive chrome.
+    accent:
+      light: "#0e7357"
+      dark: "#4cc9a4"
+
+    # Categorical slot 1 doubles as the primary: one series charts are drawn in
+    # it, and it is the hue the sequential ramp is built from.
+    primary:
+      light: "#2a78d6"
+      dark: "#3987e5"
+    info:
+      light: "#2a78d6"
+      dark: "#3987e5"
+
+    # Status. Fixed in both appearances, and never used as a category. Two of
+    # them sit under 3:1 on the light surface, so they always ship beside a
+    # label rather than carrying meaning alone.
+    positive: "#0ca30c"
+    warning: "#fab219"
+    negative: "#d03b3b"
+
+    # The three categorical slots and the muted grey, under the names the site
+    # uses, so a page can ask for one directly.
+    viz-model:
+      light: "#2a78d6"
+      dark: "#3987e5"
+    viz-test:
+      light: "#eb6834"
+      dark: "#d95926"
+    viz-other:
+      light: "#1baf7a"
+      dark: "#199e70"
+    viz-muted:
+      light: "#898781"
+      dark: "#898781"
+
+  colorPalettes:
+    # Slot order is fixed. Anything past the third slot is grey on purpose: a
+    # chart that reaches for it is a chart that needs an "other" bucket, and
+    # grey makes that visible rather than inventing a fourth hue.
+    default:
+      light: ["#2a78d6", "#eb6834", "#1baf7a", "#898781"]
+      dark: ["#3987e5", "#d95926", "#199e70", "#898781"]
+
+  colorScales:
+    # One hue, low to high. Light runs pale to deep against a white surface;
+    # dark runs deep to pale against a black one, which is a selected set
+    # rather than the light ramp reversed.
+    default:
+      light: ["#86b6ef", "#5598e7", "#2a78d6", "#1c5cab", "#104281"]
+      dark: ["#184f95", "#256abf", "#3987e5", "#6da7ec", "#9ec5f4"]
+
 plugins:
   components:
     "@evidence-dev/core-components": {}
