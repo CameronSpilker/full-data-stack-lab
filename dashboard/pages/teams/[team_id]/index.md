@@ -48,6 +48,29 @@ where team_id = '${params.team_id}'
 <BigValue data={team} value=elo_rating title="Elo" fmt='#,##0' />
 <BigValue data={team} value=strength_of_schedule title="Schedule strength" fmt='+0.0;-0.0' />
 
+```sql season_status
+select
+    schedule_season_label,
+    data_season_label,
+    is_preseason,
+    next_game_date
+from season_status
+```
+
+{#if season_status[0].is_preseason}
+
+<Alert status="warning">
+
+**The <Value data={season_status} column=schedule_season_label /> season has not
+tipped off.** Everything above and below describes
+<Value data={season_status} column=data_season_label />, the last completed season.
+This team's <Value data={season_status} column=schedule_season_label /> fixtures are
+under "What is next", priced by a model that does not need results to run.
+
+</Alert>
+
+{/if}
+
 ## The season, game by game
 
 Elo after every game. The slope matters more than the level: a line climbing through

@@ -16,6 +16,13 @@ on:
     # before anyone looks at the dashboard.
     - cron: "0 13 * * *"
 
+    # And the 1st of the month, an hour earlier, with the team dimension
+    # included. The nightly run deliberately leaves that table alone, so
+    # without this nothing in production would ever refresh it: the monthly
+    # refresh lives in the Dagster schedule, and Dagster is not what runs
+    # here. Conference realignment would land in July and never arrive.
+    - cron: "0 12 1 * *"
+
   # A merge that adds or changes a model makes the published warehouse wrong
   # for the code that is now deployed: the dashboard reads a table its own
   # models have only just started producing, and Evidence renders the error
@@ -39,6 +46,10 @@ on:
         description: "Days of games and lines to refresh on a normal run"
         type: string
         default: "7"
+      refresh_teams:
+        description: "Include the team dimension, as the monthly run does"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -89,6 +100,15 @@ jobs:
       # finished games do not change, and the loader upserts on the row key, so
       # a rolling window corrects what it covers and leaves the rest alone.
       # `backfill` re-extracts every season in full when history is needed.
+      #
+      # `daily` rather than `all`: it skips the team dimension, which changes
+      # once a year and was costing this run its first four requests every
+      # night, in the one position where a throttled endpoint kills everything
+      # behind it. A backfill still asks for everything, because that is when
+      # the dimension is genuinely being rebuilt, and so does the monthly
+      # schedule, which is what keeps that table from going stale. Which cron
+      # fired is readable from the event, so the two schedules share one job
+      # rather than duplicating the publish and redeploy steps.
       - name: Ingest
         env:
           CBD_API_KEY: ${{ secrets.CBD_API_KEY }}
@@ -99,8 +119,12 @@ jobs:
             # exhausts the API's rate limit. Nobody is waiting on it, so it
             # asks more slowly rather than spending the run backing off.
             REQUEST_DELAY_SECONDS=1.5 ingest all
-          else
+          elif [ "${{ github.event.schedule }}" = "0 12 1 * *" ] \
+              || [ "${{ inputs.refresh_teams }}" = "true" ]; then
+            echo "Monthly run: refreshing the team dimension too."
             ingest all --current-only --since-days "${{ inputs.since_days || 7 }}"
+          else
+            ingest daily --current-only --since-days "${{ inputs.since_days || 7 }}"
           fi
 
       - name: Transform

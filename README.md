@@ -89,11 +89,12 @@ ingest demo
 # parsers expect. Writes nothing; exits non-zero if a critical field is empty.
 ingest preflight --season 2026
 ingest diagnose --season 2026         # why a preflight failed, if it did
-ingest all --season 2026              # the real APIs
+ingest all --season 2026              # the real APIs, the team list included
+ingest daily --current-only          # what the schedule runs: everything but teams
 
 cd transform
 export DBT_PROFILES_DIR=$PWD DUCKDB_PATH=../data/warehouse.duckdb
-dbt deps && dbt build                 # 24 models, 132 tests
+dbt deps && dbt build                 # 25 models, 139 tests
 dbt docs generate && dbt docs serve
 ```
 
@@ -132,8 +133,9 @@ game log), `mart_elo_timeline` (ratings over time), `mart_conference_strength`,
 `mart_matchup_odds` (every possible pairing, priced), `mart_bracket` (a
 projected 64-team field), `mart_tournament_odds` (the simulation),
 `mart_upcoming_games` (the games that have not been played yet, priced against
-the market), and `mart_model_accuracy` / `mart_model_calibration` (the
-backtest).
+the market), `mart_season_status` (which season the site is describing and
+which one the calendar has reached), and `mart_model_accuracy` /
+`mart_model_calibration` (the backtest).
 
 **Semantic layer** — metrics like `average_efficiency_margin`,
 `prediction_accuracy`, and `brier_score` are defined in
@@ -162,6 +164,27 @@ the limit is split and retried, so the paging adapts instead of trusting a
 hand-picked window size. Box scores ignore the date parameters, so they are
 walked one conference at a time and deduped.
 
+**A scheduled run does not ask for the team dimension.** `ingest all` reads
+teams first, and conference membership changes once a year, in July, which is
+why the Dagster schedule refreshes it monthly. Asking nightly is not merely
+wasteful: it is the first request the run makes, so when CBD throttles that
+endpoint the run dies there and never reaches a game. Three consecutive daily
+runs failed exactly that way. `ingest daily` runs the four extractors that
+have something new to say overnight and leaves the dimension to the job that
+owns it. A backfill still asks for everything, because that is when the
+dimension is genuinely being rebuilt.
+
+The dimension still gets refreshed, on the 1st of the month, by the same
+workflow reading which cron fired. Dropping it from the nightly run without
+that would have been worse than the problem: the monthly refresh lives in the
+Dagster schedule, and Dagster is not what runs in production, so conference
+realignment would have landed in July and never arrived.
+
+This narrows the blast radius rather than removing it. `load.persist` runs
+once, after every extractor has finished, so a throttle on any one of the four
+still costs the whole run. Persisting each extract as it lands would fix that
+and is a change to the failure rule below, not a tidy-up of it.
+
 **Losing one season is a log line. Losing all of them is a failure.** Each
 extractor loses a season the same way: it logs the error and carries on, so one
 bad response cannot cost the other four. The first successful backfill showed
@@ -175,6 +198,16 @@ longer spends a retry: five backoffs totalling thirty-one seconds were shorter
 than the window the limit is measured over, so every retry arrived still
 throttled. And a backfill asks more slowly than a daily run, because nobody is
 waiting on it.
+
+**A new schedule arrives weeks before anyone plays on it.** Almost every model
+here is built from results, so on the day the next season's fixtures land,
+`mart_team_season` and everything downstream still describe the season that
+finished in April. Correctly, and silently, which is the problem: a reader
+looking at a national ranking in November has no way to tell it is last
+season's. `mart_season_status` is one row saying which season the numbers
+describe and which one the schedule has reached, and the five pages built on
+results show a banner when those differ. It is one row rather than a rule
+repeated on five pages so that they cannot disagree about what season it is.
 
 **A forecast of a game that has not been played is the only honest one.**
 Every other prediction in this project is graded, which is what makes the

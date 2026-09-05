@@ -24,7 +24,7 @@ leaves the rest of history alone.
 
 ### 3. Transform, with dbt Core
 
-Staging, intermediate, marts. 24 models behind 132 tests, with the predictor
+Staging, intermediate, marts. 25 models behind 139 tests, with the predictor
 defined once in a macro so every consumer prices a game the same way.
 
 ### 4. Orchestrate, with Dagster
