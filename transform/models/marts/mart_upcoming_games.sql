@@ -34,7 +34,18 @@ with season_games as (
 
 ),
 
-scheduled as (
+-- Not every unplayed game is an upcoming one. `scoring_status` is
+-- `scheduled` whenever the source does not call a game final, and that bucket
+-- holds two different things: fixtures still to come, and fixtures that came
+-- and went without being played. The 2025-26 season ended carrying eighteen of
+-- the second kind, fourteen postponed and four cancelled, dated between
+-- November and February.
+--
+-- The date is what separates them, not the status text. A game whose date has
+-- passed and which was never completed was abandoned, whatever the source
+-- calls it, and forecasting it would put a confident pick on a game that
+-- nobody is going to play.
+unplayed as (
 
     select * from season_games
     where scoring_status = 'scheduled'
@@ -48,8 +59,15 @@ as_of as (
     -- take every `days_out` with it.
     select coalesce(
         (select max(game_date) from season_games where is_completed),
-        cast((select min(game_date) from scheduled) - interval 1 day as date)
+        cast((select min(game_date) from unplayed) - interval 1 day as date)
     ) as as_of_date
+
+),
+
+scheduled as (
+
+    select * from unplayed
+    where game_date >= (select as_of_date from as_of)
 
 ),
 
