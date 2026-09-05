@@ -489,13 +489,23 @@ def _conferences(client: httpx.Client, season: Season) -> list[str]:
     return sorted(name for name in names if name)
 
 
-def extract_box_scores(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]:
+def extract_box_scores(
+    seasons: list[Season], fallback_conferences: list[str] | None = None
+) -> dict[str, list[dict[str, Any]]]:
     """Team box score lines, paged by conference.
 
     Unlike /games, this endpoint ignores the date range parameters: a November
     window comes back at the same 3,000 record limit as the whole season. It
     does honour `conference`, so the season is walked one league at a time and
     deduped, since a non-conference game is returned under both teams' leagues.
+
+    The list of leagues comes from `/teams`, which is the one endpoint this
+    project has watched get throttled for days at a time. Losing the box
+    scores over a lookup is a bad trade when the answer is already in the
+    warehouse, so `fallback_conferences` is used when the source will not
+    answer. It is a fallback rather than the first choice because the
+    dimension holds one season's leagues, and a backfill into 2022 wants ones
+    that have since folded.
     """
     rows: dict[tuple[str, str], dict[str, Any]] = {}
     failed = 0
@@ -505,9 +515,18 @@ def extract_box_scores(seasons: list[Season]) -> dict[str, list[dict[str, Any]]]
             try:
                 conferences = _conferences(client, season)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
-                failed += 1
-                log.error("Skipping box scores for %s: %s", season.label, exc)
-                continue
+                if not fallback_conferences:
+                    failed += 1
+                    log.error("Skipping box scores for %s: %s", season.label, exc)
+                    continue
+                log.warning(
+                    "No conference list for %s from the source (%s). "
+                    "Falling back to the %s the warehouse already holds.",
+                    season.label,
+                    exc,
+                    len(fallback_conferences),
+                )
+                conferences = fallback_conferences
 
             before = len(rows)
             lost = 0

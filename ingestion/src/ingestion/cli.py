@@ -168,7 +168,12 @@ def main(argv: list[str] | None = None) -> int:
         tables.update(cbd.extract_games(seasons, since=since))
 
     if _wanted(args.source, "boxscores"):
-        tables.update(cbd.extract_box_scores(seasons))
+        # The box score walk needs a league list, which normally comes from
+        # /teams. What the warehouse already holds is the standby for when
+        # that endpoint will not answer.
+        tables.update(
+            cbd.extract_box_scores(seasons, fallback_conferences=load.known_conferences())
+        )
 
     if _wanted(args.source, "lines"):
         tables.update(cbd.extract_lines(seasons, since=since))
