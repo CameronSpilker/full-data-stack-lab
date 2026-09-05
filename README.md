@@ -173,6 +173,12 @@ have something new to say overnight and leaves the dimension to the job that
 owns it. A backfill still asks for everything, because that is when the
 dimension is genuinely being rebuilt.
 
+The dimension still gets refreshed, on the 1st of the month, by the same
+workflow reading which cron fired. Dropping it from the nightly run without
+that would have been worse than the problem: the monthly refresh lives in the
+Dagster schedule, and Dagster is not what runs in production, so conference
+realignment would have landed in July and never arrived.
+
 This narrows the blast radius rather than removing it. `load.persist` runs
 once, after every extractor has finished, so a throttle on any one of the four
 still costs the whole run. Persisting each extract as it lands would fix that
