@@ -39,6 +39,14 @@ FALLBACK_PLACEHOLDER = "1001"
 QUERY_REF = re.compile(r"\$\{(\w+)\}")
 MAX_CHAIN_DEPTH = 8
 
+# A component binds to a query by name, and Evidence scopes queries to the page
+# that declares them. Binding to one that is not declared there fails the build
+# with "'name' is not defined", which is a slow and unhelpful way to find a
+# typo, or a block deleted by an edit that meant to leave it alone. Every query
+# on a page can run perfectly well and the page still not build, so running the
+# SQL is not enough on its own.
+DATA_BINDING = re.compile(r"data=\{(\w+)\}")
+
 
 def resolve_chain(sql: str, blocks: dict[str, str], depth: int = 0) -> str:
     """Inline every ${query_name} reference to another block on the same page."""
@@ -83,8 +91,14 @@ def main() -> int:
 
     for page in sorted(PAGES_DIR.rglob("*.md")):
         rel = page.relative_to(REPO_ROOT)
-        found = re.findall(r"```sql (\w+)\n(.*?)```", page.read_text(), re.DOTALL)
+        text = page.read_text()
+        found = re.findall(r"```sql (\w+)\n(.*?)```", text, re.DOTALL)
         blocks = dict(found)
+
+        for name in sorted(set(DATA_BINDING.findall(text)) - set(blocks)):
+            failures.append(f"{rel}: data={{{name}}} is not declared on this page")
+            print(f"FAIL ref    {rel}: data={{{name}}} is not declared on this page")
+
         for name, block in found:
             try:
                 probe = resolve_chain(block, blocks)

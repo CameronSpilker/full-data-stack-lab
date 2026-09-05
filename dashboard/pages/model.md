@@ -106,7 +106,7 @@ order by bucket_floor_pct, model_name
     <Column id=games title="Games" fmt='#,##0' />
     <Column id=mean_predicted_probability title="Predicted" fmt='pct1' />
     <Column id=observed_win_rate title="Observed" fmt='pct1' />
-    <Column id=calibration_error title="Error" fmt='+pct1' contentType=colorscale />
+    <Column id=calibration_error title="Error" fmt='+0.0%;-0.0%' contentType=colorscale />
 </DataTable>
 
 ## Where the model struggles

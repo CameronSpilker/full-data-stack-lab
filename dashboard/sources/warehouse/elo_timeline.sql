@@ -14,6 +14,7 @@ select
     margin,
     elo_before,
     elo_after,
+    opponent_elo_before,
     elo_change,
     pregame_win_probability,
     was_upset_win

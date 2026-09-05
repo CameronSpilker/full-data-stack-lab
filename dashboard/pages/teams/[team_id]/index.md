@@ -41,12 +41,12 @@ where team_id = '${params.team_id}'
 · <Value data={team} column=conference_record /> in conference · ranked
 <Value data={team} column=national_rank /> nationally
 
-<BigValue data={team} value=adjusted_efficiency_margin title="Net efficiency" fmt='+0.0' />
+<BigValue data={team} value=adjusted_efficiency_margin title="Net efficiency" fmt='+0.0;-0.0' />
 <BigValue data={team} value=adjusted_offensive_efficiency title="Offense" fmt='0.0' />
 <BigValue data={team} value=adjusted_defensive_efficiency title="Defense" fmt='0.0' />
 <BigValue data={team} value=adjusted_tempo title="Tempo" fmt='0.0' />
 <BigValue data={team} value=elo_rating title="Elo" fmt='#,##0' />
-<BigValue data={team} value=strength_of_schedule title="Schedule strength" fmt='+0.0' />
+<BigValue data={team} value=strength_of_schedule title="Schedule strength" fmt='+0.0;-0.0' />
 
 ## The season, game by game
 
@@ -154,8 +154,8 @@ order by game_date desc
     <Column id=game_date title="Date" fmt='mmm d' />
     <Column id=opponent_name title="Opponent" />
     <Column id=result title="" />
-    <Column id=margin title="Margin" fmt='+0' contentType=colorscale />
+    <Column id=margin title="Margin" fmt='+0;-0' contentType=colorscale />
     <Column id=site title="Site" />
     <Column id=pregame_win_probability title="Pregame odds" fmt='pct0' />
-    <Column id=elo_change title="Elo +/-" fmt='+0.0' />
+    <Column id=elo_change title="Elo +/-" fmt='+0.0;-0.0' />
 </DataTable>

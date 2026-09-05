@@ -30,8 +30,8 @@ order by conference_rank
     <Column id=conference_rank title="#" />
     <Column id=conference_name title="Conference" />
     <Column id=team_count title="Teams" />
-    <Column id=median_efficiency_margin title="Median eff." fmt='+0.0' contentType=colorscale />
-    <Column id=best_efficiency_margin title="Best eff." fmt='+0.0' />
+    <Column id=median_efficiency_margin title="Median eff." fmt='+0.0;-0.0' contentType=colorscale />
+    <Column id=best_efficiency_margin title="Best eff." fmt='+0.0;-0.0' />
     <Column id=best_team title="Best team" />
     <Column id=teams_in_top_50 title="Top 50" />
     <Column id=ncaa_bids title="Bids" />
