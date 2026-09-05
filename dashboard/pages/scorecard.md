@@ -81,18 +81,18 @@ select
     games_vs_top_50,
     last_10_wins,
     last_10_games,
-    -- Ranks read better under a headline number as text than as a bare
-    -- integer, and BigValue renders a comparison column verbatim.
-    '#' || national_rank || ' of ' || (
+    -- How many teams a rank is out of. Counted rather than written down, so a
+    -- season that adds or loses a team does not make the page wrong.
+    --
+    -- Every rank below is handed to BigValue as this integer with an explicit
+    -- format, never as a string built here. A column like '#24 of 365' looks
+    -- like the tidier option and is not: Evidence infers a format for the
+    -- column it is given, and on a string of that shape it infers a numeric
+    -- one and renders '#24.0 of 365.0'.
+    (
         select count(*) from team_season
         where season = (select max(season) from team_season)
-    ) as national_rank_label,
-    '#' || offense_rank || ' nationally' as offense_rank_label,
-    '#' || defense_rank || ' nationally' as defense_rank_label,
-    '#' || tempo_rank || ' nationally' as tempo_rank_label,
-    '#' || schedule_strength_rank || ' nationally' as schedule_rank_label,
-    last_10_wins || '-' || (last_10_games - last_10_wins) || ' last 10' as form_label,
-    wins_vs_top_50 || ' of ' || games_vs_top_50 || ' vs the top 50' as quality_label
+    ) as field_size
 from team_season
 where team_id::varchar = (select team_id from ${chosen})
     and season = (select max(season) from team_season)
@@ -101,8 +101,10 @@ where team_id::varchar = (select team_id from ${chosen})
 # <Value data={team} column=team_name />
 
 <Value data={team} column=conference_name /> · <Value data={team} column=record /> overall
-· <Value data={team} column=conference_record /> in conference · <Value data={team} column=conference_rank />
-in the league · <Value data={team} column=season fmt='0000' /> season
+· <Value data={team} column=conference_record /> in conference · ranked
+<Value data={team} column=national_rank fmt='0' /> of <Value data={team} column=field_size fmt='0' />
+nationally and <Value data={team} column=conference_rank fmt='0' /> in the league
+· <Value data={team} column=season fmt='0000' /> season
 
 <Grid cols=4>
     <BigValue
@@ -110,7 +112,8 @@ in the league · <Value data={team} column=season fmt='0000' /> season
         value=adjusted_efficiency_margin
         title="Net efficiency"
         fmt='+0.0'
-        comparison=national_rank_label
+        comparison=national_rank
+        comparisonFmt='0'
         comparisonDelta=false
         comparisonTitle="nationally"
         description="Points scored minus points allowed per 100 possessions, adjusted for the quality of the opponent. Every other number on this page is context for this one."
@@ -120,9 +123,10 @@ in the league · <Value data={team} column=season fmt='0000' /> season
         value=adjusted_offensive_efficiency
         title="Offense"
         fmt='0.0'
-        comparison=offense_rank_label
+        comparison=offense_rank
+        comparisonFmt='0'
         comparisonDelta=false
-        comparisonTitle="scoring"
+        comparisonTitle="nationally for scoring"
         description="Points scored per 100 possessions, opponent adjusted."
     />
     <BigValue
@@ -130,9 +134,10 @@ in the league · <Value data={team} column=season fmt='0000' /> season
         value=adjusted_defensive_efficiency
         title="Defense"
         fmt='0.0'
-        comparison=defense_rank_label
+        comparison=defense_rank
+        comparisonFmt='0'
         comparisonDelta=false
-        comparisonTitle="conceding"
+        comparisonTitle="nationally for conceding"
         description="Points allowed per 100 possessions, opponent adjusted. Lower is better."
     />
     <BigValue
@@ -140,9 +145,10 @@ in the league · <Value data={team} column=season fmt='0000' /> season
         value=strength_of_schedule
         title="Schedule faced"
         fmt='0.0'
-        comparison=schedule_rank_label
+        comparison=schedule_strength_rank
+        comparisonFmt='0'
         comparisonDelta=false
-        comparisonTitle="hardest"
+        comparisonTitle="hardest nationally"
         description="Average opponent quality. A rating built on nobody is a rating built on nothing."
     />
 </Grid>
@@ -177,9 +183,10 @@ order by game_date
         value=adjusted_tempo
         title="Tempo"
         fmt='0.0'
-        comparison=tempo_rank_label
+        comparison=tempo_rank
+        comparisonFmt='0'
         comparisonDelta=false
-        comparisonTitle="fastest"
+        comparisonTitle="fastest nationally"
         description="Possessions per 40 minutes. Neither fast nor slow is better, but it shapes every other number."
     />
     <BigValue
@@ -187,18 +194,20 @@ order by game_date
         value=wins_vs_top_50
         title="Wins vs top 50"
         fmt='0'
-        comparison=quality_label
+        comparison=games_vs_top_50
+        comparisonFmt='0'
         comparisonDelta=false
-        comparisonTitle="played"
+        comparisonTitle="games against them"
     />
     <BigValue
         data={team}
         value=last_10_wins
         title="Won of the last ten"
         fmt='0'
-        comparison=form_label
+        comparison=last_10_games
+        comparisonFmt='0'
         comparisonDelta=false
-        comparisonTitle=""
+        comparisonTitle="games played"
     />
 </Grid>
 
