@@ -108,6 +108,75 @@ nationally and <Value data={team} column=conference_rank fmt='0' /> in the leagu
 <Value data={team} column=games_vs_top_50 fmt='0' /> games against the top 50
 · <Value data={team} column=season fmt='0000' /> season
 
+```sql form_trend
+-- The four trend tiles read this one result, so they all share a row 0 and
+-- cannot disagree about which game is the latest.
+--
+-- Ordered newest first on purpose. BigValue prints `data[0]`, not the last row,
+-- so an oldest-first ordering would headline the value from ten games ago. The
+-- sparkline is unaffected: it sorts by its own date column before drawing.
+--
+-- Every delta is against the same team's previous season. Elo carries across
+-- seasons rather than resetting, so last season's closing rating is the honest
+-- thing to measure this season's against. The other three are season aggregates
+-- the warehouse has held for every season since 2022.
+with prior as (
+    select elo_rating, win_pct, avg_margin
+    from team_season
+    where team_id::varchar = (select team_id from ${chosen})
+        and season = (select max(season) - 1 from team_season)
+),
+
+-- Schedule strength is on a different scale in team_season, so the comparison
+-- is built from the same opponent Elo the tile shows.
+prior_opponents as (
+    select avg(opponent_elo_before) as opponent_elo
+    from elo_timeline
+    where team_id::varchar = (select team_id from ${chosen})
+        and season = (select max(season) - 1 from elo_timeline)
+),
+
+games as (
+    select game_date, elo_after, margin, is_win, opponent_elo_before
+    from elo_timeline
+    where team_id::varchar = (select team_id from ${chosen})
+        and season = (select max(season) from elo_timeline)
+),
+
+-- Ten games is the window the rest of the page already uses for form. Early in
+-- a season the frame is shorter than ten, which is the correct behaviour: it
+-- averages what has been played rather than padding with nothing.
+rolled as (
+    select
+        game_date,
+        elo_after,
+        avg(margin)
+            over (order by game_date rows between 9 preceding and current row) as margin_10,
+        avg(case when is_win then 1.0 else 0.0 end)
+            over (order by game_date rows between 9 preceding and current row) as win_rate_10,
+        avg(opponent_elo_before)
+            over (order by game_date rows between 9 preceding and current row) as opponent_elo_10
+    from games
+)
+
+select
+    rolled.game_date,
+    rolled.elo_after,
+    rolled.margin_10,
+    rolled.win_rate_10,
+    rolled.opponent_elo_10,
+    rolled.elo_after - prior.elo_rating as elo_vs_last,
+    rolled.margin_10 - prior.avg_margin as margin_vs_last,
+    rolled.win_rate_10 - prior.win_pct as win_rate_vs_last,
+    rolled.opponent_elo_10 - prior_opponents.opponent_elo as opponent_elo_vs_last
+from rolled
+-- Left joins, because a team in its first Division I season has no previous
+-- one. The deltas come back null and the tiles render without them.
+left join prior on true
+left join prior_opponents on true
+order by rolled.game_date desc
+```
+
 <Grid cols=4>
     <BigValue
         data={form_trend}

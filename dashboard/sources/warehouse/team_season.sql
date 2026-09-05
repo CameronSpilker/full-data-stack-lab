@@ -9,6 +9,7 @@ select
     wins,
     losses,
     win_pct,
+    avg_margin,
     games_played,
     adjusted_offensive_efficiency,
     adjusted_defensive_efficiency,
