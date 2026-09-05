@@ -330,8 +330,20 @@ pins Node 22 there, matching CI: the DuckDB driver Evidence uses publishes no
 prebuilt binary for Node 24, and without the pin a host defaulting to 24 tries
 to compile DuckDB from source and fails. The build command fetches the
 warehouse and the docs from the release below, then runs the normal Evidence
-build. Every push redeploys, and so does every daily pipeline run,
-because the run publishes a new warehouse rather than committing one.
+build. Every push redeploys.
+
+**A new warehouse has to ask for a rebuild.** The dashboard is static: it reads
+the warehouse at build time and bakes the answers into HTML, so the data on the
+page is the data that existed when the site was last built. Publishing a
+warehouse is therefore invisible until something rebuilds, and nothing did
+until the pipeline was given a Vercel deploy hook to call: the site was as
+fresh as the last push to main rather than as fresh as the last pipeline run.
+
+The hook is a URL that triggers a production build, created under the Vercel
+project's Git settings and held as the `VERCEL_DEPLOY_HOOK_URL` repository
+secret. It is the last step of `pipeline.yml`, after the warehouse is
+published, and it is a warning rather than a failure when the secret is absent,
+so a fork with no Vercel project behind it still gets a green run.
 
 **The warehouse is a release asset, not a commit.** It is a 17MB binary that
 changes on every run even when no games were played, because every row carries
@@ -348,15 +360,16 @@ curl -fsSL https://github.com/CameronSpilker/full-data-stack-lab/releases/downlo
 `dashboard/scripts/fetch-warehouse.sh` is that download plus the docs, and it
 is what `npm run build:deploy` calls. No credentials: the repository is public.
 
-**A new model needs a pipeline run before the page that reads it.** The deploy
-fetches the warehouse rather than building one, so it gets whatever the last
-pipeline run published — which, for a branch that adds a model, does not
-contain that model yet. Evidence does not fail the build over it: the deploy
-succeeds and the queries against the missing table render an error on the page
-that runs them, leaving the rest of the dashboard working. The fix is to run
-`Daily pipeline` from the Actions tab (it takes `workflow_dispatch`) after
-merging, which publishes a warehouse built from the new models, and then
-redeploy. Waiting for the 06:00 run does the same thing a day later.
+**A new model is not in the warehouse the deploy fetches.** The deploy takes
+whatever the last pipeline run published, and for a branch that adds a model
+that warehouse does not contain it yet. Evidence does not fail a build over a
+missing table: the deploy succeeds and the queries against it render an error
+on the page that runs them, leaving the rest of the dashboard working. That is
+why `pipeline.yml` also runs on a merge to main that touches `transform/` or
+`ingestion/`, and why it ends by asking for a rebuild. The merge deploys the
+new page against the old warehouse, the pipeline republishes and calls the
+hook, and the second build has the model. The window is the length of a
+pipeline run rather than a day, and it closes without anyone doing anything.
 
 **Nothing is published until dbt passes.** The pipeline uploads the warehouse
 only after `dbt build`, so a warehouse that failed its own tests is never the
