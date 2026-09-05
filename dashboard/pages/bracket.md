@@ -6,6 +6,34 @@ title: Tournament Odds
 select max(simulations) as simulations, max(season) as season from tournament_odds
 ```
 
+```sql season_status
+select
+    schedule_season_label,
+    data_season_label,
+    is_preseason,
+    scheduled_games,
+    next_game_date
+from season_status
+```
+
+{#if season_status[0].is_preseason}
+
+<Alert status="warning">
+
+**The <Value data={season_status} column=schedule_season_label /> season has not
+tipped off.** This field and these odds describe <Value data={season_status} column=data_season_label />, the
+last completed season, because a team that has not played a game cannot be rated,
+ranked or seeded. <Value data={season_status} column=scheduled_games fmt='#,##0' />
+games are on the schedule, the first of them
+<Value data={season_status} column=next_game_date fmt='mmmm d' />.
+
+The [upcoming picks](/picks) page is the one that has already moved on: a forecast
+does not need results, so it is pricing those fixtures now.
+
+</Alert>
+
+{/if}
+
 The bracket played <Value data={sims} column=simulations fmt='#,##0' /> times. Each
 simulation plays all 63 games, drawing every result from the same matchup
 probabilities the rest of the site uses, and the odds below are simply how often

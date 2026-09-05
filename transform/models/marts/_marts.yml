@@ -227,3 +227,23 @@ models:
               arguments:
                   values: ['current_season', 'prior_season', 'blended']
 
+  - name: mart_season_status
+    description: >
+      One row saying which season the site's numbers describe and which season
+      the schedule has reached. They come apart every November, when a new
+      schedule lands weeks before anyone plays in it and every results-based
+      model still describes the season that finished in April. The pages read
+      this so none of them can disagree about which season they are showing.
+    columns:
+      - name: season_status_id
+        data_tests: [not_null, unique]
+      - name: schedule_season
+        data_tests: [not_null]
+      - name: data_season
+        data_tests: [not_null]
+      - name: is_preseason
+        description: >
+          The schedule has reached a season nobody has played a game in yet, so
+          every page built on results is showing the previous one.
+        data_tests: [not_null]
+

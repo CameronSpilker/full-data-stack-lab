@@ -94,7 +94,7 @@ ingest daily --current-only          # what the schedule runs: everything but te
 
 cd transform
 export DBT_PROFILES_DIR=$PWD DUCKDB_PATH=../data/warehouse.duckdb
-dbt deps && dbt build                 # 24 models, 132 tests
+dbt deps && dbt build                 # 25 models, 139 tests
 dbt docs generate && dbt docs serve
 ```
 
@@ -133,8 +133,9 @@ game log), `mart_elo_timeline` (ratings over time), `mart_conference_strength`,
 `mart_matchup_odds` (every possible pairing, priced), `mart_bracket` (a
 projected 64-team field), `mart_tournament_odds` (the simulation),
 `mart_upcoming_games` (the games that have not been played yet, priced against
-the market), and `mart_model_accuracy` / `mart_model_calibration` (the
-backtest).
+the market), `mart_season_status` (which season the site is describing and
+which one the calendar has reached), and `mart_model_accuracy` /
+`mart_model_calibration` (the backtest).
 
 **Semantic layer** — metrics like `average_efficiency_margin`,
 `prediction_accuracy`, and `brier_score` are defined in
@@ -197,6 +198,16 @@ longer spends a retry: five backoffs totalling thirty-one seconds were shorter
 than the window the limit is measured over, so every retry arrived still
 throttled. And a backfill asks more slowly than a daily run, because nobody is
 waiting on it.
+
+**A new schedule arrives weeks before anyone plays on it.** Almost every model
+here is built from results, so on the day the next season's fixtures land,
+`mart_team_season` and everything downstream still describe the season that
+finished in April. Correctly, and silently, which is the problem: a reader
+looking at a national ranking in November has no way to tell it is last
+season's. `mart_season_status` is one row saying which season the numbers
+describe and which one the schedule has reached, and the five pages built on
+results show a banner when those differ. It is one row rather than a rule
+repeated on five pages so that they cannot disagree about what season it is.
 
 **A forecast of a game that has not been played is the only honest one.**
 Every other prediction in this project is graded, which is what makes the

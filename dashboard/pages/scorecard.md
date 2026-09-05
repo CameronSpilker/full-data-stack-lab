@@ -5,6 +5,34 @@ title: Team scorecard
 Every number that decides whether a team is any good, on one screen. Pick a team.
 It opens on BYU.
 
+```sql season_status
+select
+    schedule_season_label,
+    data_season_label,
+    is_preseason,
+    scheduled_games,
+    next_game_date
+from season_status
+```
+
+{#if season_status[0].is_preseason}
+
+<Alert status="warning">
+
+**The <Value data={season_status} column=schedule_season_label /> season has not
+tipped off.** Every number on this page describes <Value data={season_status} column=data_season_label />, the
+last completed season, because a team that has not played a game cannot be rated,
+ranked or seeded. <Value data={season_status} column=scheduled_games fmt='#,##0' />
+games are on the schedule, the first of them
+<Value data={season_status} column=next_game_date fmt='mmmm d' />.
+
+The [upcoming picks](/picks) page is the one that has already moved on: a forecast
+does not need results, so it is pricing those fixtures now.
+
+</Alert>
+
+{/if}
+
 ```sql teams
 select
     team_id,

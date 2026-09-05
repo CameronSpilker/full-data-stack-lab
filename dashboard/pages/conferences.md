@@ -7,6 +7,34 @@ outstanding program can carry a league's reputation while the median team is med
 Depth is what actually predicts March, so these are ranked on the **median** team's
 rating rather than the mean or the maximum.
 
+```sql season_status
+select
+    schedule_season_label,
+    data_season_label,
+    is_preseason,
+    scheduled_games,
+    next_game_date
+from season_status
+```
+
+{#if season_status[0].is_preseason}
+
+<Alert status="warning">
+
+**The <Value data={season_status} column=schedule_season_label /> season has not
+tipped off.** These standings describe <Value data={season_status} column=data_season_label />, the
+last completed season, because a team that has not played a game cannot be rated,
+ranked or seeded. <Value data={season_status} column=scheduled_games fmt='#,##0' />
+games are on the schedule, the first of them
+<Value data={season_status} column=next_game_date fmt='mmmm d' />.
+
+The [upcoming picks](/picks) page is the one that has already moved on: a forecast
+does not need results, so it is pricing those fixtures now.
+
+</Alert>
+
+{/if}
+
 ```sql conferences
 select
     conference_rank,
