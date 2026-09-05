@@ -1,4 +1,4 @@
-"""Command line entry point: `ingest teams`, `games`, `ratings`, `lines`, `all`, `demo`."""
+"""Command line entry point: `ingest teams`, `games`, `ratings`, `lines`, `daily`, `all`, `demo`."""
 
 from __future__ import annotations
 
@@ -19,10 +19,29 @@ SOURCES = [
     "lines",
     "boxscores",
     "all",
+    "daily",
     "demo",
     "preflight",
     "diagnose",
 ]
+
+# What a scheduled run asks for: everything that changes between one night and
+# the next. The team dimension is deliberately absent. Conference membership
+# changes once a year, in July, which is why the Dagster schedule refreshes it
+# monthly rather than nightly, and re-reading it every night spends the run's
+# first requests on 365 rows that cannot have moved. That is not free: it is
+# the first call the run makes, so when the source throttles it, the run dies
+# there and never reaches a game.
+NIGHTLY = ("games", "boxscores", "lines", "ratings")
+
+
+def _wanted(source: str, extractor: str) -> bool:
+    """Whether this run includes one extractor."""
+    if source == "all":
+        return True
+    if source == "daily":
+        return extractor in NIGHTLY
+    return source == extractor
 
 
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
@@ -31,7 +50,10 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         "source",
         choices=SOURCES,
         help=(
-            "Which extractor to run. 'all' runs every live extractor. 'demo' "
+            "Which extractor to run. 'all' runs every live extractor. 'daily' "
+            "runs the four that change overnight — games, box scores, lines "
+            "and ratings — and leaves the team dimension alone, which is what "
+            "a scheduled run wants. 'demo' "
             "simulates deterministic synthetic seasons so the whole pipeline "
             "runs with no network access and no API key. 'preflight' checks "
             "the live APIs against one season and writes nothing — run it "
@@ -133,7 +155,7 @@ def main(argv: list[str] | None = None) -> int:
             demo.extract(seasons, args.snapshot_date, current_season(), args.as_of)
         )
 
-    if args.source in ("teams", "all"):
+    if _wanted(args.source, "teams"):
         tables.update(cbd.extract_teams(current_season(), args.snapshot_date))
 
     since = (
@@ -142,16 +164,16 @@ def main(argv: list[str] | None = None) -> int:
     if since:
         log.info("Extracting games and lines from %s onward", since)
 
-    if args.source in ("games", "all"):
+    if _wanted(args.source, "games"):
         tables.update(cbd.extract_games(seasons, since=since))
 
-    if args.source in ("boxscores", "all"):
+    if _wanted(args.source, "boxscores"):
         tables.update(cbd.extract_box_scores(seasons))
 
-    if args.source in ("lines", "all"):
+    if _wanted(args.source, "lines"):
         tables.update(cbd.extract_lines(seasons, since=since))
 
-    if args.source in ("ratings", "all"):
+    if _wanted(args.source, "ratings"):
         tables.update(cbd.extract_ratings(seasons, args.snapshot_date))
 
     counts = load.persist(tables, args.snapshot_date, replace_all=replace_all)

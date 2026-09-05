@@ -89,6 +89,13 @@ jobs:
       # finished games do not change, and the loader upserts on the row key, so
       # a rolling window corrects what it covers and leaves the rest alone.
       # `backfill` re-extracts every season in full when history is needed.
+      #
+      # `daily` rather than `all`: it skips the team dimension, which changes
+      # once a year and was costing this run its first four requests every
+      # night, in the one position where a throttled endpoint kills everything
+      # behind it. The monthly Dagster schedule owns that table. A backfill
+      # still asks for everything, because that is when the dimension is
+      # genuinely being rebuilt.
       - name: Ingest
         env:
           CBD_API_KEY: ${{ secrets.CBD_API_KEY }}
@@ -100,7 +107,7 @@ jobs:
             # asks more slowly rather than spending the run backing off.
             REQUEST_DELAY_SECONDS=1.5 ingest all
           else
-            ingest all --current-only --since-days "${{ inputs.since_days || 7 }}"
+            ingest daily --current-only --since-days "${{ inputs.since_days || 7 }}"
           fi
 
       - name: Transform

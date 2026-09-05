@@ -89,7 +89,8 @@ ingest demo
 # parsers expect. Writes nothing; exits non-zero if a critical field is empty.
 ingest preflight --season 2026
 ingest diagnose --season 2026         # why a preflight failed, if it did
-ingest all --season 2026              # the real APIs
+ingest all --season 2026              # the real APIs, the team list included
+ingest daily --current-only          # what the schedule runs: everything but teams
 
 cd transform
 export DBT_PROFILES_DIR=$PWD DUCKDB_PATH=../data/warehouse.duckdb
@@ -161,6 +162,21 @@ and lines are read in date windows, and any window that comes back exactly at
 the limit is split and retried, so the paging adapts instead of trusting a
 hand-picked window size. Box scores ignore the date parameters, so they are
 walked one conference at a time and deduped.
+
+**A scheduled run does not ask for the team dimension.** `ingest all` reads
+teams first, and conference membership changes once a year, in July, which is
+why the Dagster schedule refreshes it monthly. Asking nightly is not merely
+wasteful: it is the first request the run makes, so when CBD throttles that
+endpoint the run dies there and never reaches a game. Three consecutive daily
+runs failed exactly that way. `ingest daily` runs the four extractors that
+have something new to say overnight and leaves the dimension to the job that
+owns it. A backfill still asks for everything, because that is when the
+dimension is genuinely being rebuilt.
+
+This narrows the blast radius rather than removing it. `load.persist` runs
+once, after every extractor has finished, so a throttle on any one of the four
+still costs the whole run. Persisting each extract as it lands would fix that
+and is a change to the failure rule below, not a tidy-up of it.
 
 **Losing one season is a log line. Losing all of them is a failure.** Each
 extractor loses a season the same way: it logs the error and carries on, so one
