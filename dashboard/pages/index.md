@@ -66,7 +66,7 @@ limit 25
     <Column id=team_name title="Team" />
     <Column id=conference_name title="Conference" />
     <Column id=record title="Record" />
-    <Column id=adjusted_efficiency_margin title="Net eff." fmt='+0.0' contentType=colorscale />
+    <Column id=adjusted_efficiency_margin title="Net eff." fmt='+0.0;-0.0' contentType=colorscale />
     <Column id=adjusted_offensive_efficiency title="Off." fmt='0.0' />
     <Column id=adjusted_defensive_efficiency title="Def." fmt='0.0' />
     <Column id=adjusted_tempo title="Tempo" fmt='0.0' />

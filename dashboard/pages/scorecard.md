@@ -104,19 +104,72 @@ where team_id::varchar = (select team_id from ${chosen})
 · <Value data={team} column=conference_record /> in conference · ranked
 <Value data={team} column=national_rank fmt='0' /> of <Value data={team} column=field_size fmt='0' />
 nationally and <Value data={team} column=conference_rank fmt='0' /> in the league
+· <Value data={team} column=wins_vs_top_50 fmt='0' /> wins from
+<Value data={team} column=games_vs_top_50 fmt='0' /> games against the top 50
 · <Value data={team} column=season fmt='0000' /> season
+
+<Grid cols=4>
+    <BigValue
+        data={form_trend}
+        value=elo_after
+        title="Elo"
+        fmt='#,##0'
+        sparkline=game_date
+        sparklineColor=viz-model
+        comparison=elo_vs_last
+        comparisonFmt='+#,##0;-#,##0'
+        comparisonTitle="vs last season"
+        description="A running rating that moves with every result: up for a win, further up for beating someone good. It carries across seasons rather than resetting, so last season's closing rating is what this is measured against."
+    />
+    <BigValue
+        data={form_trend}
+        value=margin_10
+        title="Scoring margin, last ten"
+        fmt='+0.0;-0.0'
+        sparkline=game_date
+        sparklineColor=viz-model
+        comparison=margin_vs_last
+        comparisonFmt='+0.0;-0.0'
+        comparisonTitle="vs last season"
+        description="Average points won or lost by across the last ten games, against the same team's average for all of last season."
+    />
+    <BigValue
+        data={form_trend}
+        value=win_rate_10
+        title="Win rate, last ten"
+        fmt='pct0'
+        sparkline=game_date
+        sparklineColor=viz-model
+        comparison=win_rate_vs_last
+        comparisonFmt='+0%;-0%'
+        comparisonTitle="vs last season"
+        description="Share of the last ten games won, against last season's rate across every game."
+    />
+    <BigValue
+        data={form_trend}
+        value=opponent_elo_10
+        title="Opponent Elo, last ten"
+        fmt='#,##0'
+        sparkline=game_date
+        sparklineColor=viz-model
+        comparison=opponent_elo_vs_last
+        comparisonFmt='+#,##0;-#,##0'
+        comparisonTitle="vs last season"
+        description="Average rating of the last ten opponents. Higher is a harder run of games, not a better team, so read it beside the three tiles to its left rather than on its own."
+    />
+</Grid>
 
 <Grid cols=4>
     <BigValue
         data={team}
         value=adjusted_efficiency_margin
         title="Net efficiency"
-        fmt='+0.0'
+        fmt='+0.0;-0.0'
         comparison=national_rank
         comparisonFmt='0'
         comparisonDelta=false
         comparisonTitle="nationally"
-        description="Points scored minus points allowed per 100 possessions, adjusted for the quality of the opponent. Every other number on this page is context for this one."
+        description="Points scored minus points allowed per 100 possessions, adjusted for the quality of the opponent. The single best one number summary of how good a team is."
     />
     <BigValue
         data={team}
@@ -138,45 +191,7 @@ nationally and <Value data={team} column=conference_rank fmt='0' /> in the leagu
         comparisonFmt='0'
         comparisonDelta=false
         comparisonTitle="nationally for conceding"
-        description="Points allowed per 100 possessions, opponent adjusted. Lower is better."
-    />
-    <BigValue
-        data={team}
-        value=strength_of_schedule
-        title="Schedule faced"
-        fmt='0.0'
-        comparison=schedule_strength_rank
-        comparisonFmt='0'
-        comparisonDelta=false
-        comparisonTitle="hardest nationally"
-        description="Average opponent quality. A rating built on nobody is a rating built on nothing."
-    />
-</Grid>
-
-```sql elo_recent
--- The sparkline under the Elo tile, and the value it prints: BigValue shows the
--- last row, so this is ordered oldest first and cut to the last twenty games.
-select game_date, elo_after
-from (
-    select game_date, elo_after
-    from elo_timeline
-    where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) from elo_timeline)
-    order by game_date desc
-    limit 20
-)
-order by game_date
-```
-
-<Grid cols=4>
-    <BigValue
-        data={elo_recent}
-        value=elo_after
-        title="Elo, last twenty games"
-        fmt='#,##0'
-        sparkline=game_date
-        sparklineColor=viz-model
-        description="A running rating that moves with every result: up for a win, further up for beating someone good."
+        description="Points allowed per 100 possessions, opponent adjusted. Lower is better, which is why the rank beside it and the number move in opposite directions."
     />
     <BigValue
         data={team}
@@ -187,29 +202,14 @@ order by game_date
         comparisonFmt='0'
         comparisonDelta=false
         comparisonTitle="fastest nationally"
-        description="Possessions per 40 minutes. Neither fast nor slow is better, but it shapes every other number."
-    />
-    <BigValue
-        data={team}
-        value=wins_vs_top_50
-        title="Wins vs top 50"
-        fmt='0'
-        comparison=games_vs_top_50
-        comparisonFmt='0'
-        comparisonDelta=false
-        comparisonTitle="games against them"
-    />
-    <BigValue
-        data={team}
-        value=last_10_wins
-        title="Won of the last ten"
-        fmt='0'
-        comparison=last_10_games
-        comparisonFmt='0'
-        comparisonDelta=false
-        comparisonTitle="games played"
+        description="Possessions per 40 minutes. Neither fast nor slow is better, but it shapes every other number on this page."
     />
 </Grid>
+
+The top row is this season moving: each tile draws its own last ten games and
+compares where the team is now against where they finished last season. The
+bottom row is the opponent adjusted ratings, which the warehouse holds for this
+season only, so they carry their national rank instead of a trend.
 
 ## Where they stand
 
@@ -353,6 +353,58 @@ order by game_date
     chartAreaHeight=220
     title="Elo rating through the season"
 />
+
+## Five seasons
+
+```sql program
+-- Every game the team has played in the warehouse, not just this season. Elo
+-- carries across seasons rather than resetting, so this is one continuous line
+-- and the gaps in it are summers.
+select
+    game_date,
+    season,
+    elo_after
+from elo_timeline
+where team_id::varchar = (select team_id from ${chosen})
+order by game_date
+```
+
+```sql program_span
+select
+    min(season) as first_season,
+    max(season) as last_season,
+    count(distinct season) as seasons,
+    count(*) as games,
+    min(elo_after) as lowest,
+    max(elo_after) as highest
+from elo_timeline
+where team_id::varchar = (select team_id from ${chosen})
+```
+
+Where the program has been, not just where it is. One line, every game since
+<Value data={program_span} column=first_season fmt='0000' />: the flat stretches
+are summers, and each climb or slide is a season. A team peaking is a line that
+ends higher than the one before it started.
+
+<LineChart
+    data={program}
+    x=game_date
+    y=elo_after
+    yAxisTitle="Elo"
+    lineColor=viz-model
+    lineWidth=2
+    markers=false
+    chartAreaHeight=260
+    title="Elo across every season in the warehouse"
+    subtitle="Higher is better. 1500 is an average Division I team, and the rating only moves when a game is played."
+/>
+
+<Grid cols=4>
+    <BigValue data={program_span} value=seasons title="Seasons on record" fmt='0' />
+    <BigValue data={program_span} value=games title="Games played" fmt='#,##0' />
+    <BigValue data={program_span} value=highest title="Best Elo reached" fmt='#,##0' />
+    <BigValue data={program_span} value=lowest title="Lowest Elo reached" fmt='#,##0' />
+</Grid>
 
 ## Form and March
 
@@ -512,9 +564,9 @@ limit 5
     <Column id=game_date title="Date" fmt='mmm d' />
     <Column id=opponent_name title="Beat" />
     <Column id=site title="Site" />
-    <Column id=margin title="By" fmt='+0' />
+    <Column id=margin title="By" fmt='+0;-0' />
     <Column id=pregame_win_probability title="Pregame odds" fmt='pct0' contentType=colorscale colorScale=negative />
-    <Column id=elo_change title="Elo +/-" fmt='+0.0' />
+    <Column id=elo_change title="Elo +/-" fmt='+0.0;-0.0' />
 </DataTable>
 
 ## Every game
@@ -539,8 +591,8 @@ order by game_date desc
     <Column id=game_date title="Date" fmt='mmm d' />
     <Column id=opponent_name title="Opponent" />
     <Column id=result title="" />
-    <Column id=margin title="Margin" fmt='+0' contentType=colorscale />
+    <Column id=margin title="Margin" fmt='+0;-0' contentType=colorscale />
     <Column id=site title="Site" />
     <Column id=pregame_win_probability title="Pregame odds" fmt='pct0' />
-    <Column id=elo_change title="Elo +/-" fmt='+0.0' />
+    <Column id=elo_change title="Elo +/-" fmt='+0.0;-0.0' />
 </DataTable>
