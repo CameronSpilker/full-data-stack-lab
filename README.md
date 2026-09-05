@@ -182,6 +182,16 @@ answer, which is a fallback rather than the first choice: the dimension holds
 one season's leagues, and a backfill into 2022 wants ones that have since
 folded.
 
+**And the walk stops asking once the answer is obvious.** It swallows a rate
+limit per conference and carries on, which is right when one league is
+unlucky and wrong when the source is refusing everything. The run that proved
+the fallback works also spent 64 minutes discovering that all 31 leagues said
+429, two minutes at a time, when the first one had already said it. Four
+refusals in a row now abandon the season, which is the same outcome in about
+eight minutes and a log line that says why. A league failing for its own
+reasons does not count toward the streak, because it says nothing about the
+next one.
+
 The dimension still gets refreshed, on the 1st of the month, by the same
 workflow reading which cron fired. Dropping it from the nightly run without
 that would have been worse than the problem: the monthly refresh lives in the
