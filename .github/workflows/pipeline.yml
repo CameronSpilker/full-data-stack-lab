@@ -15,6 +15,20 @@ on:
     # 06:00 America/Denver (13:00 UTC), after the last west coast final and
     # before anyone looks at the dashboard.
     - cron: "0 13 * * *"
+
+  # A merge that adds or changes a model makes the published warehouse wrong
+  # for the code that is now deployed: the dashboard reads a table its own
+  # models have only just started producing, and Evidence renders the error
+  # rather than failing the build. Republishing on the merge closes that to
+  # minutes instead of leaving it until 06:00. Paths, because a change to the
+  # README cannot change what the warehouse holds.
+  push:
+    branches: [main]
+    paths:
+      - "transform/**"
+      - "ingestion/**"
+      - ".github/workflows/pipeline.yml"
+
   workflow_dispatch:
     inputs:
       backfill:
@@ -28,6 +42,14 @@ on:
 
 permissions:
   contents: write
+
+# One writer at a time. The release is overwritten in place, so a push run and
+# the scheduled run finishing together would race to upload it. Queued rather
+# than cancelled: a half-finished extract that gets killed is worse than a
+# redundant one that waits.
+concurrency:
+  group: warehouse-publish
+  cancel-in-progress: false
 
 env:
   DBT_PROFILES_DIR: ${{ github.workspace }}/transform
@@ -132,3 +154,26 @@ jobs:
           echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
           echo "| warehouse.duckdb | $(du -h data/warehouse.duckdb | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
           echo "| dbt-docs.tar.gz | $(du -h dbt-docs.tar.gz | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
+
+      # Publishing a warehouse changes nothing a reader can see. The dashboard
+      # is a static site that reads the warehouse at build time and bakes the
+      # answers into HTML, so the data on the page is the data that existed
+      # when the site was last built. Without this the dashboard is as fresh as
+      # the last push to main rather than as fresh as the last pipeline run,
+      # which is not what a daily pipeline is for.
+      #
+      # The hook is a URL that triggers a production build, created in the
+      # Vercel project and held as a repository secret. Missing is a warning
+      # rather than a failure: the warehouse is published either way, and a
+      # fork with no Vercel project behind it should still get a green run.
+      - name: Rebuild the dashboard against the warehouse just published
+        env:
+          DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "::warning::No VERCEL_DEPLOY_HOOK_URL secret, so the dashboard still shows the warehouse it was last built with. Create a deploy hook on the Vercel project's Git settings and add the URL as a repository secret."
+            exit 0
+          fi
+
+          curl -fsS -X POST "$DEPLOY_HOOK" -o /dev/null
+          echo "Triggered a production rebuild." >> "$GITHUB_STEP_SUMMARY"

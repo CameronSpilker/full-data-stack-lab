@@ -93,7 +93,7 @@ ingest all --season 2026              # the real APIs
 
 cd transform
 export DBT_PROFILES_DIR=$PWD DUCKDB_PATH=../data/warehouse.duckdb
-dbt deps && dbt build                 # 22 models, 118 tests
+dbt deps && dbt build                 # 24 models, 132 tests
 dbt docs generate && dbt docs serve
 ```
 
@@ -123,13 +123,17 @@ seasons.
 team, which is the shape every aggregate wants. `int_team_season_form` computes
 record, splits, and a strength of schedule. `int_team_elo` computes Elo.
 `int_team_prediction_inputs` gathers everything a prediction needs into one row
-per team. `int_game_predictions` scores every completed game with every model.
+per team. `int_team_forecast_inputs` narrows that to what is known about a team
+right now, which is a different question in November.
+`int_game_predictions` scores every completed game with every model.
 
 **Marts** — `mart_team_season` (the team scoreboard), `mart_game_results` (the
 game log), `mart_elo_timeline` (ratings over time), `mart_conference_strength`,
 `mart_matchup_odds` (every possible pairing, priced), `mart_bracket` (a
-projected 64-team field), `mart_tournament_odds` (the simulation), and
-`mart_model_accuracy` / `mart_model_calibration` (the backtest).
+projected 64-team field), `mart_tournament_odds` (the simulation),
+`mart_upcoming_games` (the games that have not been played yet, priced against
+the market), and `mart_model_accuracy` / `mart_model_calibration` (the
+backtest).
 
 **Semantic layer** — metrics like `average_efficiency_margin`,
 `prediction_accuracy`, and `brier_score` are defined in
@@ -171,6 +175,28 @@ longer spends a retry: five backoffs totalling thirty-one seconds were shorter
 than the window the limit is measured over, so every retry arrived still
 throttled. And a backfill asks more slowly than a daily run, because nobody is
 waiting on it.
+
+**A forecast of a game that has not been played is the only honest one.**
+Every other prediction in this project is graded, which is what makes the
+`is_point_in_time` flag necessary: a January game scored with a season-long
+rating was told the answer. `mart_upcoming_games` cannot have that problem,
+because the game has no result to leak. What it has instead is no way to check
+itself, so it ships beside two things that can be checked: the observed win
+rate of real forecasts at the same confidence, taken from the calibration
+table, and the price the betting market is charging for the same side. A pick
+that agrees with the market has found nothing, so the page leads on
+disagreement rather than on confidence.
+
+**A rating from four games is mostly noise, and on opening night there is
+none.** Every model that reads `int_team_prediction_inputs` is fine with that,
+because it is describing a season that finished. A forecast made on the second
+Tuesday in November is not: there is barely an Elo, and the ratings feed has
+nothing to describe. `int_team_forecast_inputs` starts each team on what it
+carried out of last season, regressed toward the league average of that
+season, and hands weight to the current season as the current season earns it,
+reaching full weight at ten games. Every row says which of the three cases it
+is in, so nothing downstream has to guess whether a November number is built
+on this season's evidence.
 
 **The betting line is the benchmark.** "The model went 71% straight up" mostly
 measures whether favourites won. "The model beat the closing spread" is a
@@ -246,6 +272,20 @@ predictor — if scores and ratings were drawn independently, the model would
 score no better than chance and a real modelling regression would be
 indistinguishable from the fixture.
 
+A simulated season is played in full and then published only as far as an
+as-of date. Games after it come out the way a real source gives an unplayed
+fixture: on the schedule, with no score. Future postseason games are not
+published at all, because a bracket is not scheduled until the regular season
+decides who is in it. That is what gives `mart_upcoming_games` something to
+forecast, and it means the forecast page has rows before a real season has
+started. The date is today when today falls inside the current season, and
+otherwise a point in the middle of conference play, so a demo run in July still
+has a slate ahead of it. `ingest demo --as-of 2026-03-01` sets it explicitly.
+
+Betting lines only exist for games already played and for the next week of the
+schedule, because that is as far ahead as a book posts. Most of the schedule is
+therefore unpriced, which is the case every consumer of a line has to handle.
+
 The teams are invented on purpose. Fabricated tournament odds attached to real
 school names are the kind of thing that gets screenshotted and believed, so
 nothing in the synthetic data shares a name with a real program.
@@ -290,8 +330,20 @@ pins Node 22 there, matching CI: the DuckDB driver Evidence uses publishes no
 prebuilt binary for Node 24, and without the pin a host defaulting to 24 tries
 to compile DuckDB from source and fails. The build command fetches the
 warehouse and the docs from the release below, then runs the normal Evidence
-build. Every push redeploys, and so does every daily pipeline run,
-because the run publishes a new warehouse rather than committing one.
+build. Every push redeploys.
+
+**A new warehouse has to ask for a rebuild.** The dashboard is static: it reads
+the warehouse at build time and bakes the answers into HTML, so the data on the
+page is the data that existed when the site was last built. Publishing a
+warehouse is therefore invisible until something rebuilds, and nothing did
+until the pipeline was given a Vercel deploy hook to call: the site was as
+fresh as the last push to main rather than as fresh as the last pipeline run.
+
+The hook is a URL that triggers a production build, created under the Vercel
+project's Git settings and held as the `VERCEL_DEPLOY_HOOK_URL` repository
+secret. It is the last step of `pipeline.yml`, after the warehouse is
+published, and it is a warning rather than a failure when the secret is absent,
+so a fork with no Vercel project behind it still gets a green run.
 
 **The warehouse is a release asset, not a commit.** It is a 17MB binary that
 changes on every run even when no games were played, because every row carries
@@ -307,6 +359,17 @@ curl -fsSL https://github.com/CameronSpilker/full-data-stack-lab/releases/downlo
 
 `dashboard/scripts/fetch-warehouse.sh` is that download plus the docs, and it
 is what `npm run build:deploy` calls. No credentials: the repository is public.
+
+**A new model is not in the warehouse the deploy fetches.** The deploy takes
+whatever the last pipeline run published, and for a branch that adds a model
+that warehouse does not contain it yet. Evidence does not fail a build over a
+missing table: the deploy succeeds and the queries against it render an error
+on the page that runs them, leaving the rest of the dashboard working. That is
+why `pipeline.yml` also runs on a merge to main that touches `transform/` or
+`ingestion/`, and why it ends by asking for a rebuild. The merge deploys the
+new page against the old warehouse, the pipeline republishes and calls the
+hook, and the second build has the model. The window is the length of a
+pipeline run rather than a day, and it closes without anyone doing anything.
 
 **Nothing is published until dbt passes.** The pipeline uploads the warehouse
 only after `dbt build`, so a warehouse that failed its own tests is never the

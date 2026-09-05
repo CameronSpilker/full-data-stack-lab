@@ -24,7 +24,7 @@ leaves the rest of history alone.
 
 ### 3. Transform, with dbt Core
 
-Staging, intermediate, marts. 20 models behind 118 tests, with the predictor
+Staging, intermediate, marts. 24 models behind 132 tests, with the predictor
 defined once in a macro so every consumer prices a game the same way.
 
 ### 4. Orchestrate, with Dagster
@@ -72,6 +72,10 @@ local run.
 - [Team scorecard](/scorecard): one team on one page, defaulting to BYU. Where
   they rank, how their season has moved, the wins that count, and what the
   simulations make of their March.
+- [Upcoming picks](/picks): what the model makes of the games that have not
+  been played yet, rebuilt every morning. Ranked on where it disagrees with the
+  betting market rather than on how confident it is, because a 95% favourite is
+  95% on every screen in the country.
 - [How good is the model?](/model): accuracy, log loss, Brier score and
   calibration curves for each predictor, with real forecasts kept separate from
   the ones that saw the future.

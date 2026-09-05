@@ -573,6 +573,59 @@ Not in the projected field. The [bracket page](/bracket) has the 64 teams that a
 
 {/if}
 
+## What is next
+
+The rest of the schedule, priced the same way the [upcoming picks](/picks) page
+prices it. "Model" is this team's chance of winning, "market" is what the
+betting consensus gives them, and a game with no market number is one no book
+has posted yet.
+
+```sql next_games
+select
+    game_date,
+    case
+        when home_team_id = (select team_id from ${chosen}) then away_team_name
+        else home_team_name
+    end as opponent_name,
+    case
+        when is_neutral_site then 'Neutral'
+        when home_team_id = (select team_id from ${chosen}) then 'Home'
+        else 'Away'
+    end as site,
+    case
+        when home_team_id = (select team_id from ${chosen}) then home_win_probability
+        else away_win_probability
+    end as win_probability,
+    case
+        when market_home_win_probability is null then null
+        when home_team_id = (select team_id from ${chosen}) then market_home_win_probability
+        else 1 - market_home_win_probability
+    end as market_probability,
+    case
+        when home_team_id = (select team_id from ${chosen}) then predicted_home_margin
+        else -predicted_home_margin
+    end as predicted_margin,
+    days_out
+from upcoming_games
+where home_team_id = (select team_id from ${chosen})
+    or away_team_id = (select team_id from ${chosen})
+order by game_date
+limit 10
+```
+
+<DataTable data={next_games} rows=10>
+    <Column id=game_date title="Date" fmt='mmm d' />
+    <Column id=opponent_name title="Opponent" />
+    <Column id=site title="Site" />
+    <Column id=predicted_margin title="Model line" fmt='+0.0;-0.0' />
+    <Column id=win_probability title="Model" fmt='pct0' contentType=colorscale />
+    <Column id=market_probability title="Market" fmt='pct0' />
+</DataTable>
+
+Empty means the season is over, or has not started. The schedule arrives with
+the rest of the game feed, so a fixture appears here as soon as the source
+carries it.
+
 ## Good offense or good defense
 
 Every Division I team placed by what they do at each end, with this team marked.
