@@ -174,6 +174,14 @@ have something new to say overnight and leaves the dimension to the job that
 owns it. A backfill still asks for everything, because that is when the
 dimension is genuinely being rebuilt.
 
+The box score walk needed one more thing to stop depending on it. That
+endpoint is paged by conference, and the league list came from `/teams` too,
+so the first run with the nightly change in it got past games and died there
+instead. The list is now taken from the warehouse when the source will not
+answer, which is a fallback rather than the first choice: the dimension holds
+one season's leagues, and a backfill into 2022 wants ones that have since
+folded.
+
 The dimension still gets refreshed, on the 1st of the month, by the same
 workflow reading which cron fired. Dropping it from the nightly run without
 that would have been worse than the problem: the monthly refresh lives in the

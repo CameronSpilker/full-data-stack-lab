@@ -124,6 +124,41 @@ def load_to_duckdb(
     return len(rows)
 
 
+def known_conferences() -> list[str]:
+    """Conference names the warehouse already holds, for the current season.
+
+    The box score endpoint is walked one league at a time, and the list of
+    leagues comes from `/teams`. When that endpoint is throttled the walk
+    cannot start, which costs a run its box scores over a lookup whose answer
+    is sitting in the warehouse from the last time it succeeded.
+
+    Only the season the dimension was last extracted for. A backfill reaching
+    into 2022 wants leagues that have since folded, so this is a fallback for
+    when the source will not answer rather than a replacement for asking it.
+    Returns an empty list when there is no warehouse yet, which is the first
+    run and correctly falls through to the API.
+    """
+    path = duckdb_path()
+    if not path.exists():
+        return []
+
+    try:
+        with duckdb.connect(str(path), read_only=True) as con:
+            rows = con.execute(
+                """
+                select distinct conference_name
+                from raw.ncaa_teams
+                where conference_name is not null and conference_name <> ''
+                order by 1
+                """
+            ).fetchall()
+    except duckdb.Error as exc:
+        log.warning("No conference list in the warehouse: %s", exc)
+        return []
+
+    return [row[0] for row in rows]
+
+
 def persist(
     tables: dict[str, list[dict[str, Any]]],
     snapshot: date,

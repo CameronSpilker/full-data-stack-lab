@@ -515,3 +515,54 @@ def test_an_empty_but_successful_extract_is_not_an_error():
     seasons = _seasons(2026)
 
     cbd._require_a_season("games", seasons, failed=0)
+
+
+class _NoClient:
+    """Stands in for the httpx client, which these tests never reach."""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def test_box_scores_fall_back_to_the_warehouse_league_list(monkeypatch):
+    """A throttled /teams costs the league list, not the box scores.
+
+    The daily pipeline lost every box score for three days to exactly this:
+    `/teams` refused, the conference walk could not start, and the run raised
+    before anything was persisted. The list it needed was in the warehouse.
+    """
+    calls = []
+
+    def fake_get(client, path, **params):
+        calls.append(path)
+        if path == "/teams":
+            raise RuntimeError("CBD is still rate limiting /teams after 7 waits")
+        assert params["conference"] in ("Big Ten", "SEC")
+        return []
+
+    monkeypatch.setattr(cbd, "_get", fake_get)
+    monkeypatch.setattr(cbd, "_client", _NoClient)
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2026, 4, 15))
+
+    tables = cbd.extract_box_scores([season], fallback_conferences=["Big Ten", "SEC"])
+
+    assert tables == {"ncaa_team_box": []}
+    assert calls == ["/teams", "/games/teams", "/games/teams"]
+
+
+def test_box_scores_without_a_fallback_still_lose_the_season(monkeypatch):
+    """No warehouse and no /teams is a real loss, and still raises."""
+
+    def fake_get(client, path, **params):
+        raise RuntimeError("CBD is still rate limiting /teams after 7 waits")
+
+    monkeypatch.setattr(cbd, "_get", fake_get)
+    monkeypatch.setattr(cbd, "_client", _NoClient)
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2026, 4, 15))
+
+    with pytest.raises(cbd.SourceExhausted):
+        cbd.extract_box_scores([season], fallback_conferences=[])
+
