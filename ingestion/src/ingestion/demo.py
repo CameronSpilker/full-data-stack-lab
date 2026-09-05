@@ -15,16 +15,25 @@ regression would be indistinguishable from the fixture.
 The teams here are INVENTED, deliberately. Fabricated tournament odds attached
 to real school names are the kind of thing that gets screenshotted and
 believed, so nothing in this module shares a name with a real program.
+
+A season is simulated in full and then published only as far as the as-of
+date. Games after it come out the way the real source gives an unplayed
+fixture: on the schedule, with no score and `is_completed` false. That is what
+gives the forecast models something to forecast, and it is the reason the
+upcoming-games page has rows before a real season has started.
 """
 
 from __future__ import annotations
 
+import logging
 import math
 import random
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from .config import Season, utc_today
+
+log = logging.getLogger(__name__)
 
 SEED = 20260830
 
@@ -33,6 +42,19 @@ LEAGUE_EFFICIENCY = 104.0
 LEAGUE_TEMPO = 68.0
 HOME_ADVANTAGE_POINTS = 1.75
 SCORE_NOISE = 7.0
+
+# Where "today" lands when today is outside the current season. Six tenths of
+# the way through puts it in the middle of conference play: far enough in that
+# the ratings and Elo have a season to describe, and far enough from the end
+# that a month of schedule is still ahead of it. Without this, running the
+# demo in July would publish a finished season with nothing upcoming in it,
+# and every forecast model would build empty.
+OFF_SEASON_PROGRESS = 0.6
+
+# How far ahead books post a line. Real ones price a game a few days out, not
+# a month, so the market columns on a forecast are sparse by design and the
+# models have to handle a game with no line.
+LINE_LEAD_DAYS = 7
 
 FIRST_NAMES = [
     "Ashford", "Belmont", "Cedar", "Dunmore", "Eastvale", "Fairhaven", "Glenrock",
@@ -83,6 +105,19 @@ class TeamSpec:
     @property
     def strength(self) -> float:
         return self.offense + self.defense
+
+
+def as_of_date(season: Season, today: date) -> date:
+    """The date the simulated season is published up to.
+
+    Today, when today falls inside the season. Otherwise a fixed point inside
+    it, because a demo warehouse with no upcoming games is a demo warehouse
+    that cannot exercise the forecast.
+    """
+    if season.contains(today):
+        return today
+    span = (season.end - season.start).days
+    return season.start + timedelta(days=int(span * OFF_SEASON_PROGRESS))
 
 
 def _conference_names(rng: random.Random) -> list[tuple[str, str, int, float]]:
@@ -217,10 +252,14 @@ def _play(
 class _GameLog:
     """Accumulates game rows and hands out unique ids."""
 
-    def __init__(self, season: Season) -> None:
+    def __init__(self, season: Season, as_of: date) -> None:
         self.season = season
+        self.as_of = as_of
         self.rows: list[dict[str, Any]] = []
         self.expected_margin: dict[str, float] = {}
+        # Ids come off a counter rather than off the row count, so holding a
+        # game out of the published set does not renumber the ones after it.
+        self.issued = 0
 
     def add(
         self,
@@ -234,8 +273,20 @@ class _GameLog:
         season_type: int = 2,
     ) -> tuple[int, int]:
         home_score, away_score = _play(rng, home, away, neutral)
-        index = len(self.rows) + 1
-        game_id = f"{self.season.year}{index:05d}"
+        # Drawn whether or not the row is published, so holding a game back
+        # cannot shift the random stream and change a different game.
+        attendance = rng.randint(1_500, 21_000)
+        self.issued += 1
+        played = day <= self.as_of
+
+        # A postseason game nobody has played has not been scheduled either:
+        # the field is not known until the regular season ends. So a future
+        # bracket game is simulated, to advance the bracket, and never
+        # published. The regular season schedule is known in advance and is.
+        if not played and season_type == 3:
+            return home_score, away_score
+
+        game_id = f"{self.season.year}{self.issued:05d}"
         self.expected_margin[game_id] = _expected_margin(home, away, neutral)
         tipoff = datetime(day.year, day.month, day.day, 23, 0, tzinfo=UTC)
 
@@ -248,23 +299,23 @@ class _GameLog:
                 "tipoff_at": tipoff.isoformat().replace("+00:00", "Z"),
                 "is_neutral_site": neutral,
                 "is_conference_game": home.conference_id == away.conference_id,
-                "is_completed": True,
-                "status_state": "post",
-                "attendance": rng.randint(1_500, 21_000),
+                "is_completed": played,
+                "status_state": "post" if played else "scheduled",
+                "attendance": attendance if played else None,
                 "venue_name": f"{home.name} Arena" if not neutral else "Neutral Site Arena",
                 "tournament_note": note,
                 "home_team_id": home.team_id,
                 "home_team_name": f"{home.name} {home.mascot}",
                 "home_team_abbreviation": home.name[:4].upper(),
                 "home_conference_id": home.conference_id,
-                "home_score": home_score,
+                "home_score": home_score if played else None,
                 "home_ap_rank": None,
                 "home_record": None,
                 "away_team_id": away.team_id,
                 "away_team_name": f"{away.name} {away.mascot}",
                 "away_team_abbreviation": away.name[:4].upper(),
                 "away_conference_id": away.conference_id,
-                "away_score": away_score,
+                "away_score": away_score if played else None,
                 "away_ap_rank": None,
                 "away_record": None,
                 "extracted_at": datetime.now(UTC),
@@ -273,9 +324,9 @@ class _GameLog:
         return home_score, away_score
 
 
-def _regular_season(rng: random.Random, teams: list[TeamSpec], log: _GameLog) -> None:
+def _regular_season(rng: random.Random, teams: list[TeamSpec], game_log: _GameLog) -> None:
     """Non-conference games in November and December, conference play after."""
-    season = log.season
+    season = game_log.season
     by_conference: dict[str, list[TeamSpec]] = {}
     for team in teams:
         by_conference.setdefault(team.conference_id, []).append(team)
@@ -290,7 +341,7 @@ def _regular_season(rng: random.Random, teams: list[TeamSpec], log: _GameLog) ->
             if home.conference_id == away.conference_id:
                 continue
             day = season.start + timedelta(days=rng.randint(0, max(span, 1)))
-            log.add(rng, home, away, day)
+            game_log.add(rng, home, away, day)
 
     # Conference play: a double round robin, January through early March.
     conference_start = date(season.year, 1, 2)
@@ -302,12 +353,12 @@ def _regular_season(rng: random.Random, teams: list[TeamSpec], log: _GameLog) ->
             for away in members[index + 1 :]:
                 for first, second in ((home, away), (away, home)):
                     day = conference_start + timedelta(days=rng.randint(0, conference_span))
-                    log.add(rng, first, second, day)
+                    game_log.add(rng, first, second, day)
 
 
 def _bracket_round(
     rng: random.Random,
-    log: _GameLog,
+    game_log: _GameLog,
     field: list[TeamSpec],
     day: date,
     note: str,
@@ -316,7 +367,7 @@ def _bracket_round(
     """Play one single-elimination round, highest seed against lowest."""
     winners: list[TeamSpec] = []
     for high, low in zip(field[: len(field) // 2], field[len(field) // 2 :][::-1], strict=False):
-        home_score, away_score = log.add(
+        home_score, away_score = game_log.add(
             rng, high, low, day, neutral=True, note=note, season_type=season_type
         )
         winners.append(high if home_score > away_score else low)
@@ -324,7 +375,7 @@ def _bracket_round(
 
 
 def _conference_tournaments(
-    rng: random.Random, teams: list[TeamSpec], log: _GameLog, standings: dict[str, int]
+    rng: random.Random, teams: list[TeamSpec], game_log: _GameLog, standings: dict[str, int]
 ) -> list[TeamSpec]:
     """An eight-team tournament in every conference. Winners take the auto-bid."""
     by_conference: dict[str, list[TeamSpec]] = {}
@@ -332,16 +383,16 @@ def _conference_tournaments(
         by_conference.setdefault(team.conference_id, []).append(team)
 
     champions: list[TeamSpec] = []
-    day = date(log.season.year, 3, 12)
+    day = date(game_log.season.year, 3, 12)
 
     for members in by_conference.values():
         field = sorted(members, key=lambda team: -standings.get(team.team_id, 0))[:8]
         note = f"{members[0].conference} Tournament"
         while len(field) > 1:
-            field = _bracket_round(rng, log, field, day, note)
+            field = _bracket_round(rng, game_log, field, day, note)
             day += timedelta(days=1)
         champions.append(field[0])
-        day = date(log.season.year, 3, 12)
+        day = date(game_log.season.year, 3, 12)
 
     return champions
 
@@ -349,7 +400,7 @@ def _conference_tournaments(
 def _ncaa_tournament(
     rng: random.Random,
     teams: list[TeamSpec],
-    log: _GameLog,
+    game_log: _GameLog,
     champions: list[TeamSpec],
     standings: dict[str, int],
 ) -> None:
@@ -372,12 +423,12 @@ def _ncaa_tournament(
         ("NCAA Tournament - Final Four", 4),
         ("NCAA Tournament - National Championship", 2),
     ]
-    day = date(log.season.year, 3, 19)
+    day = date(game_log.season.year, 3, 19)
 
     for note, size in rounds:
         if len(field) < size:
             break
-        field = _bracket_round(rng, log, field[:size], day, note)
+        field = _bracket_round(rng, game_log, field[:size], day, note)
         day += timedelta(days=3)
 
 
@@ -443,6 +494,8 @@ def _box_scores(rng: random.Random, games: list[dict[str, Any]]) -> list[dict[st
     rows = []
 
     for game in games:
+        if game["home_score"] is None:
+            continue
         for side in ("home", "away"):
             points = game[f"{side}_score"]
             threes = max(int(points * rng.uniform(0.10, 0.22)), 0)
@@ -476,7 +529,10 @@ def _box_scores(rng: random.Random, games: list[dict[str, Any]]) -> list[dict[st
 
 
 def _betting_lines(
-    rng: random.Random, games: list[dict[str, Any]], expected: dict[str, float]
+    rng: random.Random,
+    games: list[dict[str, Any]],
+    expected: dict[str, float],
+    as_of: date,
 ) -> list[dict[str, Any]]:
     """A synthetic betting market, priced off the true expected margin.
 
@@ -486,6 +542,11 @@ def _betting_lines(
     a sloppy line has only found the sloppiness. Spreads are quoted from the
     home team's perspective, so a negative number means the home side is
     favoured, and rounded to the half point books actually post.
+
+    A game already played has a closing line. A game still to come has one
+    only if it is close enough that a book would have posted it, which is what
+    leaves most of the schedule unpriced and forces every consumer to handle a
+    matchup the market has not seen.
     """
     extracted_at = datetime.now(UTC)
     rows = []
@@ -494,6 +555,10 @@ def _betting_lines(
         margin = expected.get(game["game_id"])
         if margin is None:
             continue
+        if not game["is_completed"]:
+            days_out = (date.fromisoformat(game["game_date"]) - as_of).days
+            if days_out > LINE_LEAD_DAYS:
+                continue
         spread = -round((margin + rng.gauss(0, 1.2)) * 2) / 2
         total = round((141.0 + rng.gauss(0, 6.0)) * 2) / 2
 
@@ -524,12 +589,21 @@ def _moneyline(probability: float) -> int:
 
 
 def extract(
-    seasons: list[Season], snapshot: date | None = None, current: Season | None = None
+    seasons: list[Season],
+    snapshot: date | None = None,
+    current: Season | None = None,
+    as_of: date | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
-    """Generate a full synthetic history across every requested season."""
+    """Generate a full synthetic history across every requested season.
+
+    `as_of` is the day the simulated world has reached. Everything before it
+    is published with a result; everything after is published as schedule, or
+    not at all where a real source would not have it yet.
+    """
     snapshot = snapshot or utc_today()
     rng = random.Random(SEED)
     current = current or seasons[-1]
+    as_of = as_of or as_of_date(current, snapshot)
 
     teams = _build_teams(rng)
     games: list[dict[str, Any]] = []
@@ -540,23 +614,28 @@ def extract(
         if season.year != seasons[0].year:
             teams = _reseed(teams, rng, season.year)
 
-        log = _GameLog(season)
-        _regular_season(rng, teams, log)
+        game_log = _GameLog(season, as_of)
+        _regular_season(rng, teams, game_log)
 
+        # Records count what has been played, not what has been scheduled.
+        # A team seeded into a bracket on games it has not played yet would be
+        # the fixture telling the models the future.
         standings: dict[str, int] = {}
         played: dict[str, int] = {}
-        for game in log.rows:
+        for game in game_log.rows:
+            if not game["is_completed"]:
+                continue
             for side, other in (("home", "away"), ("away", "home")):
                 team_id = game[f"{side}_team_id"]
                 played[team_id] = played.get(team_id, 0) + 1
                 if game[f"{side}_score"] > game[f"{other}_score"]:
                     standings[team_id] = standings.get(team_id, 0) + 1
 
-        champions = _conference_tournaments(rng, teams, log, standings)
-        _ncaa_tournament(rng, teams, log, champions, standings)
+        champions = _conference_tournaments(rng, teams, game_log, standings)
+        _ncaa_tournament(rng, teams, game_log, champions, standings)
 
-        games.extend(log.rows)
-        expected_margin.update(log.expected_margin)
+        games.extend(game_log.rows)
+        expected_margin.update(game_log.expected_margin)
         ratings.extend(_ratings(rng, teams, season, snapshot, standings, played))
 
     team_rows = [
@@ -584,11 +663,18 @@ def extract(
     # Box scores only for the current season: they add nothing the ratings do
     # not already carry for past seasons, and they double the row count.
     current_games = [game for game in games if game["season"] == current.year]
+    scheduled = sum(1 for game in games if not game["is_completed"])
+    log.info(
+        "Simulated through %s: %s games played, %s still on the schedule",
+        as_of,
+        len(games) - scheduled,
+        scheduled,
+    )
 
     return {
         "ncaa_teams": team_rows,
         "ncaa_games": games,
         "ncaa_ratings": ratings,
         "ncaa_team_box": _box_scores(rng, current_games),
-        "ncaa_betting_lines": _betting_lines(rng, games, expected_margin),
+        "ncaa_betting_lines": _betting_lines(rng, games, expected_margin, as_of),
     }

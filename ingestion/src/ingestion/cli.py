@@ -69,6 +69,18 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--as-of",
+        type=date.fromisoformat,
+        metavar="YYYY-MM-DD",
+        help=(
+            "Demo only: the day the simulated world has reached. Games before "
+            "it are published with a result, games after it as schedule. "
+            "Defaults to today when today falls inside the current season, and "
+            "otherwise to a point in the middle of conference play, so a demo "
+            "run out of season still has a slate ahead of it."
+        ),
+    )
+    parser.add_argument(
         "--snapshot-date",
         type=date.fromisoformat,
         default=utc_today(),
@@ -117,7 +129,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.source == "demo":
         log.warning("Simulating SYNTHETIC seasons — these teams and results are invented.")
-        tables.update(demo.extract(seasons, args.snapshot_date, current_season()))
+        tables.update(
+            demo.extract(seasons, args.snapshot_date, current_season(), args.as_of)
+        )
 
     if args.source in ("teams", "all"):
         tables.update(cbd.extract_teams(current_season(), args.snapshot_date))

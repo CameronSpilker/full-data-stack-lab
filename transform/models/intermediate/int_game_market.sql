@@ -25,7 +25,13 @@ consensus as (
         season,
         count(*) as book_count,
         median(home_spread) as consensus_home_spread,
-        median(over_under) as consensus_over_under
+        median(over_under) as consensus_over_under,
+        -- The moneyline is what a bet actually pays, so a forecast that wants
+        -- to say whether a price is worth taking needs it here rather than
+        -- re-deriving one from the spread. Median for the same reason as the
+        -- spread, and per side, because a book quotes both.
+        median(home_moneyline) as consensus_home_moneyline,
+        median(away_moneyline) as consensus_away_moneyline
 
     from lines
     group by 1, 2

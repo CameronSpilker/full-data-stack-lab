@@ -132,6 +132,60 @@ This team is not in the projected field.
 
 {/if}
 
+## What is next
+
+The rest of this team's schedule, priced the same way the
+[upcoming picks](/picks) page prices it.
+
+```sql next_games
+select
+    game_date,
+    case
+        when home_team_id = '${params.team_id}' then away_team_name
+        else home_team_name
+    end as opponent_name,
+    case
+        when is_neutral_site then 'Neutral'
+        when home_team_id = '${params.team_id}' then 'Home'
+        else 'Away'
+    end as site,
+    case
+        when home_team_id = '${params.team_id}' then home_win_probability
+        else away_win_probability
+    end as win_probability,
+    case
+        when market_home_win_probability is null then null
+        when home_team_id = '${params.team_id}' then market_home_win_probability
+        else 1 - market_home_win_probability
+    end as market_probability,
+    case
+        when home_team_id = '${params.team_id}' then predicted_home_margin
+        else -predicted_home_margin
+    end as predicted_margin
+from upcoming_games
+where home_team_id = '${params.team_id}'
+    or away_team_id = '${params.team_id}'
+order by game_date
+limit 10
+```
+
+{#if next_games.length > 0}
+
+<DataTable data={next_games} rows=10>
+    <Column id=game_date title="Date" fmt='mmm d' />
+    <Column id=opponent_name title="Opponent" />
+    <Column id=site title="Site" />
+    <Column id=predicted_margin title="Model line" fmt='+0.0;-0.0' />
+    <Column id=win_probability title="Model" fmt='pct0' contentType=colorscale />
+    <Column id=market_probability title="Market" fmt='pct0' />
+</DataTable>
+
+{:else}
+
+Nothing scheduled. The season is over, or it has not started yet.
+
+{/if}
+
 ## Game log
 
 ```sql games

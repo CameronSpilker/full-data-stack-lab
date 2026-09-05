@@ -174,3 +174,56 @@ models:
               arguments:
                 min_value: 0
                 max_value: 1
+
+  - name: mart_upcoming_games
+    description: >
+      Every game still to be played this season, priced before it happens: the
+      model's pick, how often a real forecast at that confidence has won, and
+      where the betting market disagrees. The only table here that is not a
+      backtest, and the only one where the whole model is honestly
+      point-in-time, because a game nobody has played has no future to leak.
+    columns:
+      - name: game_id
+        data_tests: [not_null, unique]
+      - name: as_of_date
+        description: >
+          The last day a game was played. Everything in this table is dated
+          from it rather than from the wall clock, so a stale warehouse says
+          what it knows instead of describing a slate its data never reached.
+        data_tests: [not_null]
+      - name: pick_win_probability
+        description: The model's probability for the side it picked, so never below 0.5.
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: 0.5
+                  max_value: 1
+      - name: edge_vs_market
+        description: >
+          The model's probability for its pick minus the market's probability
+          for the same side. Positive means the model likes a price. Null when
+          no book has posted the game, which is most of the schedule.
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: -1
+                  max_value: 1
+      - name: expected_value_per_dollar
+        description: >
+          What a dollar on the pick returns on average at the posted
+          moneyline, using the model's own probability. As good as the
+          calibration on the model page and no better.
+      - name: days_out
+        data_tests: [not_null]
+      - name: forecast_basis
+        description: >
+          The weaker of the two teams' rating bases. `prior_season` means at
+          least one side is still being rated on what it carried out of last
+          season, which is most of the card in November.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                  values: ['current_season', 'prior_season', 'blended']
+

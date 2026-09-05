@@ -47,6 +47,22 @@ vars:
   # wins roughly 73% of the time.
   spread_to_probability_scale: 5.5
 
+  # How much of a season a team has to have played before its current-season
+  # rating stands on its own. Below this, `int_team_forecast_inputs` blends in
+  # what it carried out of last season, because a rating built from four games
+  # is mostly noise and on opening night there is no rating at all.
+  forecast_settled_games: 10
+
+  # How much of a team's distance from average survives the offseason. Rosters
+  # turn over, so a rating carries forward only partly. The same 0.75 the Elo
+  # model applies between seasons, for the same reason.
+  rating_season_carryover: 0.75
+
+  # How far ahead the upcoming-games mart ranks its picks. Books post a line a
+  # few days out, and a slate that reaches three weeks forward is dominated by
+  # games nobody can bet yet.
+  picks_window_days: 7
+
   # Monte Carlo runs behind the tournament odds. 20,000 puts the standard
   # error on a championship probability near a tenth of a point.
   tournament_simulations: 20000

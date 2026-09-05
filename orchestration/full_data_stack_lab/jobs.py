@@ -27,7 +27,11 @@ nightly_ingestion_job = define_asset_job(
     selection=AssetSelection.assets(
         *[raw_key(table) for table in GAME_TABLES + BOX_TABLES + LINE_TABLES + RATING_TABLES]
     ),
-    description="Scores, box scores, lines, and ratings for the season in progress.",
+    description=(
+        "Scores, box scores, lines, and ratings for the season in progress. "
+        "The games extract carries the rest of the schedule with it, which is "
+        "what makes the forecast a daily one rather than a weekly one."
+    ),
 )
 
 team_dimension_job = define_asset_job(
@@ -56,8 +60,11 @@ nightly_schedule = ScheduleDefinition(
     cron_schedule="0 6 * * *",
     execution_timezone="America/Denver",
     description=(
-        "Daily during the season. Harmless out of season — the extractors "
-        "return the same finished rows and the loader replaces them in place."
+        "Daily during the season, and the cadence the upcoming-games forecast "
+        "runs at: last night's results move the ratings, and the models "
+        "re-price every game still to be played. Harmless out of season — the "
+        "extractors return the same finished rows, the loader replaces them in "
+        "place, and a schedule with nothing left on it forecasts nothing."
     ),
 )
 
