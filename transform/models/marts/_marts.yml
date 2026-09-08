@@ -229,11 +229,14 @@ models:
 
   - name: mart_season_status
     description: >
-      One row saying which season the site's numbers describe and which season
-      the schedule has reached. They come apart every November, when a new
-      schedule lands weeks before anyone plays in it and every results-based
-      model still describes the season that finished in April. The pages read
-      this so none of them can disagree about which season they are showing.
+      One row saying which season the site's numbers describe, which season the
+      schedule has reached, and whether there is anything left to play. These
+      come apart twice a year: every November a new schedule lands weeks before
+      anyone plays in it and every results-based model still describes the season
+      that finished in April, and every April the last game is played and the
+      forecast has nothing left to price. The pages read this so none of them can
+      disagree about which season they are showing, or about why a table is
+      empty.
     columns:
       - name: season_status_id
         data_tests: [not_null, unique]
@@ -241,9 +244,63 @@ models:
         data_tests: [not_null]
       - name: data_season
         data_tests: [not_null]
+      - name: awaited_season
+        description: >
+          The season the site is waiting on. In the preseason that is the
+          schedule the feed has already published; in the offseason no row for
+          it exists yet, so it is the one after the last season played. A page
+          naming the next season reads this, because `schedule_season` in the
+          offseason is the season that just finished.
+        data_tests: [not_null]
       - name: is_preseason
         description: >
           The schedule has reached a season nobody has played a game in yet, so
           every page built on results is showing the previous one.
         data_tests: [not_null]
+      - name: is_offseason
+        description: >
+          No fixture is left to play. The season that finished is final and the
+          next schedule has not been published, so the forecast is empty because
+          there is nothing to forecast rather than because anything failed.
+        data_tests: [not_null]
+      - name: phase
+        description: >
+          The column a page switches on, rather than combining the two flags
+          itself. `offseason` wins over `preseason`: a schedule for the next
+          season arriving is exactly what moves the phase on, and it does so
+          with no date written down anywhere.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                  values: ['in_season', 'preseason', 'offseason']
+      - name: upcoming_games
+        description: >
+          Fixtures still ahead of the last result, which is what
+          `mart_upcoming_games` prices. Deliberately not the count of unplayed
+          fixtures: that bucket also holds games that were postponed or
+          cancelled and never played, and counting those would leave the site
+          claiming a season is still running months after its final.
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                  min_value: 0
+                  inclusive: true
+      - name: unplayed_games
+        description: >
+          Every fixture on the schedule season's calendar the source has not
+          called final, abandoned ones included. Kept beside `upcoming_games`
+          because the gap between the two is the count of games that were
+          scheduled and never played.
+        data_tests: [not_null]
+      - name: next_game_date
+        description: >
+          The first fixture still ahead. Null in the offseason, when there is
+          none, which is what the pages check before offering a date.
+      - name: last_completed_game_date
+        description: >
+          The most recent result on the schedule season's calendar. What the
+          offseason banner dates itself from, so it reports what the warehouse
+          knows rather than what the clock says.
 
