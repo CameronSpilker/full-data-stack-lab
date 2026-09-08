@@ -2,6 +2,10 @@
 title: Team scorecard
 ---
 
+<script>
+    import AwaitingData from '$lib/AwaitingData.svelte';
+</script>
+
 Every number that decides whether a team is any good, on one screen. Pick a team.
 It opens on BYU.
 
@@ -9,25 +13,44 @@ It opens on BYU.
 select
     schedule_season_label,
     data_season_label,
-    is_preseason,
-    scheduled_games,
-    next_game_date
+    awaited_season_label,
+    phase,
+    upcoming_games,
+    next_game_date,
+    last_completed_game_date
 from season_status
 ```
 
-{#if season_status[0].is_preseason}
+{#if season_status[0].phase === 'preseason'}
 
 <Alert status="warning">
 
 **The <Value data={season_status} column=schedule_season_label /> season has not
 tipped off.** Every number on this page describes <Value data={season_status} column=data_season_label />, the
 last completed season, because a team that has not played a game cannot be rated,
-ranked or seeded. <Value data={season_status} column=scheduled_games fmt='#,##0' />
+ranked or seeded. <Value data={season_status} column=upcoming_games fmt='#,##0' />
 games are on the schedule, the first of them
 <Value data={season_status} column=next_game_date fmt='mmmm d' />.
 
 The [upcoming picks](/picks) page is the one that has already moved on: a forecast
 does not need results, so it is pricing those fixtures now.
+
+</Alert>
+
+{:else if season_status[0].phase === 'offseason'}
+
+<Alert status="info">
+
+**The <Value data={season_status} column=data_season_label /> season is over.**
+Every number on this page is final: the last game was played
+<Value data={season_status} column=last_completed_game_date fmt='mmmm d, yyyy' />.
+The <Value data={season_status} column=awaited_season_label /> schedule has not been
+published yet, so there is nothing ahead to rate and nothing here is waiting on a
+fix. Everything updates itself on the first nightly run after the new fixtures
+land in the feed.
+
+The [upcoming picks](/picks) page is the one that needs those fixtures, so it is
+holding its tables until they arrive.
 
 </Alert>
 
@@ -558,29 +581,45 @@ order by step
 ```
 
 <Grid cols=2>
-    <BarChart
-        data={form}
-        x=game_date
-        y=margin
-        series=result
-        seriesColors={{Won: 'positive', Lost: 'negative'}}
-        yAxisTitle="Margin"
-        chartAreaHeight=200
-        title="The last ten games"
-        subtitle="Height is the winning or losing margin. Colour and the legend both say which."
-    />
-    <BarChart
-        data={rounds}
-        x=round
-        y=probability
-        sort=false
-        yFmt='pct1'
-        labels=true
-        labelFmt='pct1'
-        chartAreaHeight=200
-        title="How far the simulations take them"
-        subtitle="Share of 20,000 simulated brackets reaching each round. Empty if the projected field does not include them."
-    />
+    {#if form.length > 0}
+        <BarChart
+            data={form}
+            x=game_date
+            y=margin
+            series=result
+            seriesColors={{Won: 'positive', Lost: 'negative'}}
+            yAxisTitle="Margin"
+            chartAreaHeight=200
+            title="The last ten games"
+            subtitle="Height is the winning or losing margin. Colour and the legend both say which."
+        />
+    {:else}
+        <AwaitingData
+            title="The last ten games"
+            detail="The winning or losing margin of each of this team's most recent games. It needs results, so it fills in once they have played."
+            height={200}
+        />
+    {/if}
+    {#if rounds.length > 0}
+        <BarChart
+            data={rounds}
+            x=round
+            y=probability
+            sort=false
+            yFmt='pct1'
+            labels=true
+            labelFmt='pct1'
+            chartAreaHeight=200
+            title="How far the simulations take them"
+            subtitle="Share of 20,000 simulated brackets reaching each round."
+        />
+    {:else}
+        <AwaitingData
+            title="How far the simulations take them"
+            detail="The share of 20,000 simulated brackets in which this team reaches each round. Drawn only for teams in the projected field: the bracket page has the 64 that are."
+            height={200}
+        />
+    {/if}
 </Grid>
 
 {#if odds.length > 0}
@@ -641,6 +680,8 @@ order by game_date
 limit 10
 ```
 
+{#if next_games.length > 0}
+
 <DataTable data={next_games} rows=10>
     <Column id=game_date title="Date" fmt='mmm d' />
     <Column id=opponent_name title="Opponent" />
@@ -650,9 +691,15 @@ limit 10
     <Column id=market_probability title="Market" fmt='pct0' />
 </DataTable>
 
-Empty means the season is over, or has not started. The schedule arrives with
-the rest of the game feed, so a fixture appears here as soon as the source
-carries it.
+{:else}
+
+<AwaitingData
+    title="The rest of the schedule, priced"
+    detail="This team's next ten fixtures with the model's line beside the market's. The schedule arrives with the rest of the game feed, so a fixture appears here as soon as the source carries it."
+    height={180}
+/>
+
+{/if}
 
 ## Good offense or good defense
 

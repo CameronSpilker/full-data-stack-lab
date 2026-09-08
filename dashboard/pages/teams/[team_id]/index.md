@@ -1,3 +1,7 @@
+<script>
+    import AwaitingData from '$lib/AwaitingData.svelte';
+</script>
+
 # ${params.team_id}
 
 ```sql team
@@ -52,12 +56,14 @@ where team_id = '${params.team_id}'
 select
     schedule_season_label,
     data_season_label,
-    is_preseason,
-    next_game_date
+    awaited_season_label,
+    phase,
+    next_game_date,
+    last_completed_game_date
 from season_status
 ```
 
-{#if season_status[0].is_preseason}
+{#if season_status[0].phase === 'preseason'}
 
 <Alert status="warning">
 
@@ -66,6 +72,19 @@ tipped off.** Everything above and below describes
 <Value data={season_status} column=data_season_label />, the last completed season.
 This team's <Value data={season_status} column=schedule_season_label /> fixtures are
 under "What is next", priced by a model that does not need results to run.
+
+</Alert>
+
+{:else if season_status[0].phase === 'offseason'}
+
+<Alert status="info">
+
+**The <Value data={season_status} column=data_season_label /> season is over.**
+Everything above and below is this team's final record for it: the last game in the
+warehouse was played
+<Value data={season_status} column=last_completed_game_date fmt='mmmm d, yyyy' />. The
+<Value data={season_status} column=awaited_season_label /> schedule has not been
+published, so "What is next" is holding its table until it is.
 
 </Alert>
 
@@ -151,7 +170,11 @@ Projected a <Value data={odds} column=seed /> seed in the
 
 {:else}
 
-This team is not in the projected field.
+<AwaitingData
+    title="Tournament outlook"
+    detail="A projected seed and the odds of reaching each round, from 20,000 simulated brackets. Drawn only for teams in the projected field, and this one is not in it."
+    height={140}
+/>
 
 {/if}
 
@@ -205,7 +228,11 @@ limit 10
 
 {:else}
 
-Nothing scheduled. The season is over, or it has not started yet.
+<AwaitingData
+    title="The rest of the schedule, priced"
+    detail="This team's next ten fixtures with the model's line and the market's beside each other. It fills in as soon as the game feed carries a fixture that has not been played."
+    height={180}
+/>
 
 {/if}
 

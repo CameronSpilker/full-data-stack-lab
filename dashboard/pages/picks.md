@@ -2,6 +2,10 @@
 title: Upcoming picks
 ---
 
+<script>
+    import AwaitingData from '$lib/AwaitingData.svelte';
+</script>
+
 Every other page here grades a prediction against a game that already
 happened. This one does not: it is what the model makes of games nobody has
 played yet, rebuilt every morning from last night's results.
@@ -19,6 +23,38 @@ is where the model and the betting market disagree, and even then the market
 is the better forecaster more often than not. The
 [accuracy page](/model) is where that claim gets checked.
 
+```sql season_status
+select
+    schedule_season_label,
+    data_season_label,
+    awaited_season_label,
+    phase,
+    upcoming_games,
+    next_game_date,
+    last_completed_game_date
+from season_status
+```
+
+{#if season_status[0].phase === 'offseason'}
+
+<Alert status="info">
+
+**The <Value data={season_status} column=data_season_label /> season is over, and
+the <Value data={season_status} column=awaited_season_label /> schedule has not been
+published.** The last game was played
+<Value data={season_status} column=last_completed_game_date fmt='mmmm d, yyyy' />, and
+a forecast needs fixtures: with nothing ahead to price, every table on this page
+would be empty. They are held back rather than drawn blank, and they come back
+on the first nightly run after the new schedule lands in the feed.
+
+Nothing here is waiting on a fix. The [season overview](/) and the
+[team scorecard](/scorecard) are complete, because they describe results rather
+than fixtures.
+
+</Alert>
+
+{/if}
+
 ```sql slate
 select
     max(as_of_date) as as_of_date,
@@ -30,6 +66,8 @@ select
     count(*) as games_scheduled
 from upcoming_games
 ```
+
+{#if slate[0].games_scheduled > 0}
 
 <Grid cols=4>
     <BigValue data={slate} value=as_of_date title="Results through" fmt='mmm d' />
@@ -48,12 +86,13 @@ Dated from the last day a game was played rather than from the clock, so a
 warehouse that is a day behind says what it knows instead of describing a
 slate its data never reached.
 
-{#if slate[0].games_scheduled === 0}
+{:else}
 
-**There are no games left on the schedule.** Either the season has finished or
-the next one has not been published yet, so every table below is empty. That is
-the correct answer rather than a broken page: the forecast rebuilds itself the
-morning the first fixture lands.
+<AwaitingData
+    title="The slate"
+    detail="How far the results run, how many games are in the next seven days, how many of them a book has priced, and how many are still being rated partly on last season. Four counts over the fixtures ahead, which is what there are none of right now."
+    height={140}
+/>
 
 {/if}
 
@@ -81,6 +120,8 @@ where edge_rank <= 10
 order by edge_rank
 ```
 
+{#if edges.length > 0}
+
 <DataTable data={edges} rows=10 link=team_link>
     <Column id=game_date title="Date" fmt='mmm d' />
     <Column id=pick_team_name title="Pick" />
@@ -92,6 +133,16 @@ order by edge_rank
     <Column id=pick_moneyline title="Price" fmt='+#,##0;-#,##0' />
     <Column id=expected_value_per_dollar title="Per $1" fmt='+0.00;-0.00' />
 </DataTable>
+
+{:else}
+
+<AwaitingData
+    title="The ten biggest disagreements with the price"
+    detail="Needs two things a book provides and the calendar does not: a fixture inside the next seven days, and a posted line to disagree with. It fills in as soon as both exist."
+    height={160}
+/>
+
+{/if}
 
 ## The upsets it likes
 
@@ -116,6 +167,8 @@ where upset_rank <= 10
 order by upset_rank
 ```
 
+{#if upsets.length > 0}
+
 <DataTable data={upsets} rows=10 link=team_link>
     <Column id=game_date title="Date" fmt='mmm d' />
     <Column id=pick_team_name title="Underdog" />
@@ -126,6 +179,16 @@ order by upset_rank
     <Column id=pick_moneyline title="Price" fmt='+#,##0;-#,##0' />
     <Column id=expected_value_per_dollar title="Per $1" fmt='+0.00;-0.00' />
 </DataTable>
+
+{:else}
+
+<AwaitingData
+    title="The upsets the model likes"
+    detail="The same disagreement as the table above, narrowed to the games where the model is on the side the market has priced as the underdog. It needs the same posted lines."
+    height={160}
+/>
+
+{/if}
 
 ## Model against market, every priced game this week
 
@@ -148,6 +211,8 @@ where days_out <= 7
     and edge_vs_market is not null
 ```
 
+{#if agreement.length > 0}
+
 <ScatterPlot
     data={agreement}
     x=market_probability_for_pick
@@ -161,6 +226,16 @@ where days_out <= 7
     chartAreaHeight=300
     tooltipTitle=pick_team_name
 />
+
+{:else}
+
+<AwaitingData
+    title="Model against market, every priced game this week"
+    detail="One point per priced game, plotted against the diagonal where the model and the book agree. It is the clearest read on this page and the one that needs the most: a week of fixtures with lines posted against them."
+    height={300}
+/>
+
+{/if}
 
 ## The ten it is most sure about
 
@@ -186,6 +261,8 @@ where confidence_rank <= 10
 order by confidence_rank
 ```
 
+{#if confident.length > 0}
+
 <DataTable data={confident} rows=10 link=team_link>
     <Column id=game_date title="Date" fmt='mmm d' />
     <Column id=pick_team_name title="Pick" />
@@ -196,6 +273,16 @@ order by confidence_rank
     <Column id=historical_win_rate_at_confidence title="Has won" fmt='pct0' />
     <Column id=historical_games_at_confidence title="In" fmt='#,##0' />
 </DataTable>
+
+{:else}
+
+<AwaitingData
+    title="The ten the model is most sure about"
+    detail="Ranked on the model's own confidence, with no reference to a price, and checked against how often a real forecast at that confidence has actually won. It needs fixtures inside the next seven days to rank."
+    height={160}
+/>
+
+{/if}
 
 ## The whole slate
 
@@ -221,6 +308,8 @@ where days_out <= 7
 order by game_date, pick_win_probability desc
 ```
 
+{#if week.length > 0}
+
 <DataTable data={week} rows=15 search=true>
     <Column id=game_date title="Date" fmt='mmm d' />
     <Column id=home_team_name title="Home" />
@@ -231,6 +320,16 @@ order by game_date, pick_win_probability desc
     <Column id=pick_win_probability title="Model" fmt='pct0' />
     <Column id=edge_vs_market title="Edge" fmt='+0.0%;-0.0%' contentType=colorscale />
 </DataTable>
+
+{:else}
+
+<AwaitingData
+    title="Every scheduled game in the next week"
+    detail="The card rather than a ranking: every fixture inside seven days, priced or not. It is the first table on this page to fill in, because it is the only one that needs nothing from a bookmaker."
+    height={200}
+/>
+
+{/if}
 
 ## How a pick is made
 

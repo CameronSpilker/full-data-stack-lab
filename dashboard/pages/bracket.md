@@ -10,25 +10,44 @@ select max(simulations) as simulations, max(season) as season from tournament_od
 select
     schedule_season_label,
     data_season_label,
-    is_preseason,
-    scheduled_games,
-    next_game_date
+    awaited_season_label,
+    phase,
+    upcoming_games,
+    next_game_date,
+    last_completed_game_date
 from season_status
 ```
 
-{#if season_status[0].is_preseason}
+{#if season_status[0].phase === 'preseason'}
 
 <Alert status="warning">
 
 **The <Value data={season_status} column=schedule_season_label /> season has not
 tipped off.** This field and these odds describe <Value data={season_status} column=data_season_label />, the
 last completed season, because a team that has not played a game cannot be rated,
-ranked or seeded. <Value data={season_status} column=scheduled_games fmt='#,##0' />
+ranked or seeded. <Value data={season_status} column=upcoming_games fmt='#,##0' />
 games are on the schedule, the first of them
 <Value data={season_status} column=next_game_date fmt='mmmm d' />.
 
 The [upcoming picks](/picks) page is the one that has already moved on: a forecast
 does not need results, so it is pricing those fixtures now.
+
+</Alert>
+
+{:else if season_status[0].phase === 'offseason'}
+
+<Alert status="info">
+
+**The <Value data={season_status} column=data_season_label /> season is over.**
+This field and these odds are final: the last game was played
+<Value data={season_status} column=last_completed_game_date fmt='mmmm d, yyyy' />.
+The <Value data={season_status} column=awaited_season_label /> schedule has not been
+published yet, so there is nothing ahead to rate and nothing here is waiting on a
+fix. Everything updates itself on the first nightly run after the new fixtures
+land in the feed.
+
+The [upcoming picks](/picks) page is the one that needs those fixtures, so it is
+holding its tables until they arrive.
 
 </Alert>
 
