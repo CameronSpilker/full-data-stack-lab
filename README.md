@@ -249,6 +249,26 @@ than the window the limit is measured over, so every retry arrived still
 throttled. And a backfill asks more slowly than a daily run, because nobody is
 waiting on it.
 
+**Passing its own tests is not the same as being readable.** The rule above
+fails a run whose data came back wrong. It says nothing about a warehouse that
+is complete, correct, and written in a format the dashboard cannot open, which
+is what shipped on 15 September: 172 dbt checks green, published, and every
+Evidence build after it dead on
+
+    INTERNAL Error: Failed to load metadata pointer
+
+dbt writes with whatever DuckDB `dbt-duckdb` resolves to. Evidence reads with
+the DuckDB its lockfile pins. Nothing held those two to the same answer, and
+when they diverged the failure landed on the dashboard rather than on the run
+that caused it, which is the wrong place to find out.
+
+`scripts/check-warehouse-readable.sh` now opens the built warehouse with the
+exact DuckDB version `dashboard/package-lock.json` resolves, and reads every
+mart in it, before anything is uploaded. The reader version is taken from the
+lockfile rather than written down twice, because two pins are how they drift
+apart again. A warehouse that fails it is not published, and yesterday's
+readable one stays standing, which is the same bargain the rule above makes.
+
 **A new schedule arrives weeks before anyone plays on it, and for months
 before that there is no schedule at all.** Almost every model here is built
 from results, so on the day the next season's fixtures land, `mart_team_season`
@@ -422,70 +442,28 @@ pins Node 22 there, matching CI, so the build a host runs is the build CI ran.
 The build command fetches the warehouse and the docs from the release below,
 then runs the normal Evidence build. Every push redeploys.
 
-**Two DuckDBs read this warehouse, and they are not the same one.** The
-pipeline writes the file with the DuckDB in its own requirements. The dashboard
-opens it with the engine inside `@evidence-dev/duckdb`, pinned in
-`dashboard/package-lock.json`. Nothing kept those two together, and in
-September 2026 they drifted far enough apart that the reader could no longer
-open what the writer produced:
+**The drift that guard was built for, and what cured it.** The pipeline writes
+the warehouse with the DuckDB in its own requirements, which is unpinned and
+had floated to 1.5.5. The dashboard opened it with the engine under
+`@evidence-dev/duckdb`, which its lockfile had resolved to DuckDB 1.1.3. Every
+Vercel build failed on the connection, before a single query ran:
 
 ```
 Error connecting to datasource warehouse: INTERNAL Error:
 Failed to load metadata pointer (id 47, idx 10, ptr 720575940379279407)
 ```
 
-Every Vercel build failed on that line while the pipeline stayed green, because
-nothing upstream of the deploy had tried to read the warehouse the way the site
-does. CI could not have caught it either: the warehouse CI builds is small and
-written in one pass, and a file like that opens on every version. Only the
-published one, months old and rewritten every night, carries the layout an
-older reader gives up on.
+Reading the published file with each version in turn puts the break at 1.4:
+1.0.0, 1.1.3, 1.2.2 and 1.3.2 all fail on that pointer, and 1.4.2 and 1.5.5
+open it and read every mart. A small warehouse written in one pass opens on all
+of them, which is why CI never saw it and only the published file, months old
+and rewritten every night, was affected.
 
-So the pipeline now opens the warehouse itself, under a DuckDB pinned to the
-dashboard's, before it uploads anything. `scripts/check_warehouse_opens.py` is
-that check, and it runs in an environment of its own because the version it
-needs is a different version of the package the pipeline already has. A
-warehouse the site cannot read now fails the run that built it rather than the
-deploy an hour later.
-
-**A new warehouse has to ask for a rebuild.** The dashboard is static: it reads
-the warehouse at build time and bakes the answers into HTML, so the data on the
-page is the data that existed when the site was last built. Publishing a
-warehouse is therefore invisible until something rebuilds, and nothing did
-until the pipeline was given a Vercel deploy hook to call: the site was as
-fresh as the last push to main rather than as fresh as the last pipeline run.
-
-The hook is a URL that triggers a production build, created under the Vercel
-project's Git settings and held as the `VERCEL_DEPLOY_HOOK_URL` repository
-secret. It is the last step of `pipeline.yml`, after the warehouse is
-published, and it is a warning rather than a failure when the secret is absent,
-so a fork with no Vercel project behind it still gets a green run.
-
-**The warehouse is a release asset, not a commit.** It is a 50MB binary that
-changes on every run even when no games were played, because every row carries
-the timestamp it was extracted at. Committing it daily would add roughly its
-own size to the repository's history every day, for a file git cannot diff and
-nobody reads as text. The daily pipeline overwrites the `warehouse-latest`
-release in place, and anything that needs the data downloads it:
-
-```bash
-curl -fsSL https://github.com/CameronSpilker/full-data-stack-lab/releases/download/warehouse-latest/warehouse.duckdb \
-    -o data/warehouse.duckdb
-```
-
-`dashboard/scripts/fetch-warehouse.sh` is that download plus the docs, and it
-is what `npm run build:deploy` calls. No credentials: the repository is public.
-
-**A new model is not in the warehouse the deploy fetches.** The deploy takes
-whatever the last pipeline run published, and for a branch that adds a model
-that warehouse does not contain it yet. Evidence does not fail a build over a
-missing table: the deploy succeeds and the queries against it render an error
-on the page that runs them, leaving the rest of the dashboard working. That is
-why `pipeline.yml` also runs on a merge to main that touches `transform/` or
-`ingestion/`, and why it ends by asking for a rebuild. The merge deploys the
-new page against the old warehouse, the pipeline republishes and calls the
-hook, and the second build has the model. The window is the length of a
-pipeline run rather than a day, and it closes without anyone doing anything.
+The cure was to move the reader forward rather than hold the writer back:
+`@evidence-dev/duckdb` 2.0.1, which carries `@duckdb/node-api` 1.4.2. Pinning
+the pipeline instead would freeze it to keep an old reader happy, and the gap
+only opened because nothing was watching it. The guard above is what watches
+it now.
 
 **A source with no rows takes the build down, so it gets a file anyway.**
 `evidence sources` writes one parquet per source and lists it in the manifest.
