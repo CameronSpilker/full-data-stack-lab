@@ -487,6 +487,21 @@ new page against the old warehouse, the pipeline republishes and calls the
 hook, and the second build has the model. The window is the length of a
 pipeline run rather than a day, and it closes without anyone doing anything.
 
+**A source with no rows takes the build down, so it gets a file anyway.**
+`evidence sources` writes one parquet per source and lists it in the manifest.
+A source that returns zero rows is the exception: nothing is written, the
+filename is listed regardless, and `evidence build` then creates a view over a
+file that is not there and fails the whole site over it. One of these is empty
+for most of the year, since `mart_upcoming_games` holds fixtures still to be
+played and there are none between April and the autumn.
+
+`dashboard/scripts/write-empty-sources.mjs` runs after `evidence sources` and
+writes any promised file that is missing, with the columns the source declared
+and none of the rows. The pages want exactly that: every section of the picks
+page guards on emptiness and draws a labelled placeholder, which needs the
+query to come back empty rather than to fail. A source with rows is untouched,
+so in season this does nothing.
+
 **Nothing is published until dbt passes.** The pipeline uploads the warehouse
 only after `dbt build`, so a warehouse that failed its own tests is never the
 one the dashboard builds from. The first live run stopped exactly there, on
