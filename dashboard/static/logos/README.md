@@ -4,10 +4,15 @@ Mirrored here by `scripts/fetch_logos.py`, served by the dashboard at `/logos`.
 
 The rule every page relies on is that a team with a mirrored logo has it at
 `/logos/<team_id>.png`, where `team_id` is the same id the marts use. There is
-no lookup: a page builds the path from the id it already has, and an image that
-does not resolve falls back to the team's initials in the team's own colour. A
-missing logo therefore costs a page nothing, which is why the mirror is allowed
-to be partial.
+no lookup: a page builds the path from the id it already has.
+
+What a page renders, though, is the team's initials in the team's own colour,
+and the logo replaces them in the browser once it has loaded. That order is
+load-bearing. SvelteKit prerenders these pages and its crawler follows an
+`img src` exactly as it follows a link, so a logo path written into the
+server-rendered markup fails the whole build on the first team whose file is
+not there. Probing from the browser instead means a missing logo is invisible
+and costs the build nothing, which is what lets the mirror be partial.
 
 `manifest.json` records what resolved, from where, and the sha256 of each file.
 Nothing reads it at build time. It is there so a logo that changes upstream is

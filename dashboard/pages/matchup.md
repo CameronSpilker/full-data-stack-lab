@@ -433,7 +433,7 @@ order by other.national_rank
     <Column id=opponent_record title="Record" align=right />
     <Column id=margin title="Margin" fmt='+0.0' align=right />
     <Column id=win_probability title="Model" fmt='0%' align=right
-        contentType=colorscale scaleColor=blue />
+        contentType=colorscale colorScale=primary />
     <Column id=efficiency_probability title="Efficiency only" fmt='0%' align=right />
     <Column id=elo_probability title="Elo only" fmt='0%' align=right />
     <Column id=disagreement title="Gap" fmt='0%' align=right />

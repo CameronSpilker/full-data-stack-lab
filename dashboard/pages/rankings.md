@@ -114,7 +114,7 @@ order by national_rank
 
 <div class="ladder">
 {#each top_25 as team (team.team_id)}
-<a class="rung" href="/scorecard?team={team.team_id}">
+<a class="rung" href="/teams/{team.team_id}">
 <span class="rung-rank">{team.national_rank}</span>
 <TeamCrest
     teamId={team.team_id}
@@ -129,7 +129,7 @@ order by national_rank
 {/each}
 </div>
 
-Each row opens that team's scorecard.
+Each row opens that team's page.
 
 ## Offence against defence
 
@@ -190,9 +190,11 @@ offence and defence ranks beside the margin are where that shows.
 
 ```sql field_linked
 -- The same rows with a link column, so a row in the table opens that team's
--- scorecard. Built here rather than in the mart: it is a fact about this
--- site's routes, not about the season.
-select *, '/scorecard?team=' || team_id as team_link
+-- page. Built here rather than in the mart: it is a fact about this site's
+-- routes, not about the season. `/teams/<id>` is the route every other
+-- table on the site links to, and it is a real prerendered page per team
+-- rather than a query string the dropdown may or may not read.
+select *, '/teams/' || team_id as team_link
 from ${field}
 ```
 
@@ -203,7 +205,7 @@ from ${field}
     <Column id=tier title="Tier" />
     <Column id=record title="Record" align=right />
     <Column id=adjusted_efficiency_margin title="Margin" fmt='+0.0' align=right
-        contentType=colorscale scaleColor=blue />
+        contentType=colorscale colorScale=primary />
     <Column id=adjusted_offensive_efficiency title="Offence" fmt='0.0' align=right />
     <Column id=offense_rank title="Off rank" fmt='0' align=right />
     <Column id=adjusted_defensive_efficiency title="Defence" fmt='0.0' align=right />
