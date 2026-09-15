@@ -6,7 +6,10 @@
 # python
 __pycache__/
 *.py[cod]
-.venv/
+# Any .venv suffix, not just the bare name. This project is installed into a
+# virtualenv from four different requirements files, so a working checkout
+# often has more than one and they get named for what they hold.
+.venv*/
 venv/
 *.egg-info/
 .pytest_cache/
