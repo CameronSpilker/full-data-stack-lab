@@ -159,6 +159,49 @@ def known_conferences() -> list[str]:
     return [row[0] for row in rows]
 
 
+def season_activity(season_year: int) -> tuple[date | None, date | None]:
+    """The newest game on record for a season, and the newest one played.
+
+    Answers the only question a scheduled run needs before it calls anything:
+    is there anything left to fetch for this season, or is it history that
+    settled months ago?
+
+    Two dates rather than one, because they answer different questions. The
+    newest game on record includes fixtures nobody has played yet, so it says
+    whether a schedule exists ahead of us. The newest completed game says
+    whether results are still arriving. A season sitting between them is in
+    progress; a season whose last fixture is long past is over.
+
+    Returns (None, None) when there is no warehouse, no games table, or no
+    games for that season. That is the first run, or a season nobody has
+    extracted yet, and the caller must treat it as "fetch it" rather than as
+    "nothing to do": knowing nothing is not the same as knowing it is over.
+    """
+    path = duckdb_path()
+    if not path.exists():
+        return (None, None)
+
+    try:
+        with duckdb.connect(str(path), read_only=True) as con:
+            row = con.execute(
+                """
+                select
+                    max(try_cast(game_date as date)),
+                    max(try_cast(game_date as date)) filter (where is_completed)
+                from raw.ncaa_games
+                where season = ?
+                """,
+                [season_year],
+            ).fetchone()
+    except duckdb.Error as exc:
+        log.warning("No game history in the warehouse for %s: %s", season_year, exc)
+        return (None, None)
+
+    if not row:
+        return (None, None)
+    return (row[0], row[1])
+
+
 def persist(
     tables: dict[str, list[dict[str, Any]]],
     snapshot: date,

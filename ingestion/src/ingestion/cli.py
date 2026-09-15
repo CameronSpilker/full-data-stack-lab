@@ -85,9 +85,12 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
             "Only extract games and lines from the last N days. What a daily "
             "run wants: last night's finals and anything corrected since, "
             "rather than the whole season re-fetched every night. Loads upsert "
-            "on the row key, so a partial extract leaves the rest alone. Box "
-            "scores and ratings ignore this: the box score endpoint has no "
-            "date filter, and ratings are one row per team per snapshot."
+            "on the row key, so a partial extract leaves the rest alone. "
+            "The window also decides which seasons are asked for at all: one "
+            "whose last fixture falls before it is settled and is skipped. "
+            "Box scores cannot be filtered by date, so they are skipped "
+            "entirely when no game was played in the window; ratings are one "
+            "row per team per snapshot and are fetched for any live season."
         ),
     )
     parser.add_argument(
@@ -129,6 +132,74 @@ def _selected_seasons(args: argparse.Namespace) -> list[Season]:
     return chosen
 
 
+def _still_worth_fetching(
+    seasons: list[Season], since: date | None
+) -> tuple[list[Season], list[Season]]:
+    """Split the requested seasons into the live ones and the settled ones.
+
+    A scheduled run asks for the current season every night, forever. That is
+    right in March and pure waste in July: the 2025-26 season stopped producing
+    rows on 7 April, and every run after it re-downloaded a finished season.
+    The box score walk is 31 requests per season per run, which is what
+    eventually got the whole pipeline rate limited into failing.
+
+    A season is settled when its newest fixture, played or not, falls before
+    the window this run is asking about. Nothing in that window means nothing
+    to correct and nothing ahead to price.
+
+    A season the warehouse knows nothing about is live, not settled. Knowing
+    nothing is not the same as knowing it is over, and that is the case on a
+    first run and on the night a new season is added to seasons.yml.
+
+    Only a windowed run is filtered. A backfill passes no window because it
+    means "fetch all of it", and second-guessing that would make the one
+    command that exists to rebuild history quietly refuse to.
+    """
+    if since is None:
+        return seasons, []
+
+    live: list[Season] = []
+    settled: list[Season] = []
+
+    for season in seasons:
+        latest_fixture, _ = load.season_activity(season.year)
+        if latest_fixture is None or latest_fixture >= since:
+            live.append(season)
+        else:
+            settled.append(season)
+
+    return live, settled
+
+
+def _games_landed_recently(seasons: list[Season], since: date | None) -> bool:
+    """Has any of these seasons had a game played inside the window?
+
+    The box score endpoint takes no date filter, so it cannot be asked for
+    "last night" the way games and lines can: the only way to narrow it is to
+    not call it. A night with no completed game behind it has no box score to
+    collect, and walking 31 leagues to rediscover that is the single most
+    expensive thing this run does.
+
+    A season the warehouse knows nothing about counts as yes, for the same
+    reason it counts as live: knowing nothing is not knowing there is nothing.
+    A season we do know, and whose fixtures nobody has played yet, counts as
+    no. Those two look alike in the data and mean opposite things, so they are
+    told apart by whether a fixture is on record at all, not by whether a
+    completed one is.
+    """
+    if since is None:
+        return True
+
+    for season in seasons:
+        latest_fixture, latest_completed = load.season_activity(season.year)
+        if latest_fixture is None:
+            return True
+        if latest_completed is not None and latest_completed >= since:
+            return True
+
+    return False
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
     logging.basicConfig(
@@ -155,6 +226,9 @@ def main(argv: list[str] | None = None) -> int:
             demo.extract(seasons, args.snapshot_date, current_season(), args.as_of)
         )
 
+    # The team dimension is deliberately outside the season gate below.
+    # Conference realignment is an offseason event, so the months when there is
+    # no basketball to fetch are exactly the months when this table changes.
     if _wanted(args.source, "teams"):
         tables.update(cbd.extract_teams(current_season(), args.snapshot_date))
 
@@ -164,16 +238,51 @@ def main(argv: list[str] | None = None) -> int:
     if since:
         log.info("Extracting games and lines from %s onward", since)
 
+    # Everything below is season-scoped, so a season that stopped producing
+    # rows months ago is not asked for again.
+    seasons, settled = _still_worth_fetching(seasons, since)
+    for season in settled:
+        log.info(
+            "%s is settled: its last fixture is before %s, so there is nothing "
+            "to correct and nothing ahead to price. Skipping it.",
+            season.label,
+            since,
+        )
+
+    if not seasons:
+        # Not an error, and specifically not an empty extract. Returning 1 here
+        # would fail the nightly pipeline every night of the offseason, which
+        # is the failure this gate exists to stop.
+        log.info(
+            "Every requested season is settled. Nothing was fetched, and "
+            "nothing needed to be. The next season resumes this on its own, "
+            "the first run after its schedule lands."
+        )
+        return 0
+
     if _wanted(args.source, "games"):
         tables.update(cbd.extract_games(seasons, since=since))
 
     if _wanted(args.source, "boxscores"):
-        # The box score walk needs a league list, which normally comes from
-        # /teams. What the warehouse already holds is the standby for when
-        # that endpoint will not answer.
-        tables.update(
-            cbd.extract_box_scores(seasons, fallback_conferences=load.known_conferences())
-        )
+        # The box score endpoint takes no date filter, so it cannot be narrowed
+        # to last night the way games and lines are. Not calling it is the only
+        # narrowing available, and a window with no completed game in it has no
+        # box score waiting at the other end.
+        if _games_landed_recently(seasons, since):
+            # The walk needs a league list, which normally comes from /teams.
+            # What the warehouse already holds is the standby for when that
+            # endpoint will not answer.
+            tables.update(
+                cbd.extract_box_scores(
+                    seasons, fallback_conferences=load.known_conferences()
+                )
+            )
+        else:
+            log.info(
+                "No game was played since %s, so there are no box scores to "
+                "collect. Skipping the league walk.",
+                since,
+            )
 
     if _wanted(args.source, "lines"):
         tables.update(cbd.extract_lines(seasons, since=since))
