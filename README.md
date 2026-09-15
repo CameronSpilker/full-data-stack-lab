@@ -33,8 +33,9 @@ flowchart LR
         marts[(marts)]
     end
 
-    subgraph present[dashboard/]
+    subgraph present[dashboard/ · charts/]
         evidence[Evidence.dev]
+        charts[dbt Charts]
     end
 
     cbd --> extract
@@ -42,6 +43,7 @@ flowchart LR
     extract --> raw
     raw --> stg --> int --> marts
     marts --> evidence
+    marts --> charts
 
     dagster[["orchestration/<br/>Dagster"]] -.schedules.-> extract
     dagster -.schedules.-> stg
@@ -54,6 +56,7 @@ flowchart LR
 | Transformation | dbt Core     | Layered models, tests at every boundary, and metrics defined in code.     |
 | Orchestration | Dagster       | Asset-oriented scheduling maps onto the dbt DAG, so lineage is one graph rather than two systems that must agree. |
 | Presentation  | Evidence.dev  | Dashboards as code, versioned beside the models they read.                |
+| Presentation  | dbt Charts    | The boards that are the same page for everybody: one YAML file each, rendered to static HTML against the warehouse the pipeline just built. |
 | CI/CD         | GitHub Actions | Free for public repos; runs the whole pipeline on every pull request.    |
 
 ## Repository layout
@@ -67,6 +70,7 @@ full-data-stack-lab/
 │   ├── models/
 │   └── tests/        # Custom data-quality tests
 ├── orchestration/    # Dagster assets, jobs, schedules, sensor
+├── charts/           # dbt Charts boards, served at /charts
 ├── dashboard/        # Evidence.dev project
 ├── data/             # DuckDB warehouse and Parquet landing zone
 └── .github/workflows/

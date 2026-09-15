@@ -1,0 +1,5 @@
+# dbt charts renders the boards in charts/ to static HTML. Pinned, because the
+# board YAML is validated against the compiler that ships with it: an unknown
+# key is an error rather than a warning, so a floating version turns a working
+# board into a failed pipeline run without a commit.
+dbt-charts==0.7.1

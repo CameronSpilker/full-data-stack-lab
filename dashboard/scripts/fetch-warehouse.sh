@@ -31,3 +31,16 @@ if curl -fsSL "${BASE}/dbt-docs.tar.gz" -o /tmp/dbt-docs.tar.gz; then
 else
     echo "  no dbt docs in the release; skipping /docs"
 fi
+
+# Same deal for the dbt charts boards. They are rendered by the pipeline
+# against the warehouse it built, so what arrives here is already drawn: this
+# only unpacks it next to the Evidence pages, which is what puts them on
+# /charts. A release published before the boards existed simply has no asset,
+# and the dashboard is still a dashboard without them.
+echo "Fetching the dbt charts boards..."
+if curl -fsSL "${BASE}/charts.tar.gz" -o /tmp/charts.tar.gz; then
+    tar -xzf /tmp/charts.tar.gz -C static
+    echo "  boards unpacked to static/charts, served at /charts"
+else
+    echo "  no charts in the release; skipping /charts"
+fi

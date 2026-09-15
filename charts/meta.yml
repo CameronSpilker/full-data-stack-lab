@@ -1,0 +1,25 @@
+# Folder-level defaults: dbt charts applies this to every board in charts/.
+source: warehouse
+
+style:
+  title:
+    font:
+      # Titles are drawn exactly as authored. The default is Chicago title
+      # case, which fights the house style everywhere else on the site: copy
+      # here is plain sentence case, and a heading that renders as "Did the
+      # Model Beat the Market?" does not match the page it sits beside. This
+      # cascades to chart titles too.
+      case: none
+
+  charts:
+    # The palette is the one cameronspilker.com ships and the Evidence
+    # dashboard already mirrors, ported stop for stop rather than picked again
+    # here: three categorical hues that clear colour-vision separation, a grey
+    # for the "other" bucket, and one sequential ramp built from the first hue.
+    # A fourth category folds into the grey instead of taking a new hue.
+    color:
+      categorical:
+        palette: ["#2a78d6", "#eb6834", "#1baf7a", "#898781"]
+        single_series_palette: ["#2a78d6"]
+      gradient:
+        palette: ["#86b6ef", "#5598e7", "#2a78d6", "#1c5cab", "#104281"]

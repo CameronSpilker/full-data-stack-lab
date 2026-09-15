@@ -1,0 +1,181 @@
+title: Full Data Stack Lab · charts
+notes: >
+  The landing board. Three headline numbers, one chart worth arriving for, and
+  the way into the three boards that carry the detail.
+tags: [overview]
+aliases:
+  - /charts
+
+queries:
+  headline:
+    notes: One row of numbers describing the latest completed season.
+    sql: |
+      SELECT
+          max(season) AS season,
+          count(*) AS teams,
+          sum(games_played) / 2 AS games
+      FROM marts.mart_team_season
+      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+
+  best_model:
+    notes: The best-calibrated honest forecast in the latest season.
+    sql: |
+      SELECT
+          accuracy,
+          brier_score,
+          games_scored
+      FROM marts.mart_model_accuracy
+      WHERE game_type = 'regular_season'
+        AND is_point_in_time
+        AND season = (SELECT max(season) FROM marts.mart_model_accuracy)
+      ORDER BY brier_score
+      LIMIT 1
+
+  # Elo's whole history in one line: the number the lab exists to move.
+  elo_history:
+    notes: Point-in-time regular-season accuracy, season by season.
+    sql: |
+      SELECT
+          CAST(season AS VARCHAR) AS season,
+          accuracy,
+          games_scored
+      FROM marts.mart_model_accuracy
+      WHERE model_name = 'elo_pregame'
+        AND game_type = 'regular_season'
+      ORDER BY season
+
+  top_10:
+    notes: The ten teams the model rated highest in the latest season.
+    sql: |
+      SELECT
+          national_rank,
+          team_name,
+          conference_name,
+          record,
+          adjusted_efficiency_margin
+      FROM marts.mart_team_season
+      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      ORDER BY national_rank
+      LIMIT 10
+
+charts:
+  kpi_season:
+    query: headline
+    type: kpi
+    label: Season
+    value: season
+    style:
+      value:
+        format: year
+      label:
+        font:
+          case: none
+
+  kpi_games:
+    query: headline
+    type: kpi
+    label: Games modelled
+    value: games
+    style:
+      value:
+        format: integer
+      label:
+        font:
+          case: none
+
+  kpi_accuracy:
+    query: best_model
+    type: kpi
+    label: Best honest forecast
+    value: accuracy
+    support:
+      value: brier_score
+      label: Brier score
+      format: ".3f"
+    style:
+      value:
+        format: percent_whole
+      label:
+        font:
+          case: none
+
+  elo_trend:
+    query: elo_history
+    type: line
+    title: The number the lab exists to move
+    subtitle: Elo's regular-season accuracy, scored only on games it had not seen
+    x: season
+    y: accuracy
+    y_label: Accuracy
+    height: 360
+    style:
+      number_format: ".0%"
+      legend:
+        visible: false
+      axis_y:
+        scale:
+          continuous:
+            # Auto-scaling a 1.5-point range draws a cliff. The window is wide
+            # enough that a real move looks like one and noise does not.
+            domain: [0.66, 0.78]
+
+  top_10_table:
+    query: top_10
+    type: table
+    title: The top ten
+    subtitle: By adjusted efficiency margin, which is the model's own opinion
+    style:
+      columns:
+        national_rank:
+          label: "#"
+          format: integer
+          align: right
+          width: 60
+        team_name:
+          label: Team
+        conference_name:
+          label: Conference
+        record:
+          label: Record
+          align: right
+        adjusted_efficiency_margin:
+          label: Margin
+          format: "+.1f"
+          align: right
+          scale:
+            background:
+              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              domain: data
+
+rows:
+  - text: |
+      These boards are YAML. Each one is a file in the same repository as the
+      dbt models it reads, so a chart and the column behind it change in one
+      commit and get reviewed together.
+
+      The pipeline is the same one behind the [Evidence dashboard](/): public
+      APIs into Parquet, DuckDB and dbt in the middle, Dagster on a nightly
+      schedule. These pages are a second opinion on the presentation layer, not
+      a second pipeline.
+  - cols: [kpi_season, kpi_games, kpi_accuracy]
+  - cols: [elo_trend, top_10_table]
+  - title: The boards
+    style:
+      text:
+        column:
+          max_number: 1
+    text: |
+      [Did the model beat the market?](/charts/model/) Three predictors scored
+      on the same season, and the calibration curve that decides which of them
+      means what it says.
+
+      [The season](/charts/season/) Who was good, which conferences were deep,
+      and every team in the country plotted offence against defence.
+
+      [The tournament](/charts/tournament/) Twenty thousand simulated brackets:
+      title odds, what a seed line is really worth, and how fast the field
+      thins.
+
+      Built with [dbt Charts](https://dbtcharts.com). The source for every
+      board is in
+      [full-data-stack-lab](https://github.com/CameronSpilker/full-data-stack-lab/tree/main/charts).

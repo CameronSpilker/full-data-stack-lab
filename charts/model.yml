@@ -1,0 +1,240 @@
+title: Did the model beat the market?
+notes: >
+  Scores every predictor against the same season and asks the question that
+  settles it: when a model says 70%, does it happen 70% of the time?
+tags: [model, accuracy, calibration]
+
+queries:
+  # One CASE lives in each query rather than a shared view, because the
+  # warehouse stores the model identifiers and the boards are the only place
+  # that needs them spelled for a reader.
+  accuracy_by_model:
+    notes: Regular-season scores for every model rated in the latest season.
+    sql: |
+      SELECT
+          CASE model_name
+              WHEN 'elo_pregame' THEN 'Elo, pregame'
+              WHEN 'market_consensus' THEN 'Market consensus'
+              WHEN 'blended_season_ratings' THEN 'Blended season ratings'
+              ELSE model_name
+          END AS model,
+          accuracy,
+          brier_score,
+          log_loss,
+          brier_skill_score,
+          mean_absolute_margin_error,
+          mean_margin_bias,
+          games_scored,
+          CASE WHEN is_point_in_time THEN 'Yes' ELSE 'No' END AS forecast
+      FROM marts.mart_model_accuracy
+      WHERE game_type = 'regular_season'
+        AND season = (SELECT max(season) FROM marts.mart_model_accuracy)
+      ORDER BY brier_score
+
+  # The reliability diagram. A model sitting on the diagonal is honest about
+  # its own confidence; above it is underconfident, below it is selling
+  # certainty it has not earned.
+  calibration:
+    notes: Stated probability against observed win rate, one point per decile.
+    sql: |
+      SELECT
+          CASE model_name
+              WHEN 'elo_pregame' THEN 'Elo, pregame'
+              WHEN 'market_consensus' THEN 'Market consensus'
+              WHEN 'blended_season_ratings' THEN 'Blended season ratings'
+              ELSE model_name
+          END AS model,
+          mean_predicted_probability,
+          observed_win_rate,
+          games
+      FROM marts.mart_model_calibration
+
+      UNION ALL
+
+      -- The 45-degree reference a perfectly calibrated model would trace,
+      -- carried as a fourth series rather than an overlay so it shares one
+      -- axis with the models and names itself in the legend.
+      SELECT * FROM (VALUES
+          ('Perfect calibration', 0.0, 0.0, NULL),
+          ('Perfect calibration', 1.0, 1.0, NULL)
+      ) AS t(model, mean_predicted_probability, observed_win_rate, games)
+
+      ORDER BY model, mean_predicted_probability
+
+  # Elo is the only model with history, because it is the only one that can be
+  # replayed game by game without seeing the season it is predicting.
+  elo_history:
+    notes: Elo's point-in-time accuracy and Brier score, season by season.
+    sql: |
+      SELECT
+          CAST(season AS VARCHAR) AS season,
+          accuracy,
+          brier_score,
+          games_scored
+      FROM marts.mart_model_accuracy
+      WHERE model_name = 'elo_pregame'
+        AND game_type = 'regular_season'
+      ORDER BY season
+
+  by_game_type:
+    notes: Accuracy by model and phase, where the tournament is the hard part.
+    sql: |
+      SELECT
+          CASE model_name
+              WHEN 'elo_pregame' THEN 'Elo, pregame'
+              WHEN 'market_consensus' THEN 'Market consensus'
+              WHEN 'blended_season_ratings' THEN 'Blended season ratings'
+              ELSE model_name
+          END AS model,
+          CASE game_type
+              WHEN 'regular_season' THEN 'Regular season'
+              WHEN 'other_postseason' THEN 'Other postseason'
+              ELSE 'NCAA tournament'
+          END AS phase,
+          accuracy,
+          games_scored
+      FROM marts.mart_model_accuracy
+      WHERE season = (SELECT max(season) FROM marts.mart_model_accuracy)
+      ORDER BY
+          CASE game_type
+              WHEN 'regular_season' THEN 1
+              WHEN 'other_postseason' THEN 2
+              ELSE 3
+          END,
+          model
+
+charts:
+  scoreboard:
+    query: accuracy_by_model
+    type: table
+    title: Every model, every scoring rule
+    subtitle: Regular season. A coin flip scores 0.250 on Brier and 0.693 on log loss.
+    style:
+      columns:
+        model:
+          label: Model
+        accuracy:
+          label: Accuracy
+          format: percent_whole
+          align: right
+        brier_score:
+          label: Brier
+          format: ".3f"
+          align: right
+          scale:
+            background:
+              palette: ["#104281", "#2a78d6", "#86b6ef"]
+              domain: data
+        log_loss:
+          label: Log loss
+          format: ".3f"
+          align: right
+        brier_skill_score:
+          label: Skill vs coin flip
+          format: percent_whole
+          align: right
+        mean_absolute_margin_error:
+          label: Margin error
+          format: ".1f"
+          align: right
+        mean_margin_bias:
+          label: Margin bias
+          format: "+.2f"
+          align: right
+        games_scored:
+          label: Games
+          format: integer
+          align: right
+        forecast:
+          label: Forecast?
+          align: right
+
+  brier_bars:
+    query: accuracy_by_model
+    type: bar
+    title: Brier score, lower is better
+    subtitle: Mean squared error on the probability itself, not on the pick
+    x: model
+    y: brier_score
+    sort: { by: brier_score, order: asc }
+    style:
+      orientation: horizontal
+      number_format: ".3f"
+      legend:
+        visible: false
+      marks:
+        bar:
+          labels:
+            visible: true
+            position: above
+            format: ".3f"
+
+  elo_trend:
+    query: elo_history
+    type: line
+    title: Elo, season by season
+    subtitle: The only model here that never sees the season it is predicting
+    x: season
+    y: accuracy
+    y_label: Regular-season accuracy
+    style:
+      number_format: ".0%"
+      legend:
+        visible: false
+      axis_y:
+        scale:
+          continuous:
+            # Auto-scaling a 1.5-point range draws a cliff. The window is wide
+            # enough that a real move looks like one and noise does not.
+            domain: [0.66, 0.78]
+
+  reliability:
+    query: calibration
+    type: line
+    title: When a model says 70%, how often does it happen?
+    subtitle: One point per probability bucket. A model on the diagonal means what it says.
+    x: mean_predicted_probability
+    y: observed_win_rate
+    color: model
+    x_label: Probability the model stated
+    y_label: Share that actually won
+    height: 440
+    style:
+      number_format: percent_whole
+      axis_x:
+        labels:
+          format: percent_whole
+
+  phase_bars:
+    query: by_game_type
+    type: bar
+    title: The tournament is where confidence goes to die
+    subtitle: Same models, same season, harder games
+    x: phase
+    y: accuracy
+    color: model
+    y_label: Accuracy
+    style:
+      orientation: vertical
+      stack: none
+      number_format: percent_whole
+
+rows:
+  - text: |
+      Three predictors, one season, each scored on the games it actually priced.
+      Read `Forecast?` in the table first: a model allowed to see the season it
+      is predicting is not forecasting, it is remembering. Only Elo and the
+      market consensus are honest on that column, and the game counts differ
+      because each model prices a different slice of the schedule.
+
+      [Charts home](/charts/) · [The season](/charts/season/) · [The tournament](/charts/tournament/)
+  - cols: [scoreboard]
+  - cols: [brier_bars, elo_trend]
+  - title: Reliability
+    text: |
+      Accuracy rewards a model for being right. Calibration asks the harder
+      question: whether its confidence means anything. A line above the
+      diagonal is a model underselling itself, and one below it is a model
+      charging for certainty it does not have.
+    cols: [reliability]
+  - cols: [phase_bars]
