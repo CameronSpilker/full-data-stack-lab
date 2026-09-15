@@ -249,6 +249,26 @@ than the window the limit is measured over, so every retry arrived still
 throttled. And a backfill asks more slowly than a daily run, because nobody is
 waiting on it.
 
+**Passing its own tests is not the same as being readable.** The rule above
+fails a run whose data came back wrong. It says nothing about a warehouse that
+is complete, correct, and written in a format the dashboard cannot open, which
+is what shipped on 15 September: 172 dbt checks green, published, and every
+Evidence build after it dead on
+
+    INTERNAL Error: Failed to load metadata pointer
+
+dbt writes with whatever DuckDB `dbt-duckdb` resolves to. Evidence reads with
+the DuckDB its lockfile pins. Nothing held those two to the same answer, and
+when they diverged the failure landed on the dashboard rather than on the run
+that caused it, which is the wrong place to find out.
+
+`scripts/check-warehouse-readable.sh` now opens the built warehouse with the
+exact DuckDB version `dashboard/package-lock.json` resolves, and reads every
+mart in it, before anything is uploaded. The reader version is taken from the
+lockfile rather than written down twice, because two pins are how they drift
+apart again. A warehouse that fails it is not published, and yesterday's
+readable one stays standing, which is the same bargain the rule above makes.
+
 **A new schedule arrives weeks before anyone plays on it, and for months
 before that there is no schedule at all.** Almost every model here is built
 from results, so on the day the next season's fixtures land, `mart_team_season`
