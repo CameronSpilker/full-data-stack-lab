@@ -1,0 +1,313 @@
+title: The rankings
+notes: >
+  The whole Division I field in rating order, and the same field plotted
+  offence against defence so the shape of a team is readable next to its
+  place in the order.
+tags: [season, teams, rankings]
+
+style:
+  charts:
+    category_colors:
+      # The tier is the category here, so the slots are pinned to it rather
+      # than left to fall out alphabetically. The grey belongs to "The rest":
+      # it is the bucket every team that is not in the conversation lands in,
+      # and a bucket should not hold one of the three real hues.
+      tier:
+        values:
+          Title favourites: category[1]
+          Final four potential: category[2]
+          Hit or miss: category[3]
+          The rest: "#898781"
+
+queries:
+  # The tiers are cut on national rank rather than on an efficiency number.
+  # Cutting on margin reads better, because the bands are the diagonals a
+  # reader already sees on the quadrant, but it hard-codes the spread of one
+  # season's ratings, and the synthetic seasons the demo pipeline builds are
+  # far narrower than a real one. A rank cut is the same diagonal, drawn
+  # where the field actually sits.
+  field:
+    notes: Every team in the latest season, tiered and ordered by the model's rating.
+    sql: |
+      SELECT
+          national_rank,
+          team_name,
+          conference_name,
+          record,
+          adjusted_efficiency_margin,
+          adjusted_offensive_efficiency,
+          adjusted_defensive_efficiency,
+          adjusted_tempo,
+          offense_rank,
+          defense_rank,
+          elo_rating,
+          made_ncaa_tournament,
+          CASE
+              WHEN national_rank <= 16 THEN 'Title favourites'
+              WHEN national_rank <= 48 THEN 'Final four potential'
+              WHEN national_rank <= 100 THEN 'Hit or miss'
+              ELSE 'The rest'
+          END AS tier
+      FROM marts.mart_team_season
+      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      ORDER BY national_rank
+
+  top_40:
+    notes: The top of the order, at a length where one bar per team is still readable.
+    sql: |
+      SELECT
+          national_rank,
+          team_name,
+          conference_name,
+          adjusted_efficiency_margin,
+          CASE
+              WHEN national_rank <= 16 THEN 'Title favourites'
+              WHEN national_rank <= 48 THEN 'Final four potential'
+              WHEN national_rank <= 100 THEN 'Hit or miss'
+              ELSE 'The rest'
+          END AS tier
+      FROM marts.mart_team_season
+      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      ORDER BY national_rank
+      LIMIT 40
+
+  tier_counts:
+    notes: How many teams each tier holds, and how good the tier is on average.
+    sql: |
+      WITH tiered AS (
+          SELECT
+              CASE
+                  WHEN national_rank <= 16 THEN 'Title favourites'
+                  WHEN national_rank <= 48 THEN 'Final four potential'
+                  WHEN national_rank <= 100 THEN 'Hit or miss'
+                  ELSE 'The rest'
+              END AS tier,
+              adjusted_efficiency_margin,
+              adjusted_offensive_efficiency,
+              adjusted_defensive_efficiency
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      )
+      SELECT
+          tier,
+          count(*) AS teams,
+          avg(adjusted_efficiency_margin) AS avg_margin,
+          avg(adjusted_offensive_efficiency) AS avg_offense,
+          avg(adjusted_defensive_efficiency) AS avg_defense
+      FROM tiered
+      GROUP BY tier
+      ORDER BY avg_margin DESC
+
+  headline:
+    notes: One row describing the field being ranked.
+    sql: |
+      SELECT
+          count(*) AS teams,
+          max(adjusted_efficiency_margin) AS best_margin,
+          count(*) FILTER (WHERE national_rank <= 16) AS favourites
+      FROM marts.mart_team_season
+      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+
+charts:
+  kpi_teams:
+    query: headline
+    type: kpi
+    label: Teams ranked
+    value: teams
+    style:
+      value:
+        format: integer
+      label:
+        font:
+          case: none
+
+  kpi_best:
+    query: headline
+    type: kpi
+    label: Best rating in the field
+    value: best_margin
+    support:
+      value: favourites
+      label: Teams in the top tier
+      format: integer
+    style:
+      value:
+        format: "+.1f"
+      label:
+        font:
+          case: none
+
+  order_bars:
+    query: top_40
+    type: bar
+    title: The top 40, in order
+    subtitle: Adjusted efficiency margin, which is points per 100 possessions better than an average team
+    # x is the category and y the measure on every bar chart, including a
+    # horizontal one: the orientation rotates the drawing, not the channels.
+    x: team_name
+    y: adjusted_efficiency_margin
+    color: tier
+    y_label: Adjusted efficiency margin
+    height: 900
+    sort:
+      by: adjusted_efficiency_margin
+      order: desc
+    style:
+      orientation: horizontal
+      number_format: "+.1f"
+
+  quadrant:
+    query: field
+    type: scatter
+    title: Every team in the country, offence against defence
+    subtitle: Up and to the right is good. The defensive axis runs downward, because points allowed is a number to minimise.
+    x: adjusted_offensive_efficiency
+    y: adjusted_defensive_efficiency
+    color: tier
+    size: adjusted_efficiency_margin
+    x_label: Points scored per 100 possessions
+    y_label: Points allowed per 100 possessions
+    height: 560
+    style:
+      number_format: ".0f"
+      axis_y:
+        scale:
+          continuous:
+            # Descending on purpose: defensive efficiency is points allowed,
+            # so putting the low numbers at the top makes "up and to the
+            # right" mean good on both axes, the way a reader expects.
+            #
+            # The window is the one the season board's quadrant uses, stop for
+            # stop. Two boards drawing the same plot have to be readable
+            # against each other, and an auto-scaled axis would move under a
+            # reader going between them.
+            domain: [128, 86]
+      axis_x:
+        scale:
+          continuous:
+            zero: false
+            domain: [84, 136]
+
+  tier_table:
+    query: tier_counts
+    type: table
+    title: What each tier looks like
+    subtitle: The cut is on rank, so the bands describe this field rather than a fixed rating
+    style:
+      columns:
+        tier:
+          label: Tier
+        teams:
+          label: Teams
+          format: integer
+          align: right
+        avg_margin:
+          label: Avg margin
+          format: "+.1f"
+          align: right
+        avg_offense:
+          label: Avg offence
+          format: ".1f"
+          align: right
+        avg_defense:
+          label: Avg defence
+          format: ".1f"
+          align: right
+
+  full_table:
+    query: field
+    type: table
+    title: The full field
+    subtitle: Every ranked team, in order
+    style:
+      pagination:
+        enabled: true
+        # Pinned rather than auto-fitted. A static export pre-renders at
+        # most 20 pages, and auto-fitting a 376-team field gave 18 rows a
+        # page, which is 21 pages: the last teams in the country were
+        # silently dropped from a table titled "the full field". 22 is the
+        # whole field in 18 pages, so every team is in the file.
+        #
+        # The render still warns that the tile shows 20 of those 22 rows
+        # without scrolling. That is worth leaving: it costs a reader two
+        # rows of scroll, where a page size small enough to silence it goes
+        # back over the 20-page cap and drops teams instead.
+        page_rows: 22
+      columns:
+        national_rank:
+          label: "#"
+          format: integer
+          align: right
+          width: 60
+        team_name:
+          label: Team
+        conference_name:
+          label: Conference
+        tier:
+          label: Tier
+        record:
+          label: Record
+          align: right
+        adjusted_efficiency_margin:
+          label: Margin
+          format: "+.1f"
+          align: right
+          scale:
+            background:
+              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              domain: data
+        adjusted_offensive_efficiency:
+          label: Offence
+          format: ".1f"
+          align: right
+        offense_rank:
+          label: Off rank
+          format: integer
+          align: right
+        adjusted_defensive_efficiency:
+          label: Defence
+          format: ".1f"
+          align: right
+        defense_rank:
+          label: Def rank
+          format: integer
+          align: right
+        adjusted_tempo:
+          label: Tempo
+          format: ".1f"
+          align: right
+        elo_rating:
+          label: Elo
+          format: integer
+          align: right
+        made_ncaa_tournament:
+          label: Made the field
+
+rows:
+  - text: |
+      [Charts home](/charts/) · **Rankings** · [Scorecard](/charts/scorecard/) · [Matchup](/charts/matchup/) · [Model](/charts/model/) · [Season](/charts/season/) · [Tournament](/charts/tournament/) · [Dashboard](/)
+    style:
+      padding: 12
+      background: dbt-grays.surface-subtle
+      border:
+        width: 1
+        color: dbt-grays.border
+        radius: 8
+  - text: |
+      Every Division I team the model rated this season, in one order. The tier
+      a team lands in is a cut on its rank, not a judgement: the top 16, the
+      next 32, the next 52, and everyone else.
+
+      The rating is adjusted efficiency margin, which is how many points per
+      100 possessions better than an average team the model thinks a team is,
+      after adjusting for who it played. It is the same number the order, the
+      tiers and the quadrant are all drawn from.
+  - cols: [kpi_teams, kpi_best]
+  - cols: [quadrant]
+  - cols: [order_bars, tier_table]
+  - title: The full field
+    text: |
+      Sortable, and wide enough to compare the two halves of a rating. A team
+      can rank tenth overall on the strength of one side of the ball, and the
+      offence and defence ranks beside the margin are where that shows.
+    cols: [full_table]

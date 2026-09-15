@@ -2,6 +2,12 @@
 title: Conferences
 ---
 
+<script>
+    import ViewNav from '$lib/ViewNav.svelte';
+</script>
+
+<ViewNav current="conferences" />
+
 A conference is usually judged by its best team. That is the wrong measure — one
 outstanding program can carry a league's reputation while the median team is mediocre.
 Depth is what actually predicts March, so these are ranked on the **median** team's

@@ -111,8 +111,15 @@ jobs:
 
       # Cheap and needs no database, so it runs first and names a bad key with
       # a line number rather than leaving it to a failed render.
+      #
+      # Globbed rather than listed. The list here was four boards and the
+      # folder has since grown, so a new board was being rendered without ever
+      # being validated: the render is the slower check and it reports a bad
+      # key as a failed chart rather than as a line number. `meta.yml` is the
+      # folder's shared style rather than a board, and `dct validate` accepts
+      # it, so the glob needs no exception.
       - name: Validate the board YAML
-        run: dct validate charts/index.yml charts/model.yml charts/season.yml charts/tournament.yml
+        run: dct validate charts/*.yml
 
       # A board resolves its SQL at render time, exactly like Evidence, so a
       # renamed mart column is a broken page rather than a failed dbt run.

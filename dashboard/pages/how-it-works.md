@@ -2,6 +2,12 @@
 title: How it works
 ---
 
+<script>
+    import ViewNav from '$lib/ViewNav.svelte';
+</script>
+
+<ViewNav />
+
 Everything on this site is built by one repository, from the API call to the
 page you are reading. This is what each stage does and why it is the way it is.
 
@@ -84,9 +90,13 @@ local run.
 - [Conferences](/conferences): ranked on the median team's rating rather than
   the best one, because one outstanding program can carry a mediocre league's
   reputation.
-- [Team scorecard](/scorecard): one team on one page, defaulting to BYU. Where
-  they rank, how their season has moved, the wins that count, and what the
-  simulations make of their March.
+- [Team scorecard](/scorecard): one team on one page, defaulting to BYU. The
+  short version at the top, then the working: where they rank, how the season
+  has moved, the wins that count, and what the simulations make of their March.
+- [Rankings](/rankings): the whole field in one order, cut into tiers, and
+  every team plotted offence against defence.
+- [Matchup](/matchup): any two teams priced at a neutral site, with each half
+  of the model shown separately so their disagreement is readable.
 - [Upcoming picks](/picks): what the model makes of the games that have not
   been played yet, rebuilt every morning. Ranked on where it disagrees with the
   betting market rather than on how confident it is, because a 95% favourite is
@@ -96,7 +106,9 @@ local run.
   the ones that saw the future.
 - Team pages: a game log, an Elo timeline, and the priced matchup against
   anyone else in the country. Open one from any team on the season overview.
-- [The dbt Charts boards](https://lab.cameronspilker.com/charts/): four static
-  boards drawn straight from the marts, with the model scorecard, the season
-  and the tournament on one page each. No team picker and no filters: a board
-  is the same page for everybody, which is what lets it be one YAML file.
+- [The dbt Charts boards](https://lab.cameronspilker.com/charts/): seven static
+  boards drawn straight from the marts. No team picker and no filters: a board
+  is the same page for everybody, which is what lets it be one YAML file. The
+  two that are about one team or one game, the scorecard and the matchup, pick
+  their subject in SQL and link back here for the version that lets you
+  choose.

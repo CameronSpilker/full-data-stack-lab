@@ -1,0 +1,356 @@
+title: Team scorecard
+notes: >
+  One team on one screen, at the altitude someone reads before a game rather
+  than after one: where the team ranks, what it is good at, and which way it
+  has been moving.
+tags: [teams, scorecard]
+
+# Every query below opens with the same `focus` CTE, which picks the team this
+# board is about. It is repeated rather than shared because a board's queries
+# are independent SQL and the render is static: there is no picker to carry a
+# choice between them, and a variable would not survive the export.
+#
+# BYU, or the top-ranked team when a season arrives without them in it. The
+# fallback is what makes this board render against the synthetic demo seasons,
+# whose teams are generated and include no real school. It mirrors the rule
+# the Evidence scorecard at /scorecard uses, so the two open on the same team.
+queries:
+  identity:
+    notes: Who the board is about, and the one-line verdict on them.
+    sql: |
+      WITH focus AS (
+          SELECT team_id
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          ORDER BY
+              CASE
+                  WHEN team_name ILIKE '%BYU%'
+                    OR team_name ILIKE 'Brigham Young%' THEN 0
+                  ELSE 1
+              END,
+              national_rank
+          LIMIT 1
+      ),
+      -- The size of the field the rank is out of, counted rather than written
+      -- down so a season that gains or loses teams does not make the support
+      -- line wrong. In its own CTE, and read back as an uncorrelated scalar
+      -- rather than joined, because an aggregate sitting beside a join reads
+      -- as a fanout risk whether or not the join is one to one.
+      field AS (
+          SELECT count(*) AS teams_ranked
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      )
+      SELECT
+          team.team_name,
+          team.conference_name,
+          team.record,
+          team.conference_record,
+          team.national_rank,
+          team.conference_rank,
+          team.adjusted_efficiency_margin,
+          team.adjusted_offensive_efficiency,
+          team.adjusted_defensive_efficiency,
+          team.offense_rank,
+          team.defense_rank,
+          team.adjusted_tempo,
+          team.tempo_rank,
+          team.elo_rating,
+          team.strength_of_schedule,
+          team.schedule_strength_rank,
+          team.wins_vs_top_50,
+          team.games_vs_top_50,
+          team.last_10_wins,
+          team.last_10_games,
+          (SELECT teams_ranked FROM field) AS teams_ranked
+      FROM marts.mart_team_season AS team
+      INNER JOIN focus ON team.team_id = focus.team_id
+      WHERE team.season = (SELECT max(season) FROM marts.mart_team_season)
+
+  # Both halves of the rating as a percentile rather than a raw number. A
+  # reader knows what "better than 92% of the country" means without being
+  # told what an average adjusted efficiency is, and the two sides become
+  # comparable to each other on one axis.
+  strengths:
+    notes: Where the team sits in the national order on each part of its rating.
+    sql: |
+      WITH focus AS (
+          SELECT team_id
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          ORDER BY
+              CASE
+                  WHEN team_name ILIKE '%BYU%'
+                    OR team_name ILIKE 'Brigham Young%' THEN 0
+                  ELSE 1
+              END,
+              national_rank
+          LIMIT 1
+      ),
+      season AS (
+          SELECT *
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      ),
+      ranked AS (
+          SELECT
+              team_id,
+              percent_rank() OVER (ORDER BY adjusted_efficiency_margin)
+                  AS overall,
+              percent_rank() OVER (ORDER BY adjusted_offensive_efficiency)
+                  AS offence,
+              -- Defence is points allowed, so the good end is the low end.
+              percent_rank() OVER (ORDER BY adjusted_defensive_efficiency DESC)
+                  AS defence,
+              percent_rank() OVER (ORDER BY effective_fg_pct) AS shooting,
+              percent_rank() OVER (ORDER BY offensive_rebound_pct) AS rebounding,
+              percent_rank() OVER (ORDER BY turnover_pct DESC) AS ball_security,
+              percent_rank() OVER (ORDER BY strength_of_schedule) AS schedule
+          FROM season
+      )
+      SELECT measure, percentile FROM (
+          SELECT
+              ranked.overall AS "Overall rating",
+              ranked.offence AS "Offence",
+              ranked.defence AS "Defence",
+              ranked.shooting AS "Shooting",
+              ranked.rebounding AS "Offensive rebounding",
+              ranked.ball_security AS "Ball security",
+              ranked.schedule AS "Schedule faced"
+          FROM ranked
+          INNER JOIN focus ON ranked.team_id = focus.team_id
+      ) AS wide
+      UNPIVOT (percentile FOR measure IN (
+          "Overall rating", "Offence", "Defence", "Shooting",
+          "Offensive rebounding", "Ball security", "Schedule faced"
+      ))
+
+  trajectory:
+    notes: Elo game by game, which is the only number here that moves within a season.
+    sql: |
+      WITH focus AS (
+          SELECT team_id
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          ORDER BY
+              CASE
+                  WHEN team_name ILIKE '%BYU%'
+                    OR team_name ILIKE 'Brigham Young%' THEN 0
+                  ELSE 1
+              END,
+              national_rank
+          LIMIT 1
+      )
+      SELECT
+          timeline.game_number,
+          timeline.elo_after,
+          timeline.is_win
+      FROM marts.mart_elo_timeline AS timeline
+      INNER JOIN focus ON timeline.team_id = focus.team_id
+      WHERE timeline.season = (SELECT max(season) FROM marts.mart_elo_timeline)
+      ORDER BY timeline.game_number
+
+  results:
+    notes: The season's games, most recent first.
+    sql: |
+      WITH focus AS (
+          SELECT team_id
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          ORDER BY
+              CASE
+                  WHEN team_name ILIKE '%BYU%'
+                    OR team_name ILIKE 'Brigham Young%' THEN 0
+                  ELSE 1
+              END,
+              national_rank
+          LIMIT 1
+      )
+      SELECT
+          timeline.game_date,
+          timeline.opponent_name,
+          CASE
+              WHEN timeline.is_neutral_site THEN 'Neutral'
+              WHEN timeline.is_home THEN 'Home'
+              ELSE 'Away'
+          END AS venue,
+          CASE WHEN timeline.is_win THEN 'W' ELSE 'L' END AS result,
+          timeline.margin,
+          timeline.pregame_win_probability,
+          timeline.was_upset_win
+      FROM marts.mart_elo_timeline AS timeline
+      INNER JOIN focus ON timeline.team_id = focus.team_id
+      WHERE timeline.season = (SELECT max(season) FROM marts.mart_elo_timeline)
+      ORDER BY timeline.game_date DESC
+
+charts:
+  kpi_rank:
+    query: identity
+    type: kpi
+    label: National rank
+    value: national_rank
+    support:
+      value: teams_ranked
+      label: Teams ranked
+      format: integer
+    style:
+      value:
+        format: integer
+      label:
+        font:
+          case: none
+
+  kpi_record:
+    query: identity
+    type: kpi
+    label: Record
+    value: record
+    support:
+      value: conference_record
+      label: In conference
+    style:
+      label:
+        font:
+          case: none
+
+  kpi_rating:
+    query: identity
+    type: kpi
+    label: Adjusted efficiency margin
+    value: adjusted_efficiency_margin
+    support:
+      value: elo_rating
+      label: Elo
+      format: integer
+    style:
+      value:
+        format: "+.1f"
+      label:
+        font:
+          case: none
+
+  kpi_schedule:
+    query: identity
+    type: kpi
+    label: Schedule strength rank
+    value: schedule_strength_rank
+    support:
+      value: wins_vs_top_50
+      label: Wins against the top 50
+      format: integer
+    style:
+      value:
+        format: integer
+      label:
+        font:
+          case: none
+
+  strength_bars:
+    query: strengths
+    type: bar
+    title: What this team is good at
+    subtitle: Percentile against every ranked team, so 90% means better than nine in ten of them
+    x: measure
+    y: percentile
+    y_label: National percentile
+    height: 420
+    sort:
+      by: percentile
+      order: desc
+    style:
+      orientation: horizontal
+      number_format: ".0%"
+      legend:
+        visible: false
+      axis_y:
+        scale:
+          continuous:
+            domain: [0, 1]
+
+  elo_line:
+    query: trajectory
+    type: line
+    title: Which way the season has been going
+    subtitle: Elo after each game. It is the one rating here that moves inside a season.
+    x: game_number
+    y: elo_after
+    x_label: Game
+    y_label: Elo
+    height: 360
+    style:
+      number_format: integer
+      legend:
+        visible: false
+      axis_y:
+        scale:
+          continuous:
+            zero: false
+
+  results_table:
+    query: results
+    type: table
+    title: Every game
+    subtitle: Most recent first, with what the model gave the team before tip-off
+    style:
+      pagination:
+        enabled: true
+        page_rows: 15
+      columns:
+        game_date:
+          label: Date
+          format: date_short
+        opponent_name:
+          label: Opponent
+        venue:
+          label: Venue
+        result:
+          label: Result
+          align: center
+        margin:
+          label: Margin
+          format: "+.0f"
+          align: right
+        pregame_win_probability:
+          label: Model gave them
+          format: percent_whole
+          align: right
+        was_upset_win:
+          label: Upset
+    conditional_formatting:
+      result:
+        when:
+          - eq: W
+            font:
+              color: positive.text
+              weight: "600"
+          - eq: L
+            font:
+              color: negative.text
+
+rows:
+  - text: |
+      [Charts home](/charts/) · [Rankings](/charts/rankings/) · **Scorecard** · [Matchup](/charts/matchup/) · [Model](/charts/model/) · [Season](/charts/season/) · [Tournament](/charts/tournament/) · [Dashboard](/)
+    style:
+      padding: 12
+      background: dbt-grays.surface-subtle
+      border:
+        width: 1
+        color: dbt-grays.border
+        radius: 8
+  - text: |
+      One team, at the altitude you read before a game rather than after one.
+      The four numbers below are the whole summary: where the team ranks, what
+      it has done, how good the model thinks it is, and how hard a schedule it
+      says that against.
+
+      This board is fixed on one team, because the pages here render to static
+      HTML and a picker would not survive the export. The
+      [scorecard on the dashboard](/scorecard) is the same view with a team
+      picker on it.
+  - cols: [kpi_rank, kpi_record, kpi_rating, kpi_schedule]
+  - cols: [strength_bars, elo_line]
+  - title: The season in full
+    text: |
+      The model's pre-game probability is beside each result, so a loss it
+      expected and a loss it did not are not the same row.
+    cols: [results_table]

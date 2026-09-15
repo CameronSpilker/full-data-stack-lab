@@ -63,6 +63,10 @@ final as (
         -- team's league was at the time.
         coalesce(teams.conference_name, ratings.rating_conference) as conference_name,
         teams.conference_id,
+        -- Identity rather than measurement: carried this far so a page can
+        -- draw a team without joining back to the dimension itself.
+        teams.team_logo_url,
+        teams.team_color,
 
         form.games_played,
         form.wins,

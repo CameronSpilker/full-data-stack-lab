@@ -1,0 +1,8 @@
+# The images themselves are mirrored by scripts/fetch_logos.py from a live
+# warehouse, which needs network access and an API key. They are committed
+# when a real run produces them; this keeps a half-finished local run, and the
+# non-PNG sources the script parks beside the ones it kept, out of a diff.
+*.svg
+*.jpg
+*.gif
+*.webp

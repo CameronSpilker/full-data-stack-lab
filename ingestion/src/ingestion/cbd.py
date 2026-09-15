@@ -179,6 +179,36 @@ def _first(payload: dict[str, Any], *names: str) -> Any:
     return None
 
 
+def _logo(team: dict[str, Any]) -> str | None:
+    """The team's logo URL, whichever shape the payload used.
+
+    CBD has spelled this three ways across responses: a bare `logo` string, a
+    `logos` list of strings, and a `logos` list of objects keyed by `href`.
+    All three mean the same thing, and a team with no logo at all is normal
+    rather than an error, so this returns None instead of raising.
+
+    Only the first entry is kept. The list is ordered light-mode first and the
+    rest are dark variants and wordmarks, which are a different picture rather
+    than a better copy of this one.
+    """
+    single = _first(team, "logo", "logoUrl", "logo_url")
+    if isinstance(single, str) and single.strip():
+        return single.strip()
+
+    logos = _first(team, "logos", "logoUrls")
+    if isinstance(logos, str) and logos.strip():
+        return logos.strip()
+    if isinstance(logos, list):
+        for entry in logos:
+            if isinstance(entry, str) and entry.strip():
+                return entry.strip()
+            if isinstance(entry, dict):
+                href = _first(entry, "href", "url", "logo")
+                if isinstance(href, str) and href.strip():
+                    return href.strip()
+    return None
+
+
 def _to_int(value: Any) -> int | None:
     try:
         return int(str(value).strip())
@@ -301,6 +331,7 @@ def parse_team(team: dict[str, Any], snapshot: date) -> dict[str, Any] | None:
         "venue_city": _first(venue, "city"),
         "venue_state": _first(venue, "state"),
         "color": _first(team, "color", "primaryColor"),
+        "logo_url": _logo(team),
         "is_active": True,
         "extracted_at": datetime.now(UTC),
     }

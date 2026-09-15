@@ -654,6 +654,11 @@ def extract(
             "venue_city": None,
             "venue_state": None,
             "color": None,
+            # Synthetic teams have no logo and no colour, and inventing a URL
+            # here would put a broken image on every page that draws one. The
+            # column exists so the demo warehouse has the same shape as the
+            # real one; the pages all treat a null as "draw the fallback".
+            "logo_url": None,
             "is_active": True,
             "extracted_at": datetime.now(UTC),
         }

@@ -149,6 +149,15 @@ charts:
 
 rows:
   - text: |
+      **Charts home** · [Rankings](/charts/rankings/) · [Scorecard](/charts/scorecard/) · [Matchup](/charts/matchup/) · [Model](/charts/model/) · [Season](/charts/season/) · [Tournament](/charts/tournament/) · [Dashboard](/)
+    style:
+      padding: 12
+      background: dbt-grays.surface-subtle
+      border:
+        width: 1
+        color: dbt-grays.border
+        radius: 8
+  - text: |
       These boards are YAML. Each one is a file in the same repository as the
       dbt models it reads, so a chart and the column behind it change in one
       commit and get reviewed together.
@@ -165,12 +174,23 @@ rows:
         column:
           max_number: 1
     text: |
+      [The rankings](/charts/rankings/) Every team in the country in one
+      order, cut into tiers, and the same field plotted offence against
+      defence.
+
+      [Team scorecard](/charts/scorecard/) One team on one screen: where it
+      ranks, what it is good at, and which way its season has been going.
+
+      [Matchup](/charts/matchup/) One game priced at a neutral site, with the
+      two halves of the model shown separately so their disagreement is
+      readable.
+
       [Did the model beat the market?](/charts/model/) Three predictors scored
       on the same season, and the calibration curve that decides which of them
       means what it says.
 
       [The season](/charts/season/) Who was good, which conferences were deep,
-      and every team in the country plotted offence against defence.
+      and how the two halves of a rating trade off against each other.
 
       [The tournament](/charts/tournament/) Twenty thousand simulated brackets:
       title odds, what a seed line is really worth, and how fast the field

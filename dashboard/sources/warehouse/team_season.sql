@@ -4,6 +4,11 @@ select
     team_id,
     team_name,
     conference_name,
+    -- Identity rather than measurement. Both are nullable: the synthetic demo
+    -- seasons carry neither, and every page that draws a logo falls back to
+    -- the team's initials rather than a broken image.
+    team_logo_url,
+    team_color,
     record,
     conference_record,
     wins,

@@ -2,6 +2,12 @@
 title: How good is the model?
 ---
 
+<script>
+    import ViewNav from '$lib/ViewNav.svelte';
+</script>
+
+<ViewNav current="model" />
+
 A predictor that never reports its own accuracy is a horoscope. This page is the
 scoreboard for the one on this site.
 
