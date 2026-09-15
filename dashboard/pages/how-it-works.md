@@ -46,7 +46,8 @@ The same marts, read a second way. A [dbt Charts](https://dbtcharts.com) board
 is one YAML file: its queries, its charts and its layout, with no component
 code. The pipeline renders the boards to static pages against the warehouse it
 has just built and tested, and publishes them beside the docs, so
-[/charts](/charts/) is drawn from exactly the run that produced these pages.
+[/charts](https://lab.cameronspilker.com/charts/) is drawn from exactly the
+run that produced these pages.
 
 Two presentation layers over one set of marts is the point rather than an
 accident. Evidence gets the interactive pages, where a reader picks a team and
@@ -95,7 +96,7 @@ local run.
   the ones that saw the future.
 - Team pages: a game log, an Elo timeline, and the priced matchup against
   anyone else in the country. Open one from any team on the season overview.
-- [The dbt Charts boards](/charts/): four static boards drawn straight from the
-  marts, with the model scorecard, the season and the tournament on one page
-  each. No team picker and no filters: a board is the same page for everybody,
-  which is what lets it be one YAML file.
+- [The dbt Charts boards](https://lab.cameronspilker.com/charts/): four static
+  boards drawn straight from the marts, with the model scorecard, the season
+  and the tournament on one page each. No team picker and no filters: a board
+  is the same page for everybody, which is what lets it be one YAML file.
