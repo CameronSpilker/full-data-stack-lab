@@ -269,6 +269,23 @@ lockfile rather than written down twice, because two pins are how they drift
 apart again. A warehouse that fails it is not published, and yesterday's
 readable one stays standing, which is the same bargain the rule above makes.
 
+That check stops a bad warehouse reaching the dashboard. It does not produce a
+good one, and on its own it would have failed the pipeline every night
+instead: the storage format belongs to the file rather than to the writer, so
+a run that starts from a newer-format warehouse keeps producing one, and this
+pipeline starts from the warehouse it published yesterday. Pinning dbt's
+DuckDB would not have broken that loop either.
+
+`scripts/normalise-warehouse.sh` breaks it by rewriting the file. Every run
+copies the built warehouse into a fresh database pinned to DuckDB's own
+conservative `v0.10.2` storage version, which anything newer can read, so the
+floor moves only when DuckDB's does. `COPY FROM DATABASE` carries every
+schema, table and view across, and compacts on the way: the warehouse that
+caused the outage went from 51MB to 28MB, which is a file the dashboard
+downloads on every build. It runs unconditionally rather than only when the
+check fails, because a repair path that runs once a year is a repair path
+nobody has tested.
+
 **A new schedule arrives weeks before anyone plays on it, and for months
 before that there is no schedule at all.** Almost every model here is built
 from results, so on the day the next season's fixtures land, `mart_team_season`

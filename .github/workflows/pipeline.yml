@@ -177,6 +177,15 @@ jobs:
           bash scripts/render-charts.sh
           tar -czf charts.tar.gz -C dist charts
 
+      # The storage format belongs to the file, not to the writer, so a run
+      # that starts from a newer-format warehouse keeps producing one. This
+      # rewrites it into a format old readers can open, which is what breaks
+      # that loop, and compacts it on the way: the file that caused the
+      # outage went from 51MB to 28MB, and the dashboard downloads it on
+      # every build.
+      - name: Normalise the warehouse storage format
+        run: bash scripts/normalise-warehouse.sh
+
       # Passing its own tests is not the same as being readable. dbt writes
       # with whatever DuckDB it resolved; Evidence reads with the one its
       # lockfile pins, and on 15 September those stopped agreeing. Every
