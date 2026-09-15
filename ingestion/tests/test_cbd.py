@@ -566,3 +566,85 @@ def test_box_scores_without_a_fallback_still_lose_the_season(monkeypatch):
     with pytest.raises(cbd.SourceExhausted):
         cbd.extract_box_scores([season], fallback_conferences=[])
 
+
+def test_the_walk_gives_up_once_a_streak_of_leagues_is_throttled(monkeypatch):
+    """64 minutes to learn what the first league already said, once.
+
+    The walk swallows a rate limit per conference so one unlucky league
+    cannot cost the season. When the source is refusing everything that turns
+    into 31 two-minute waits for the same answer, which is what happened on
+    5 September.
+    """
+    asked = []
+
+    def fake_get(client, path, **params):
+        if path == "/teams":
+            raise cbd.RateLimited("CBD is still rate limiting /teams after 7 waits")
+        asked.append(params["conference"])
+        raise cbd.RateLimited("CBD is still rate limiting /games/teams after 7 waits")
+
+    monkeypatch.setattr(cbd, "_get", fake_get)
+    monkeypatch.setattr(cbd, "_client", _NoClient)
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2026, 4, 15))
+    leagues = [f"C{index:02d}" for index in range(31)]
+
+    with pytest.raises(cbd.SourceExhausted):
+        cbd.extract_box_scores([season], fallback_conferences=leagues)
+
+    # Stopped at the streak rather than walking all 31.
+    assert len(asked) == cbd.RATE_LIMIT_GIVE_UP_STREAK
+    assert asked == leagues[: cbd.RATE_LIMIT_GIVE_UP_STREAK]
+
+
+def test_a_scattering_of_other_failures_does_not_trip_the_breaker(monkeypatch):
+    """Only a throttle streak means the rest of the walk is pointless.
+
+    A league that errors for its own reasons says nothing about the next one,
+    so the walk carries on and the season is still collected.
+    """
+    asked = []
+
+    def fake_get(client, path, **params):
+        if path == "/teams":
+            raise cbd.RateLimited("CBD is still rate limiting /teams after 7 waits")
+        conference = params["conference"]
+        asked.append(conference)
+        if conference in ("C01", "C02", "C03", "C05"):
+            raise RuntimeError("some other failure")
+        return []
+
+    monkeypatch.setattr(cbd, "_get", fake_get)
+    monkeypatch.setattr(cbd, "_client", _NoClient)
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2026, 4, 15))
+    leagues = [f"C{index:02d}" for index in range(8)]
+
+    tables = cbd.extract_box_scores([season], fallback_conferences=leagues)
+
+    assert asked == leagues
+    assert tables == {"ncaa_team_box": []}
+
+
+def test_a_throttle_streak_broken_by_a_success_starts_again(monkeypatch):
+    """The streak counts consecutive refusals, not refusals in total."""
+    asked = []
+
+    def fake_get(client, path, **params):
+        if path == "/teams":
+            raise cbd.RateLimited("CBD is still rate limiting /teams after 7 waits")
+        conference = params["conference"]
+        asked.append(conference)
+        if conference == "C03":
+            return []
+        raise cbd.RateLimited("CBD is still rate limiting /games/teams after 7 waits")
+
+    monkeypatch.setattr(cbd, "_get", fake_get)
+    monkeypatch.setattr(cbd, "_client", _NoClient)
+    season = Season(year=2026, start=date(2025, 11, 1), end=date(2026, 4, 15))
+    leagues = [f"C{index:02d}" for index in range(12)]
+
+    with pytest.raises(cbd.SourceExhausted):
+        cbd.extract_box_scores([season], fallback_conferences=leagues)
+
+    # Three refused, C03 answered and reset the count, then four more refused.
+    assert asked == leagues[:8]
+

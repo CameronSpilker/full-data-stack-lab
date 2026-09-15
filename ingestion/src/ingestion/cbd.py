@@ -34,6 +34,16 @@ class MissingApiKey(RuntimeError):
     """Raised when a live extract is attempted with no CBD_API_KEY set."""
 
 
+class RateLimited(RuntimeError):
+    """The source was still refusing with 429 after every wait was spent.
+
+    A subclass of RuntimeError so that every extractor's existing handler
+    keeps catching it. What it adds is the ability to tell "throttled" apart
+    from "something else went wrong", which is the difference between a wait
+    that will be repeated by the next request and one that will not.
+    """
+
+
 class SourceExhausted(RuntimeError):
     """Every request for one source failed.
 
@@ -53,6 +63,15 @@ class SourceExhausted(RuntimeError):
 MAX_ATTEMPTS = 5
 RATE_LIMIT_ATTEMPTS = 7
 RATE_LIMIT_MAX_WAIT = 30.0
+
+# How many leagues in a row may come back throttled before the box score walk
+# gives up on the season. The walk is the one loop here that swallows a
+# rate-limit per item and carries on, which is right when one league is
+# unlucky and wrong when the source is refusing everything: a run on 5
+# September spent 64 minutes discovering that all 31 conferences said 429,
+# two minutes at a time, and the first one had already said it. Four in a row
+# is not bad luck, and the remaining leagues have nothing different to learn.
+RATE_LIMIT_GIVE_UP_STREAK = 4
 
 
 def api_key() -> str:
@@ -107,7 +126,7 @@ def _get(client: httpx.Client, path: str, **params: Any) -> Any:
         if response.status_code == 429:
             throttled += 1
             if throttled > RATE_LIMIT_ATTEMPTS:
-                raise RuntimeError(
+                raise RateLimited(
                     f"CBD is still rate limiting {path} after {RATE_LIMIT_ATTEMPTS} waits"
                 )
             wait = min(
@@ -530,15 +549,36 @@ def extract_box_scores(
 
             before = len(rows)
             lost = 0
-            for conference in conferences:
+            throttled_streak = 0
+            abandoned = False
+            for index, conference in enumerate(conferences):
                 try:
                     payload = _get(
                         client, "/games/teams", season=season.year, conference=conference
                     )
+                except RateLimited as exc:
+                    lost += 1
+                    throttled_streak += 1
+                    log.error("Box scores for %s %s: %s", season.label, conference, exc)
+                    if throttled_streak >= RATE_LIMIT_GIVE_UP_STREAK:
+                        abandoned = True
+                        log.error(
+                            "Giving up on %s box scores: %s leagues in a row came "
+                            "back throttled, and the %s left would each spend the "
+                            "same waits to be told the same thing.",
+                            season.label,
+                            throttled_streak,
+                            len(conferences) - index - 1,
+                        )
+                        break
+                    continue
                 except (httpx.HTTPStatusError, RuntimeError) as exc:
                     lost += 1
+                    throttled_streak = 0
                     log.error("Box scores for %s %s: %s", season.label, conference, exc)
                     continue
+
+                throttled_streak = 0
 
                 batch = payload or []
                 if len(batch) >= PAGE_LIMIT:
@@ -555,8 +595,12 @@ def extract_box_scores(
 
             # A season whose every league was refused is a lost season, not a
             # thin one, and counts the same as one that never got a conference
-            # list at all.
-            if conferences and lost == len(conferences):
+            # list at all. So is one the walk gave up on: it stopped early
+            # precisely because there was no reason to expect the rest to
+            # differ. A season that simply has no box scores yet is neither,
+            # and must not be mistaken for one, which is why this counts
+            # refusals rather than rows.
+            if conferences and (abandoned or lost == len(conferences)):
                 failed += 1
 
             log.info(
