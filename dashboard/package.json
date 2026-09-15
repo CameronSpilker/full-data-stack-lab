@@ -7,7 +7,7 @@
     "node": "22.x"
   },
   "scripts": {
-    "sources": "evidence sources",
+    "sources": "evidence sources && node scripts/write-empty-sources.mjs",
     "dev": "evidence dev",
     "build": "evidence build",
     "preview": "evidence preview",
@@ -15,8 +15,9 @@
     "build:deploy": "npm run fetch && npm run sources && npm run build"
   },
   "dependencies": {
+    "@duckdb/node-api": "^1.4.2-r.1",
     "@evidence-dev/core-components": "^5.0.5",
-    "@evidence-dev/duckdb": "^1.0.11",
+    "@evidence-dev/duckdb": "^2.0.1",
     "@evidence-dev/evidence": "^40.1.8"
   },
   "devDependencies": {

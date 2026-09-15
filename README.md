@@ -201,7 +201,7 @@ assumes the walk was worth starting. It often is not: the 2025-26 season
 stopped producing rows on 7 April, and the nightly run re-downloaded all of it
 every night until September, when the API stopped tolerating that and every
 request came back 429. Five months of asking for a finished season is what
-exhausted the budget, and `Ingest` is the sixth step of twelve, so it took the
+exhausted the budget, and `Ingest` is the sixth step of thirteen, so it took the
 warehouse, the dbt docs and the charts down with it.
 
 A windowed run now asks the warehouse what is left before it calls anything. A
@@ -356,7 +356,7 @@ than a 20-point win, so the strength-of-schedule maths uses a margin clamped to
 with a concave margin-of-victory multiplier.
 
 **The warehouse is published, not committed.** It holds only public data and no
-credentials, so it could go in git, and it should not: it is a 17MB binary that
+credentials, so it could go in git, and it should not: it is a 50MB binary that
 changes on every run even when nothing was played, because every row carries
 the time it was extracted. A daily commit would add its own size to the
 repository's history every day, for a file nobody reads as text and git cannot
@@ -455,50 +455,47 @@ Vercel at a domain of its own. The dbt docs ship inside the same deployment at
 **Vercel project settings.** Root directory `dashboard`; everything else is in
 `dashboard/vercel.json` and `dashboard/package.json`, so the build is described
 in the repository rather than in a control panel nobody can diff. `engines.node`
-pins Node 22 there, matching CI: the DuckDB driver Evidence uses publishes no
-prebuilt binary for Node 24, and without the pin a host defaulting to 24 tries
-to compile DuckDB from source and fails. The build command fetches the
-warehouse and the docs from the release below, then runs the normal Evidence
-build. Every push redeploys.
+pins Node 22 there, matching CI, so the build a host runs is the build CI ran.
+The build command fetches the warehouse and the docs from the release below,
+then runs the normal Evidence build. Every push redeploys.
 
-**A new warehouse has to ask for a rebuild.** The dashboard is static: it reads
-the warehouse at build time and bakes the answers into HTML, so the data on the
-page is the data that existed when the site was last built. Publishing a
-warehouse is therefore invisible until something rebuilds, and nothing did
-until the pipeline was given a Vercel deploy hook to call: the site was as
-fresh as the last push to main rather than as fresh as the last pipeline run.
+**The drift that guard was built for, and what cured it.** The pipeline writes
+the warehouse with the DuckDB in its own requirements, which is unpinned and
+had floated to 1.5.5. The dashboard opened it with the engine under
+`@evidence-dev/duckdb`, which its lockfile had resolved to DuckDB 1.1.3. Every
+Vercel build failed on the connection, before a single query ran:
 
-The hook is a URL that triggers a production build, created under the Vercel
-project's Git settings and held as the `VERCEL_DEPLOY_HOOK_URL` repository
-secret. It is the last step of `pipeline.yml`, after the warehouse is
-published, and it is a warning rather than a failure when the secret is absent,
-so a fork with no Vercel project behind it still gets a green run.
-
-**The warehouse is a release asset, not a commit.** It is a 17MB binary that
-changes on every run even when no games were played, because every row carries
-the timestamp it was extracted at. Committing it daily would add roughly its
-own size to the repository's history every day, for a file git cannot diff and
-nobody reads as text. The daily pipeline overwrites the `warehouse-latest`
-release in place, and anything that needs the data downloads it:
-
-```bash
-curl -fsSL https://github.com/CameronSpilker/full-data-stack-lab/releases/download/warehouse-latest/warehouse.duckdb \
-    -o data/warehouse.duckdb
+```
+Error connecting to datasource warehouse: INTERNAL Error:
+Failed to load metadata pointer (id 47, idx 10, ptr 720575940379279407)
 ```
 
-`dashboard/scripts/fetch-warehouse.sh` is that download plus the docs, and it
-is what `npm run build:deploy` calls. No credentials: the repository is public.
+Reading the published file with each version in turn puts the break at 1.4:
+1.0.0, 1.1.3, 1.2.2 and 1.3.2 all fail on that pointer, and 1.4.2 and 1.5.5
+open it and read every mart. A small warehouse written in one pass opens on all
+of them, which is why CI never saw it and only the published file, months old
+and rewritten every night, was affected.
 
-**A new model is not in the warehouse the deploy fetches.** The deploy takes
-whatever the last pipeline run published, and for a branch that adds a model
-that warehouse does not contain it yet. Evidence does not fail a build over a
-missing table: the deploy succeeds and the queries against it render an error
-on the page that runs them, leaving the rest of the dashboard working. That is
-why `pipeline.yml` also runs on a merge to main that touches `transform/` or
-`ingestion/`, and why it ends by asking for a rebuild. The merge deploys the
-new page against the old warehouse, the pipeline republishes and calls the
-hook, and the second build has the model. The window is the length of a
-pipeline run rather than a day, and it closes without anyone doing anything.
+The cure was to move the reader forward rather than hold the writer back:
+`@evidence-dev/duckdb` 2.0.1, which carries `@duckdb/node-api` 1.4.2. Pinning
+the pipeline instead would freeze it to keep an old reader happy, and the gap
+only opened because nothing was watching it. The guard above is what watches
+it now.
+
+**A source with no rows takes the build down, so it gets a file anyway.**
+`evidence sources` writes one parquet per source and lists it in the manifest.
+A source that returns zero rows is the exception: nothing is written, the
+filename is listed regardless, and `evidence build` then creates a view over a
+file that is not there and fails the whole site over it. One of these is empty
+for most of the year, since `mart_upcoming_games` holds fixtures still to be
+played and there are none between April and the autumn.
+
+`dashboard/scripts/write-empty-sources.mjs` runs after `evidence sources` and
+writes any promised file that is missing, with the columns the source declared
+and none of the rows. The pages want exactly that: every section of the picks
+page guards on emptiness and draws a labelled placeholder, which needs the
+query to come back empty rather than to fail. A source with rows is untouched,
+so in season this does nothing.
 
 **Nothing is published until dbt passes.** The pipeline uploads the warehouse
 only after `dbt build`, so a warehouse that failed its own tests is never the

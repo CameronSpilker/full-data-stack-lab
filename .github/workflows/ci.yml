@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Run it by hand against any branch. GitHub does not always raise a
+  # pull_request event for a push, and when it does not there is otherwise no
+  # way to get CI onto that commit short of an empty commit or reopening the
+  # pull request, neither of which is a thing to do to a branch.
+  workflow_dispatch:
 
 env:
   # Absolute, because several steps run with `working-directory: transform`,

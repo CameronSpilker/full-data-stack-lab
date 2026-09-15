@@ -27,25 +27,44 @@ if [ ! -f "$WAREHOUSE" ]; then
     exit 1
 fi
 
-# The resolved version, not the semver range in package.json: "^1.0.11" is a
+# The resolved version, not the semver range in package.json: "^2.0.1" is a
 # promise about the Evidence plugin, and what matters is the DuckDB underneath
 # it that the lockfile actually installs.
 READER_VERSION="$(python3 - <<'PY'
 import json
+import re
 import sys
 
 with open("dashboard/package-lock.json") as handle:
     lock = json.load(handle)
 
-# The bare `duckdb` package, not `@evidence-dev/duckdb`. Both paths end in
-# "/duckdb" and they carry different versions: the scoped one is the Evidence
-# plugin, and the engine it depends on is the one that has to read this file.
-for name, entry in lock.get("packages", {}).items():
-    if (name == "node_modules/duckdb" or name.endswith("/node_modules/duckdb")) and entry.get("version"):
-        print(entry["version"])
+# Not `@evidence-dev/duckdb`, which is the Evidence plugin and carries its own
+# version. The engine underneath it is what has to read this file, and it has
+# two spellings: `@duckdb/node-bindings` since the plugin moved to
+# @duckdb/node-api, and a bare `duckdb` before that, from duckdb-async.
+ENGINES = ("@duckdb/node-bindings", "duckdb")
+
+
+def version_of(package):
+    for name, entry in lock.get("packages", {}).items():
+        if name.split("node_modules/")[-1] == package and entry.get("version"):
+            return entry["version"]
+    return None
+
+
+for engine in ENGINES:
+    found = version_of(engine)
+    if found:
+        # The node build carries a release suffix pip has never heard of:
+        # 1.4.2-r.1 is DuckDB 1.4.2 with a rebuilt binding.
+        print(re.sub(r"-r\.\d+$", "", found))
         break
 else:
-    print("no duckdb engine entry in dashboard/package-lock.json", file=sys.stderr)
+    print(
+        "no DuckDB engine in dashboard/package-lock.json: looked for "
+        + " and ".join(ENGINES),
+        file=sys.stderr,
+    )
     sys.exit(1)
 PY
 )"
