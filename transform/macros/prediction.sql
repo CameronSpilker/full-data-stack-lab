@@ -12,22 +12,44 @@
     nine straight. Weighting them is in `vars`, not here.
 #}
 
+{#
+    The efficiency half, on its own.
+
+    Broken out so that a page can show what each half of the model thinks
+    without recomputing it: the matchup page puts the two side by side, and a
+    presentation layer that reimplemented this formula in its own SQL would be
+    a second copy of the constants, which is the thing this file exists to
+    prevent. `predicted_margin` below is still the only blend.
+#}
+{% macro efficiency_margin_component(team, opponent) %}
+    (
+        (
+            {{ team }}.adjusted_tempo * {{ opponent }}.adjusted_tempo
+            / {{ var('league_average_tempo') }}
+        )
+        * (
+            {{ team }}.adjusted_efficiency_margin
+            - {{ opponent }}.adjusted_efficiency_margin
+        ) / 100.0
+    )
+{% endmacro %}
+
+
+{# The Elo half, on its own. See the note above. #}
+{% macro elo_margin_component(team, opponent) %}
+    (
+        ({{ team }}.elo_rating - {{ opponent }}.elo_rating)
+        / {{ var('elo_points_per_rating_point') }}
+    )
+{% endmacro %}
+
+
 {% macro predicted_margin(team, opponent, home_advantage) %}
     (
-        {{ var('efficiency_model_weight') }} * (
-            (
-                {{ team }}.adjusted_tempo * {{ opponent }}.adjusted_tempo
-                / {{ var('league_average_tempo') }}
-            )
-            * (
-                {{ team }}.adjusted_efficiency_margin
-                - {{ opponent }}.adjusted_efficiency_margin
-            ) / 100.0
-        )
-        + {{ var('elo_model_weight') }} * (
-            ({{ team }}.elo_rating - {{ opponent }}.elo_rating)
-            / {{ var('elo_points_per_rating_point') }}
-        )
+        {{ var('efficiency_model_weight') }}
+            * {{ efficiency_margin_component(team, opponent) }}
+        + {{ var('elo_model_weight') }}
+            * {{ elo_margin_component(team, opponent) }}
         + ({{ home_advantage }})
     )
 {% endmacro %}

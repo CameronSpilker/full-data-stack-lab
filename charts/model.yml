@@ -221,13 +221,20 @@ charts:
 
 rows:
   - text: |
+      [Charts home](/charts/) · [Rankings](/charts/rankings/) · [Scorecard](/charts/scorecard/) · [Matchup](/charts/matchup/) · **Model** · [Season](/charts/season/) · [Tournament](/charts/tournament/) · [Dashboard](/)
+    style:
+      padding: 12
+      background: dbt-grays.surface-subtle
+      border:
+        width: 1
+        color: dbt-grays.border
+        radius: 8
+  - text: |
       Three predictors, one season, each scored on the games it actually priced.
       Read `Forecast?` in the table first: a model allowed to see the season it
       is predicting is not forecasting, it is remembering. Only Elo and the
       market consensus are honest on that column, and the game counts differ
       because each model prices a different slice of the schedule.
-
-      [Charts home](/charts/) · [The season](/charts/season/) · [The tournament](/charts/tournament/)
   - cols: [scoreboard]
   - cols: [brier_bars, elo_trend]
   - title: Reliability

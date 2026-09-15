@@ -117,6 +117,35 @@ def test_parse_team_handles_a_venue_given_as_a_string():
     assert row["venue_name"] == "Some Arena"
 
 
+# The logo has been spelled three ways across CBD responses, and a team with
+# none at all is ordinary rather than an error. Each shape gets a case so a
+# source that switches between them cannot quietly empty the column.
+@pytest.mark.parametrize(
+    ("payload", "expected"),
+    [
+        ({"logo": "https://example.test/a.png"}, "https://example.test/a.png"),
+        ({"logos": ["https://example.test/b.png"]}, "https://example.test/b.png"),
+        (
+            {"logos": [{"href": "https://example.test/c.png"}]},
+            "https://example.test/c.png",
+        ),
+        # Light mode first: the rest of the list is dark variants and
+        # wordmarks, which are a different picture rather than a better copy.
+        (
+            {"logos": ["https://example.test/d.png", "https://example.test/d-dark.png"]},
+            "https://example.test/d.png",
+        ),
+        ({}, None),
+        ({"logo": None, "logos": []}, None),
+        ({"logo": "   "}, None),
+    ],
+)
+def test_parse_team_reads_the_logo_in_every_shape(payload, expected):
+    row = cbd.parse_team({"id": 1, "school": "Test", **payload}, SNAPSHOT)
+
+    assert row["logo_url"] == expected
+
+
 # Copied from a live /games/teams response. The old fixture invented a game
 # with a nested `teams` array, and the parser written against it returned zero
 # rows from 3,000 real records: each record is one team's line, with its own

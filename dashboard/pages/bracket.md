@@ -2,6 +2,12 @@
 title: Tournament Odds
 ---
 
+<script>
+    import ViewNav from '$lib/ViewNav.svelte';
+</script>
+
+<ViewNav current="bracket" />
+
 ```sql sims
 select max(simulations) as simulations, max(season) as season from tournament_odds
 ```

@@ -3,8 +3,11 @@ title: Upcoming picks
 ---
 
 <script>
+    import ViewNav from '$lib/ViewNav.svelte';
     import AwaitingData from '$lib/AwaitingData.svelte';
 </script>
+
+<ViewNav current="picks" />
 
 Every other page here grades a prediction against a game that already
 happened. This one does not: it is what the model makes of games nobody has

@@ -32,7 +32,17 @@ pairs as (
         {{ predicted_margin('team', 'opponent', 0) }} as neutral_margin,
         {{ predicted_margin(
             'team', 'opponent', var('home_court_advantage_points')
-        ) }} as home_margin
+        ) }} as home_margin,
+
+        -- The two halves of that blend, unweighted, so a page can show what
+        -- each rating thinks on its own. They are not alternative models the
+        -- lab ships: the blend is the prediction, and these say where it came
+        -- from. Their disagreement is the useful part, because the two fail
+        -- differently: efficiency is opponent-adjusted and slow, Elo is
+        -- noisier and knows who has won nine straight.
+        {{ efficiency_margin_component('team', 'opponent') }}
+            as efficiency_only_margin,
+        {{ elo_margin_component('team', 'opponent') }} as elo_only_margin
 
     from inputs as team
     inner join inputs as opponent
@@ -57,8 +67,16 @@ final as (
         neutral_margin as predicted_margin_neutral,
         home_margin as predicted_margin_at_home,
 
+        efficiency_only_margin as predicted_margin_efficiency_only,
+        elo_only_margin as predicted_margin_elo_only,
+
         {{ margin_to_win_probability('neutral_margin') }} as win_probability_neutral,
-        {{ margin_to_win_probability('home_margin') }} as win_probability_at_home
+        {{ margin_to_win_probability('home_margin') }} as win_probability_at_home,
+
+        {{ margin_to_win_probability('efficiency_only_margin') }}
+            as win_probability_efficiency_only,
+        {{ margin_to_win_probability('elo_only_margin') }}
+            as win_probability_elo_only
 
     from pairs
 

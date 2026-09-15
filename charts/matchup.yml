@@ -1,0 +1,375 @@
+title: Matchup
+notes: >
+  One head-to-head priced by the model, with the two halves of its rating
+  shown separately, and the same team against every other side worth being
+  afraid of.
+tags: [matchup, predictions]
+
+# The board is fixed on one matchup, because these pages render to static HTML
+# and a picker would not survive the export. The version with two team pickers
+# on it is the Evidence page at /matchup, which the banner links to.
+#
+# The featured game is the board's focus team against the best other team in
+# the country: BYU where the season has them, the top-ranked team otherwise,
+# which is the same rule the scorecard board uses so the two agree about who
+# the subject is.
+queries:
+  # mart_matchup_odds stores each pair once, in team_id order, because a grid
+  # of every pair both ways is twice the rows for none of the information.
+  # Reading it from one team's point of view therefore means putting the
+  # mirror back: the margin negates and the probability is one minus itself.
+  # Every query below starts from this.
+  featured:
+    notes: The featured matchup, from the focus team's side.
+    sql: |
+      WITH oriented AS (
+          SELECT
+              team_id AS side_id, team_name AS side_name,
+              conference_name AS side_conference,
+              opponent_team_id AS other_id, opponent_name AS other_name,
+              opponent_conference AS other_conference,
+              predicted_margin_neutral AS margin,
+              win_probability_neutral AS win_probability,
+              win_probability_efficiency_only AS efficiency_probability,
+              win_probability_elo_only AS elo_probability
+          FROM marts.mart_matchup_odds
+          UNION ALL
+          SELECT
+              opponent_team_id, opponent_name, opponent_conference,
+              team_id, team_name, conference_name,
+              -predicted_margin_neutral,
+              1 - win_probability_neutral,
+              1 - win_probability_efficiency_only,
+              1 - win_probability_elo_only
+          FROM marts.mart_matchup_odds
+      ),
+      focus AS (
+          SELECT team_id
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          ORDER BY
+              CASE
+                  WHEN team_name ILIKE '%BYU%'
+                    OR team_name ILIKE 'Brigham Young%' THEN 0
+                  ELSE 1
+              END,
+              national_rank
+          LIMIT 1
+      ),
+      best_other AS (
+          SELECT team.team_id
+          FROM marts.mart_team_season AS team
+          WHERE team.season = (SELECT max(season) FROM marts.mart_team_season)
+            AND team.team_id <> (SELECT team_id FROM focus)
+          ORDER BY team.national_rank
+          LIMIT 1
+      )
+      SELECT
+          oriented.side_name,
+          oriented.side_conference,
+          oriented.other_name,
+          oriented.other_conference,
+          oriented.margin,
+          oriented.win_probability,
+          oriented.efficiency_probability,
+          oriented.elo_probability,
+          side.national_rank AS side_rank,
+          side.record AS side_record,
+          other.national_rank AS other_rank,
+          other.record AS other_record,
+          -- The name to put in the headline, so the sentence is about whoever
+          -- the model actually favours rather than always about the focus team.
+          CASE
+              WHEN oriented.win_probability >= 0.5 THEN oriented.side_name
+              ELSE oriented.other_name
+          END AS favourite,
+          greatest(
+              oriented.win_probability, 1 - oriented.win_probability
+          ) AS favourite_probability,
+          abs(oriented.margin) AS favourite_margin
+      FROM oriented
+      INNER JOIN marts.mart_team_season AS side
+          ON oriented.side_id = side.team_id
+          AND side.season = (SELECT max(season) FROM marts.mart_team_season)
+      INNER JOIN marts.mart_team_season AS other
+          ON oriented.other_id = other.team_id
+          AND other.season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE oriented.side_id = (SELECT team_id FROM focus)
+        AND oriented.other_id = (SELECT team_id FROM best_other)
+
+  # Long format rather than two columns of numbers: one row per team per
+  # measure is what lets a grouped bar draw the pair side by side.
+  comparison:
+    notes: The two teams' ratings, one row per team per measure.
+    sql: |
+      WITH focus AS (
+          SELECT team_id
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          ORDER BY
+              CASE
+                  WHEN team_name ILIKE '%BYU%'
+                    OR team_name ILIKE 'Brigham Young%' THEN 0
+                  ELSE 1
+              END,
+              national_rank
+          LIMIT 1
+      ),
+      best_other AS (
+          SELECT team_id
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+            AND team_id <> (SELECT team_id FROM focus)
+          ORDER BY national_rank
+          LIMIT 1
+      ),
+      pair AS (
+          SELECT *
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+            AND team_id IN (
+                (SELECT team_id FROM focus), (SELECT team_id FROM best_other)
+            )
+      )
+      SELECT team_name, measure, value FROM (
+          SELECT
+              team_name,
+              adjusted_efficiency_margin AS "Efficiency margin",
+              adjusted_offensive_efficiency - 100 AS "Offence above 100",
+              -- Flipped so that a longer bar is a better defence on a chart
+              -- where every other measure already works that way.
+              100 - adjusted_defensive_efficiency AS "Defence below 100",
+              adjusted_tempo - 60 AS "Tempo above 60"
+          FROM pair
+      ) AS wide
+      UNPIVOT (value FOR measure IN (
+          "Efficiency margin", "Offence above 100",
+          "Defence below 100", "Tempo above 60"
+      ))
+
+  gauntlet:
+    notes: The focus team against the fifteen best teams in the country.
+    sql: |
+      WITH oriented AS (
+          SELECT
+              team_id AS side_id,
+              opponent_team_id AS other_id, opponent_name AS other_name,
+              opponent_conference AS other_conference,
+              predicted_margin_neutral AS margin,
+              win_probability_neutral AS win_probability,
+              win_probability_efficiency_only AS efficiency_probability,
+              win_probability_elo_only AS elo_probability
+          FROM marts.mart_matchup_odds
+          UNION ALL
+          SELECT
+              opponent_team_id,
+              team_id, team_name, conference_name,
+              -predicted_margin_neutral,
+              1 - win_probability_neutral,
+              1 - win_probability_efficiency_only,
+              1 - win_probability_elo_only
+          FROM marts.mart_matchup_odds
+      ),
+      focus AS (
+          SELECT team_id
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          ORDER BY
+              CASE
+                  WHEN team_name ILIKE '%BYU%'
+                    OR team_name ILIKE 'Brigham Young%' THEN 0
+                  ELSE 1
+              END,
+              national_rank
+          LIMIT 1
+      )
+      SELECT
+          other.national_rank AS opponent_rank,
+          oriented.other_name AS opponent,
+          oriented.other_conference AS conference,
+          other.record AS opponent_record,
+          oriented.margin,
+          oriented.win_probability,
+          oriented.efficiency_probability,
+          oriented.elo_probability,
+          abs(
+              oriented.efficiency_probability - oriented.elo_probability
+          ) AS disagreement
+      FROM oriented
+      INNER JOIN marts.mart_team_season AS other
+          ON oriented.other_id = other.team_id
+          AND other.season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE oriented.side_id = (SELECT team_id FROM focus)
+        AND other.national_rank <= 15
+      ORDER BY other.national_rank
+
+charts:
+  kpi_favourite:
+    query: featured
+    type: kpi
+    label: The model's pick
+    value: favourite
+    support:
+      value: favourite_probability
+      label: Win probability
+      format: percent_whole
+    style:
+      label:
+        font:
+          case: none
+
+  kpi_margin:
+    query: featured
+    type: kpi
+    label: Expected margin at a neutral site
+    value: favourite_margin
+    support:
+      value: win_probability
+      label: Chance the focus team wins
+      format: percent_whole
+    style:
+      value:
+        format: "+.1f"
+      label:
+        font:
+          case: none
+
+  kpi_efficiency:
+    query: featured
+    type: kpi
+    label: What the efficiency rating alone says
+    value: efficiency_probability
+    style:
+      value:
+        format: percent_whole
+      label:
+        font:
+          case: none
+
+  kpi_elo:
+    query: featured
+    type: kpi
+    label: What Elo alone says
+    value: elo_probability
+    style:
+      value:
+        format: percent_whole
+      label:
+        font:
+          case: none
+
+  comparison_bars:
+    query: comparison
+    type: bar
+    title: The two teams, measure by measure
+    subtitle: Each measure is shifted so that a longer bar is always the better number
+    x: measure
+    y: value
+    color: team_name
+    y_label: Points per 100 possessions, except tempo
+    height: 420
+    style:
+      orientation: horizontal
+      stack: none
+      number_format: "+.1f"
+
+  gauntlet_bars:
+    query: gauntlet
+    type: bar
+    title: Against the fifteen best teams in the country
+    subtitle: Neutral site, so the only thing separating these is how good the model thinks the two teams are
+    x: opponent
+    y: win_probability
+    y_label: Win probability
+    height: 460
+    sort:
+      by: win_probability
+      order: desc
+    style:
+      orientation: horizontal
+      number_format: percent_whole
+      legend:
+        visible: false
+      axis_y:
+        scale:
+          continuous:
+            domain: [0, 1]
+
+  gauntlet_table:
+    query: gauntlet
+    type: table
+    title: The same games, with both halves of the model
+    subtitle: Where the two disagree, the blend is somewhere between them and the game is less settled than one number suggests
+    style:
+      columns:
+        opponent_rank:
+          label: "#"
+          format: integer
+          align: right
+          width: 60
+        opponent:
+          label: Opponent
+        conference:
+          label: Conference
+        opponent_record:
+          label: Record
+          align: right
+        margin:
+          label: Margin
+          format: "+.1f"
+          align: right
+        win_probability:
+          label: Model
+          format: percent_whole
+          align: right
+          scale:
+            background:
+              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              domain: data
+        efficiency_probability:
+          label: Efficiency only
+          format: percent_whole
+          align: right
+        elo_probability:
+          label: Elo only
+          format: percent_whole
+          align: right
+        disagreement:
+          label: Gap
+          format: percent_whole
+          align: right
+
+rows:
+  - text: |
+      [Charts home](/charts/) · [Rankings](/charts/rankings/) · [Scorecard](/charts/scorecard/) · **Matchup** · [Model](/charts/model/) · [Season](/charts/season/) · [Tournament](/charts/tournament/) · [Dashboard](/)
+    style:
+      padding: 12
+      background: dbt-grays.surface-subtle
+      border:
+        width: 1
+        color: dbt-grays.border
+        radius: 8
+  - text: |
+      One game, priced at a neutral site. The model is a blend of two ratings
+      that fail differently: adjusted efficiency, which is opponent-adjusted
+      and barely moves inside a season, and Elo, which is noisier but knows a
+      team has won nine straight. The two cards on the right say what each
+      half thinks on its own.
+
+      When they agree, the game is what it looks like. When they disagree, the
+      blend sits between them and the game is less settled than a single
+      number suggests.
+
+      This board is fixed on one matchup, because these pages render to static
+      HTML and a picker would not survive the export. The
+      [matchup page on the dashboard](/matchup) is the same view with two team
+      pickers on it.
+  - cols: [kpi_favourite, kpi_margin, kpi_efficiency, kpi_elo]
+  - cols: [comparison_bars]
+  - title: Everyone worth being afraid of
+    text: |
+      The same team against the fifteen best teams in the country, all at a
+      neutral site, so nothing separates these games except how good the model
+      thinks the two sides are.
+    cols: [gauntlet_bars]
+  - cols: [gauntlet_table]

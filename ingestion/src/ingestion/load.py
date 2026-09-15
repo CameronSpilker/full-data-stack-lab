@@ -84,6 +84,40 @@ def _delete_matching(con: Any, qualified: str, table_name: str, columns: list[st
     )
 
 
+def _reconcile_columns(con: Any, qualified: str, incoming: list[str]) -> list[str]:
+    """Widen the stored table to hold any column the extract has gained.
+
+    The pipeline starts each night from the previous warehouse, so a table is
+    almost never created fresh: it is the one last night wrote. Adding a field
+    to an extractor therefore meets a table one column narrower, and a
+    positional `INSERT ... SELECT *` fails on the count rather than filling
+    the gap. That surfaced as a run that died on the first extractor with
+    "table has 16 columns but 17 values were supplied".
+
+    New columns are added to the stored table, and the insert that follows
+    names its columns so the two line up by name rather than by position.
+    Columns the extract has dropped are left in place holding nulls: removing
+    one is a decision about history, not something a schema drift should make
+    on its own.
+    """
+    stored = [row[0] for row in con.execute(f"DESCRIBE {qualified}").fetchall()]
+
+    for column in incoming:
+        if column not in stored:
+            column_type = con.execute(
+                f"SELECT typeof({column}) FROM {INCOMING} "
+                f"WHERE {column} IS NOT NULL LIMIT 1"
+            ).fetchone()
+            # An all-null new column carries no type to read off the batch.
+            # VARCHAR holds anything a later, non-empty extract will send.
+            sql_type = column_type[0] if column_type else "VARCHAR"
+            con.execute(f"ALTER TABLE {qualified} ADD COLUMN {column} {sql_type}")
+            log.info("Added column %s (%s) to %s", column, sql_type, qualified)
+            stored.append(column)
+
+    return [column for column in stored if column in incoming]
+
+
 def load_to_duckdb(
     table_name: str,
     rows: list[dict[str, Any]],
@@ -118,7 +152,9 @@ def load_to_duckdb(
         else:
             _delete_matching(con, qualified, table_name, list(rows[0]))
 
-        con.execute(f"INSERT INTO {qualified} SELECT * FROM {INCOMING}")
+        shared = _reconcile_columns(con, qualified, list(rows[0]))
+        columns = ", ".join(shared)
+        con.execute(f"INSERT INTO {qualified} ({columns}) SELECT {columns} FROM {INCOMING}")
 
     log.info("Loaded %s rows into %s", len(rows), qualified)
     return len(rows)

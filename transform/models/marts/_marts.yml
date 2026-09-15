@@ -27,6 +27,18 @@ models:
           possessions. The single best summary of team quality here.
       - name: made_ncaa_tournament
         description: Whether the team actually played an NCAA tournament game that season.
+      - name: team_logo_url
+        description: >
+          Where the source publishes the team's logo, carried this far so the
+          scorecard and matchup pages can draw a team without a second join.
+          Nullable: the synthetic demo seasons carry none, so every page that
+          reads it falls back to the team's initials.
+      - name: team_color
+        description: >
+          The team's primary colour, six hex digits with no leading "#".
+          Nullable on the same terms as the logo. Used to tint a team's own
+          card, never to carry meaning in a chart, which is what the validated
+          categorical palette is for.
 
   - name: mart_game_results
     description: >
@@ -69,10 +81,50 @@ models:
       Every possible matchup in the current season, priced at a neutral site
       and at home. The tournament simulation draws its probabilities from here,
       so the bracket and any head-to-head view cannot disagree.
+    # The blend is the two halves at their configured weights, and nothing
+    # else. If this fails, the components and the prediction they are meant to
+    # explain have drifted apart, and the matchup pages are showing a
+    # breakdown of a number the model did not produce.
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              abs(
+                  predicted_margin_neutral
+                  - (
+                      {{ var('efficiency_model_weight') }}
+                          * predicted_margin_efficiency_only
+                      + {{ var('elo_model_weight') }}
+                          * predicted_margin_elo_only
+                  )
+              ) < 0.0001
     columns:
       - name: matchup_id
         data_tests: [not_null, unique]
       - name: win_probability_neutral
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: predicted_margin_efficiency_only
+        description: >
+          The efficiency half of the blend, unweighted. Not a model the lab
+          ships: the blended margin is the prediction, and this says where it
+          came from.
+        data_tests: [not_null]
+      - name: predicted_margin_elo_only
+        description: The Elo half of the blend, unweighted. See the column above.
+        data_tests: [not_null]
+      - name: win_probability_efficiency_only
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: win_probability_elo_only
         data_tests:
           - not_null
           - dbt_utils.accepted_range:

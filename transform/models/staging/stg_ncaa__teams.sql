@@ -34,6 +34,7 @@ renamed as (
         venue_city,
         venue_state,
         color as team_color,
+        logo_url as team_logo_url,
         is_active,
         {{ normalize_team_name('location') }} as team_match_key,
         cast(snapshot_date as date) as snapshot_date,

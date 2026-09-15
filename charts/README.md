@@ -10,10 +10,26 @@ reads it are one diff.
 
 | File | Page | What it answers |
 | --- | --- | --- |
-| `index.yml` | `/charts/` | Headline numbers and the way into the other three |
+| `index.yml` | `/charts/` | Headline numbers and the way into the other six |
+| `rankings.yml` | `/charts/rankings/` | The whole field in rating order, tiered, and plotted offence against defence |
+| `scorecard.yml` | `/charts/scorecard/` | One team on one screen: rank, strengths, and which way the season is going |
+| `matchup.yml` | `/charts/matchup/` | One game priced at a neutral site, with each half of the model shown separately |
 | `model.yml` | `/charts/model/` | Which predictor was best, and whether its confidence means anything |
 | `season.yml` | `/charts/season/` | Who was good and which conferences were deep |
 | `tournament.yml` | `/charts/tournament/` | Title odds, seed value and survival, from 20,000 simulated brackets |
+
+Every board opens with the same banner of links to the other six and to the
+Evidence dashboard, with its own entry in bold rather than linked. The banner is
+generated from one list, so adding a board means adding a row above and a line
+to that list rather than editing seven files that then drift apart.
+
+Two of the boards have a counterpart on the Evidence side that does the same
+job with a picker on it: `/scorecard` and `/matchup`. They are not duplicates
+by accident. These pages render to static HTML, which is what makes them cheap
+and what means a variable widget cannot survive the export, so a board is fixed
+on one team or one game and says so with a link to the version that is not.
+Both read the same marts, so the two can differ in what they let you ask and
+never in the answer.
 
 `meta.yml` is not a board. dbt Charts applies it to every file in this folder,
 and it carries the two things that must not be decided per board: the palette,
@@ -70,5 +86,9 @@ Two consequences worth knowing:
   re-fetch the pages the last pipeline run drew.
 
 Static also means the variable widgets `dct serve` gives you do not survive the
-render, so the boards here are authored without them. A page that needs a team
-picker belongs on the Evidence side.
+render, so the boards here are authored without them. A board that is about one
+team or one game picks its subject in SQL instead: `scorecard.yml` and
+`matchup.yml` both open with a `focus` CTE that resolves to BYU, or to the
+top-ranked team when a season arrives without them, which is also what makes
+them render against the synthetic demo seasons. A page that needs the reader to
+choose belongs on the Evidence side, and both of those boards link to it.

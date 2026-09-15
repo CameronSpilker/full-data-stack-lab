@@ -4,10 +4,18 @@ title: Team scorecard
 
 <script>
     import AwaitingData from '$lib/AwaitingData.svelte';
+    import ViewNav from '$lib/ViewNav.svelte';
+    import TeamCrest from '$lib/TeamCrest.svelte';
 </script>
+
+<ViewNav current="scorecard" />
 
 Every number that decides whether a team is any good, on one screen. Pick a team.
 It opens on BYU.
+
+The short version is at the top: where the team ranks, what it has done, and
+what the model makes of it in one sentence. Everything below that is the
+working.
 
 ```sql season_status
 select
@@ -112,6 +120,11 @@ select coalesce(
 select
     team_id,
     team_name,
+    -- Nullable, both of them. The crest falls back to the team's initials
+    -- when there is no mirrored logo, which is every team in the synthetic
+    -- demo seasons.
+    team_logo_url,
+    team_color,
     conference_name,
     season,
     record,
@@ -149,6 +162,15 @@ where team_id::varchar = (select team_id from ${chosen})
     and season = (select max(season) from team_season)
 ```
 
+<div class="masthead">
+<TeamCrest
+    teamId={team[0]?.team_id}
+    name={team[0]?.team_name}
+    color={team[0]?.team_color}
+    size={64}
+/>
+<div>
+
 # <Value data={team} column=team_name />
 
 <Value data={team} column=conference_name /> · <Value data={team} column=record /> overall
@@ -158,6 +180,65 @@ nationally and <Value data={team} column=conference_rank fmt='0' /> in the leagu
 · <Value data={team} column=wins_vs_top_50 fmt='0' /> wins from
 <Value data={team} column=games_vs_top_50 fmt='0' /> games against the top 50
 · <Value data={team} column=season fmt='0000' /> season
+
+</div>
+</div>
+
+```sql verdict
+-- The one-sentence read on the team, assembled in SQL rather than written in
+-- the page, so it describes whichever team the dropdown is on.
+--
+-- Every band below is a cut on the team's own rank within the field, counted
+-- rather than written down, so a season that gains or loses teams does not
+-- quietly move the boundaries. The wording is deliberately plain: this is the
+-- line someone repeats after closing the page.
+with sized as (
+    select
+        national_rank,
+        offense_rank,
+        defense_rank,
+        adjusted_efficiency_margin,
+        last_10_wins,
+        last_10_games,
+        (select count(*) from team_season
+         where season = (select max(season) from team_season)) as field_size
+    from team_season
+    where team_id::varchar = (select team_id from ${chosen})
+        and season = (select max(season) from team_season)
+)
+select
+    national_rank,
+    field_size,
+    adjusted_efficiency_margin,
+    case
+        when national_rank <= 16 then 'a genuine title contender'
+        when national_rank <= 48 then 'good enough to make a deep run'
+        when national_rank <= 100 then 'in the conversation, and inconsistent'
+        when national_rank <= field_size / 2 then 'in the top half of the country'
+        else 'below the national average'
+    end as standing,
+    -- Which side of the ball carries them, decided by the gap between the two
+    -- ranks rather than by which is lower: a team ranked 20th on offence and
+    -- 22nd on defence is balanced, not an offensive team.
+    case
+        when abs(offense_rank - defense_rank) <= 25 then 'balanced at both ends'
+        when offense_rank < defense_rank then 'carried by its offence'
+        else 'carried by its defence'
+    end as shape,
+    last_10_wins,
+    last_10_games
+from sized
+```
+
+<div class="verdict">
+The model has this team <strong><Value data={verdict} column=standing /></strong>,
+ranked <Value data={verdict} column=national_rank fmt='0' /> of
+<Value data={verdict} column=field_size fmt='0' /> at
+<Value data={verdict} column=adjusted_efficiency_margin fmt='+0.0' /> points per
+100 possessions, and <Value data={verdict} column=shape />. It has won
+<Value data={verdict} column=last_10_wins fmt='0' /> of its last
+<Value data={verdict} column=last_10_games fmt='0' />.
+</div>
 
 ```sql form_trend
 -- The four trend tiles read this one result, so they all share a row 0 and
@@ -331,7 +412,12 @@ compares where the team is now against where they finished last season. The
 bottom row is the opponent adjusted ratings, which the warehouse holds for this
 season only, so they carry their national rank instead of a trend.
 
-## Where they stand
+## The detail
+
+Everything from here is the working behind the two rows above: where the team
+sits against the field, how the season moved, and every game it played.
+
+### Where they stand
 
 ```sql percentiles
 with field as (
@@ -793,3 +879,37 @@ order by game_date desc
     <Column id=pregame_win_probability title="Pregame odds" fmt='pct0' />
     <Column id=elo_change title="Elo +/-" fmt='+0.0;-0.0' />
 </DataTable>
+
+<style>
+    .masthead {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    /* The heading already carries the page's top margin; inside the masthead
+       it would push the crest out of line with the text beside it. */
+    .masthead :global(h1) {
+        margin-top: 0;
+    }
+
+    /* Derived from `currentColor` so the card follows the reader's appearance
+       without naming a hex twice, the same rule the components keep. */
+    .verdict {
+        margin: 1rem 0 1.5rem;
+        padding: 1rem 1.25rem;
+        border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+        border-radius: 0.375rem;
+        background: color-mix(in srgb, currentColor 4%, transparent);
+        font-size: 1.05rem;
+        line-height: 1.55;
+        max-width: 70ch;
+    }
+
+    @media (max-width: 40rem) {
+        .masthead {
+            gap: 0.75rem;
+        }
+    }
+</style>

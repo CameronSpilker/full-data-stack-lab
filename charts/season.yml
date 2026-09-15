@@ -282,11 +282,18 @@ charts:
 
 rows:
   - text: |
+      [Charts home](/charts/) · [Rankings](/charts/rankings/) · [Scorecard](/charts/scorecard/) · [Matchup](/charts/matchup/) · [Model](/charts/model/) · **Season** · [Tournament](/charts/tournament/) · [Dashboard](/)
+    style:
+      padding: 12
+      background: dbt-grays.surface-subtle
+      border:
+        width: 1
+        color: dbt-grays.border
+        radius: 8
+  - text: |
       Everything here describes the last completed season. A team that has not
       played cannot be rated, so the board waits for games rather than drawing
       an empty axis.
-
-      [Charts home](/charts/) · [Did the model beat the market?](/charts/model/) · [The tournament](/charts/tournament/)
   - cols: [kpi_teams, kpi_games, kpi_best]
   - cols: [margin_bars, quadrant]
   - cols: [top_20_table]

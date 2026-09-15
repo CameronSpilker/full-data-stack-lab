@@ -18,6 +18,17 @@ models:
         data_tests: [not_null]
       - name: conference_name
         description: The conference the team played in as of the latest snapshot.
+      - name: team_logo_url
+        description: >
+          Where the source publishes the team's logo. Nullable by design: not
+          every team has one, the synthetic demo seasons have none at all, and
+          a page that draws a logo falls back to the team's initials rather
+          than a broken image. `scripts/fetch-logos.py` reads this column to
+          mirror the files into the dashboard.
+      - name: team_color
+        description: >
+          The team's primary colour as a bare six-digit hex string with no
+          leading "#". Nullable on the same terms as the logo.
 
   - name: stg_ncaa__games
     description: >

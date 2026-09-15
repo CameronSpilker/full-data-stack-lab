@@ -85,6 +85,61 @@ def test_replace_all_truncates(warehouse):
     assert rows[0][1] == 2026
 
 
+def test_an_extractor_that_gains_a_column_widens_the_stored_table(warehouse):
+    # The pipeline starts each night from the previous warehouse, so a new
+    # field always meets a table one column narrower. Before the table was
+    # widened this raised "table has 4 columns but 5 values were supplied"
+    # and killed the run on its first extractor.
+    load.load_to_duckdb("ncaa_games", [_game("1", 2026, 70)])
+
+    widened = _game("2", 2026, 80) | {"venue_name": "Some Arena"}
+    load.load_to_duckdb("ncaa_games", [widened])
+
+    with duckdb.connect(str(warehouse), read_only=True) as con:
+        rows = con.execute(
+            "select game_id, venue_name from raw.ncaa_games order by game_id"
+        ).fetchall()
+
+    assert rows == [("1", None), ("2", "Some Arena")], (
+        "the older rows should survive with a null in the new column"
+    )
+
+
+def test_an_extractor_that_drops_a_column_keeps_the_stored_one(warehouse):
+    # The mirror case. Dropping a column is a decision about history, so a
+    # narrower extract fills what it carries and leaves the rest null rather
+    # than failing or rewriting the table.
+    load.load_to_duckdb("ncaa_games", [_game("1", 2026, 70)])
+
+    narrowed = {"game_id": "2", "season": 2026, "home_score": 80}
+    load.load_to_duckdb("ncaa_games", [narrowed])
+
+    with duckdb.connect(str(warehouse), read_only=True) as con:
+        rows = con.execute(
+            "select game_id, away_score from raw.ncaa_games order by game_id"
+        ).fetchall()
+
+    assert rows == [("1", 60), ("2", None)]
+
+
+def test_a_new_column_that_is_entirely_null_still_lands(warehouse):
+    # An all-null batch carries no type to read off it. The column still has
+    # to exist, or the next extract that does carry values has nowhere to put
+    # them. This is the shape the synthetic demo seasons send.
+    load.load_to_duckdb("ncaa_games", [_game("1", 2026, 70)])
+    load.load_to_duckdb("ncaa_games", [_game("2", 2026, 80) | {"logo_url": None}])
+    load.load_to_duckdb(
+        "ncaa_games", [_game("3", 2026, 90) | {"logo_url": "https://example.test/a.png"}]
+    )
+
+    with duckdb.connect(str(warehouse), read_only=True) as con:
+        rows = con.execute(
+            "select game_id, logo_url from raw.ncaa_games order by game_id"
+        ).fetchall()
+
+    assert rows == [("1", None), ("2", None), ("3", "https://example.test/a.png")]
+
+
 def test_an_empty_extract_is_a_no_op(warehouse):
     assert load.load_to_duckdb("ncaa_games", []) == 0
 

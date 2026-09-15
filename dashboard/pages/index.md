@@ -2,12 +2,20 @@
 title: NCAA Division I Men's Basketball
 ---
 
+<script>
+    import ViewNav from '$lib/ViewNav.svelte';
+</script>
+
+<ViewNav current="index" />
+
 Tracking every Division I team through the season, and simulating the tournament
 at the end of it. Every number here comes out of a tested dbt model:
 [how it works](/how-it-works).
 
-For one team on one screen, open the [team scorecard](/scorecard). For the games
-that have not been played yet, and what the model makes of them, open
+For one team on one screen, open the [team scorecard](/scorecard). For any two
+teams priced against each other, open the [matchup page](/matchup). For the
+whole field in one order, open the [rankings](/rankings). For the games that
+have not been played yet, and what the model makes of them, open
 [upcoming picks](/picks).
 
 ```sql season_status

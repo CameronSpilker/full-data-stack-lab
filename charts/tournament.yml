@@ -236,11 +236,18 @@ charts:
 
 rows:
   - text: |
+      [Charts home](/charts/) · [Rankings](/charts/rankings/) · [Scorecard](/charts/scorecard/) · [Matchup](/charts/matchup/) · [Model](/charts/model/) · [Season](/charts/season/) · **Tournament** · [Dashboard](/)
+    style:
+      padding: 12
+      background: dbt-grays.surface-subtle
+      border:
+        width: 1
+        color: dbt-grays.border
+        radius: 8
+  - text: |
       The bracket is run twenty thousand times. Nothing here is a prediction of
       one tournament: it is the distribution of all of them, which is the only
       honest thing a model can say about a single-elimination field of 64.
-
-      [Charts home](/charts/) · [Did the model beat the market?](/charts/model/) · [The season](/charts/season/)
   - cols: [kpi_favourite, kpi_final_four, kpi_sims]
   - cols: [odds_bars, seed_bars]
   - title: Survival
