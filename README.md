@@ -201,7 +201,7 @@ assumes the walk was worth starting. It often is not: the 2025-26 season
 stopped producing rows on 7 April, and the nightly run re-downloaded all of it
 every night until September, when the API stopped tolerating that and every
 request came back 429. Five months of asking for a finished season is what
-exhausted the budget, and `Ingest` is the sixth step of twelve, so it took the
+exhausted the budget, and `Ingest` is the sixth step of thirteen, so it took the
 warehouse, the dbt docs and the charts down with it.
 
 A windowed run now asks the warehouse what is left before it calls anything. A
@@ -319,7 +319,7 @@ than a 20-point win, so the strength-of-schedule maths uses a margin clamped to
 with a concave margin-of-victory multiplier.
 
 **The warehouse is published, not committed.** It holds only public data and no
-credentials, so it could go in git, and it should not: it is a 17MB binary that
+credentials, so it could go in git, and it should not: it is a 50MB binary that
 changes on every run even when nothing was played, because every row carries
 the time it was extracted. A daily commit would add its own size to the
 repository's history every day, for a file nobody reads as text and git cannot
@@ -418,11 +418,35 @@ Vercel at a domain of its own. The dbt docs ship inside the same deployment at
 **Vercel project settings.** Root directory `dashboard`; everything else is in
 `dashboard/vercel.json` and `dashboard/package.json`, so the build is described
 in the repository rather than in a control panel nobody can diff. `engines.node`
-pins Node 22 there, matching CI: the DuckDB driver Evidence uses publishes no
-prebuilt binary for Node 24, and without the pin a host defaulting to 24 tries
-to compile DuckDB from source and fails. The build command fetches the
-warehouse and the docs from the release below, then runs the normal Evidence
-build. Every push redeploys.
+pins Node 22 there, matching CI, so the build a host runs is the build CI ran.
+The build command fetches the warehouse and the docs from the release below,
+then runs the normal Evidence build. Every push redeploys.
+
+**Two DuckDBs read this warehouse, and they are not the same one.** The
+pipeline writes the file with the DuckDB in its own requirements. The dashboard
+opens it with the engine inside `@evidence-dev/duckdb`, pinned in
+`dashboard/package-lock.json`. Nothing kept those two together, and in
+September 2026 they drifted far enough apart that the reader could no longer
+open what the writer produced:
+
+```
+Error connecting to datasource warehouse: INTERNAL Error:
+Failed to load metadata pointer (id 47, idx 10, ptr 720575940379279407)
+```
+
+Every Vercel build failed on that line while the pipeline stayed green, because
+nothing upstream of the deploy had tried to read the warehouse the way the site
+does. CI could not have caught it either: the warehouse CI builds is small and
+written in one pass, and a file like that opens on every version. Only the
+published one, months old and rewritten every night, carries the layout an
+older reader gives up on.
+
+So the pipeline now opens the warehouse itself, under a DuckDB pinned to the
+dashboard's, before it uploads anything. `scripts/check_warehouse_opens.py` is
+that check, and it runs in an environment of its own because the version it
+needs is a different version of the package the pipeline already has. A
+warehouse the site cannot read now fails the run that built it rather than the
+deploy an hour later.
 
 **A new warehouse has to ask for a rebuild.** The dashboard is static: it reads
 the warehouse at build time and bakes the answers into HTML, so the data on the
@@ -437,7 +461,7 @@ secret. It is the last step of `pipeline.yml`, after the warehouse is
 published, and it is a warning rather than a failure when the secret is absent,
 so a fork with no Vercel project behind it still gets a green run.
 
-**The warehouse is a release asset, not a commit.** It is a 17MB binary that
+**The warehouse is a release asset, not a commit.** It is a 50MB binary that
 changes on every run even when no games were played, because every row carries
 the timestamp it was extracted at. Committing it daily would add roughly its
 own size to the repository's history every day, for a file git cannot diff and

@@ -3,7 +3,7 @@ name: Daily pipeline
 # Extracts the last few days of basketball, rebuilds the models, and publishes
 # the warehouse as a release asset.
 #
-# The warehouse is not committed. It is a 17MB binary that changes on every run
+# The warehouse is not committed. It is a 50MB binary that changes on every run
 # even when no games were played, because every row carries the timestamp it was
 # extracted at. Committing it daily would add roughly its own size to the
 # repository's history every day, for a file nobody reads as text and git cannot
@@ -177,8 +177,30 @@ jobs:
           bash scripts/render-charts.sh
           tar -czf charts.tar.gz -C dist charts
 
-      # Published only after dbt passes, so a warehouse that failed its own
-      # tests is never the one the dashboard builds from.
+      # dbt passing says the warehouse is correct. It does not say the
+      # dashboard can open it, and those are different questions: this file is
+      # written by the DuckDB pip installs here and read by the one inside
+      # @evidence-dev/duckdb, which is a separate dependency on its own
+      # schedule. When the two drifted apart in September 2026 every Vercel
+      # build failed on the connection while the pipeline stayed green.
+      #
+      # The reader is pinned to the engine in dashboard/package-lock.json,
+      # which is the whole point of the check: the two versions move together
+      # or this proves nothing. It needs its own environment because the
+      # pipeline's DuckDB is a different version of the same package.
+      #
+      # Before the upload, so a warehouse the dashboard cannot read is never
+      # the published one.
+      - name: Check the dashboard can open it
+        run: |
+          python -m venv /tmp/dashboard-reader
+          /tmp/dashboard-reader/bin/pip install --quiet duckdb==1.4.2
+          /tmp/dashboard-reader/bin/python scripts/check_warehouse_opens.py \
+            data/warehouse.duckdb
+
+      # Published only after dbt passes and after the dashboard's own DuckDB
+      # has opened it, so a warehouse that failed its tests or that the site
+      # cannot read is never the one the dashboard builds from.
       - name: Publish the warehouse
         env:
           GH_TOKEN: ${{ github.token }}
