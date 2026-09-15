@@ -196,6 +196,34 @@ eight minutes and a log line that says why. A league failing for its own
 reasons does not count toward the streak, because it says nothing about the
 next one.
 
+**The cheapest request is the one nobody makes.** Giving up fast still
+assumes the walk was worth starting. It often is not: the 2025-26 season
+stopped producing rows on 7 April, and the nightly run re-downloaded all of it
+every night until September, when the API stopped tolerating that and every
+request came back 429. Five months of asking for a finished season is what
+exhausted the budget, and `Ingest` is the sixth step of twelve, so it took the
+warehouse, the dbt docs and the charts down with it.
+
+A windowed run now asks the warehouse what is left before it calls anything. A
+season whose newest fixture falls before the window is settled: nothing to
+correct, nothing ahead to price, so it is not asked for. Box scores get a
+second gate, because not calling that endpoint is the only narrowing it
+allows, so a window with no completed game behind it skips the league walk
+entirely.
+
+Three cases are deliberately not settled. A season the warehouse has never
+seen, because knowing nothing is not knowing there is nothing. A season with a
+schedule ahead of it and nothing played yet, which is the night a new season
+lands and must not look like an over one. And any run with no window at all,
+because a backfill means fetch all of it. The team dimension sits outside the
+gate for the reason above: realignment is an offseason event, so the months
+with no basketball to fetch are exactly the months that table changes.
+
+A skipped run exits 0. Returning a failure for an empty extract would fail the
+pipeline every night of the offseason, which is the failure the gate exists to
+stop. `Ingest` falls through to `Transform`, so dbt, the docs and the boards
+still publish from the warehouse that already exists.
+
 The dimension still gets refreshed, on the 1st of the month, by the same
 workflow reading which cron fired. Dropping it from the nightly run without
 that would have been worse than the problem: the monthly refresh lives in the
