@@ -177,6 +177,14 @@ jobs:
           bash scripts/render-charts.sh
           tar -czf charts.tar.gz -C dist charts
 
+      # Passing its own tests is not the same as being readable. dbt writes
+      # with whatever DuckDB it resolved; Evidence reads with the one its
+      # lockfile pins, and on 15 September those stopped agreeing. Every
+      # dashboard build failed on a warehouse that had just passed all 172
+      # checks, because nothing asked the question this step asks.
+      - name: Check the dashboard can read the warehouse
+        run: bash scripts/check-warehouse-readable.sh
+
       # Published only after dbt passes, so a warehouse that failed its own
       # tests is never the one the dashboard builds from.
       - name: Publish the warehouse
