@@ -81,6 +81,41 @@ jobs:
           DUCKDB_PATH: data/warehouse.duckdb
         run: dagster definitions validate -m full_data_stack_lab.definitions
 
+  charts:
+    name: dbt charts boards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: |
+          pip install -e ingestion -r transform/requirements.txt
+          pip install -r charts/requirements.txt
+
+      - name: Build the warehouse the boards read
+        run: |
+          ingest demo
+          cd transform
+          dbt deps
+          DUCKDB_PATH=../data/warehouse.duckdb dbt build --target ci
+
+      # Cheap and needs no database, so it runs first and names a bad key with
+      # a line number rather than leaving it to a failed render.
+      - name: Validate the board YAML
+        run: dct validate charts/index.yml charts/model.yml charts/season.yml charts/tournament.yml
+
+      # A board resolves its SQL at render time, exactly like Evidence, so a
+      # renamed mart column is a broken page rather than a failed dbt run.
+      # Rendering here against the synthetic seasons closes that gap on the
+      # pull request instead of on the nightly publish.
+      - name: Render every board
+        run: bash scripts/render-charts.sh
+
   dashboard:
     name: Evidence build
     runs-on: ubuntu-latest

@@ -1,0 +1,252 @@
+title: The tournament
+notes: >
+  Twenty thousand simulated tournaments, read three ways: who wins it, how far
+  a seed line usually gets, and where the bracket stops being predictable.
+tags: [tournament, bracket, simulation]
+
+queries:
+  headline:
+    notes: The favourite and the size of the simulation behind the odds.
+    sql: |
+      SELECT
+          team_name,
+          won_championship,
+          reached_final_four,
+          simulations
+      FROM marts.mart_tournament_odds
+      WHERE season = (SELECT max(season) FROM marts.mart_tournament_odds)
+      ORDER BY won_championship DESC
+      LIMIT 1
+
+  title_odds:
+    notes: The sixteen teams the simulation gives a real chance of winning it.
+    sql: |
+      SELECT
+          team_name,
+          won_championship,
+          seed,
+          region_name
+      FROM marts.mart_tournament_odds
+      WHERE season = (SELECT max(season) FROM marts.mart_tournament_odds)
+      ORDER BY won_championship DESC
+      LIMIT 16
+
+  # The seed line is the bracket's own prior. Charting it against the
+  # simulation shows where the two agree and where seeding is a rough
+  # instrument.
+  seed_curve:
+    notes: Average simulated wins by seed line, across the four teams on it.
+    sql: |
+      SELECT
+          seed,
+          avg(expected_wins) AS expected_wins,
+          avg(reached_sweet_16) AS reached_sweet_16,
+          avg(won_championship) AS won_championship
+      FROM marts.mart_tournament_odds
+      WHERE season = (SELECT max(season) FROM marts.mart_tournament_odds)
+      GROUP BY seed
+      ORDER BY seed
+
+  # One row per seed and round, so the grid reads as a survival table.
+  survival:
+    notes: Share of simulations in which a seed line reaches each round.
+    sql: |
+      WITH by_seed AS (
+          SELECT
+              seed,
+              avg(reached_round_of_32) AS r32,
+              avg(reached_sweet_16) AS s16,
+              avg(reached_elite_eight) AS e8,
+              avg(reached_final_four) AS f4,
+              avg(reached_championship_game) AS title_game,
+              avg(won_championship) AS champion
+          FROM marts.mart_tournament_odds
+          WHERE season = (SELECT max(season) FROM marts.mart_tournament_odds)
+          GROUP BY seed
+      )
+      SELECT
+          seed,
+          round_name,
+          round_order,
+          survival
+      FROM by_seed
+      CROSS JOIN LATERAL (VALUES
+          ('Round of 32', 1, r32),
+          ('Sweet 16', 2, s16),
+          ('Elite Eight', 3, e8),
+          ('Final Four', 4, f4),
+          ('Title game', 5, title_game),
+          ('Champion', 6, champion)
+      ) AS r(round_name, round_order, survival)
+      ORDER BY seed, round_order
+
+  field:
+    notes: Every team in the field, ordered by its odds of winning the thing.
+    sql: |
+      SELECT
+          seed,
+          team_name,
+          conference_name,
+          region_name,
+          record,
+          adjusted_efficiency_margin,
+          reached_sweet_16,
+          reached_final_four,
+          won_championship,
+          expected_wins
+      FROM marts.mart_tournament_odds
+      WHERE season = (SELECT max(season) FROM marts.mart_tournament_odds)
+      ORDER BY won_championship DESC
+      LIMIT 20
+
+charts:
+  kpi_favourite:
+    query: headline
+    type: kpi
+    label: Simulation favourite
+    value: team_name
+    support:
+      value: won_championship
+      label: Title odds
+      format: percent_whole
+    style:
+      label:
+        font:
+          case: none
+
+  kpi_final_four:
+    query: headline
+    type: kpi
+    label: Its odds of a Final Four
+    value: reached_final_four
+    style:
+      value:
+        format: percent_whole
+      label:
+        font:
+          case: none
+
+  kpi_sims:
+    query: headline
+    type: kpi
+    label: Tournaments simulated
+    value: simulations
+    style:
+      value:
+        format: integer
+      label:
+        font:
+          case: none
+
+  odds_bars:
+    query: title_odds
+    type: bar
+    title: Who wins it
+    subtitle: Share of 20,000 simulated tournaments ending with this team holding the trophy
+    x: team_name
+    y: won_championship
+    sort: { by: won_championship, order: desc }
+    height: 520
+    style:
+      orientation: horizontal
+      number_format: percent_whole
+      legend:
+        visible: false
+      marks:
+        bar:
+          labels:
+            visible: true
+            position: above
+            format: ".1%"
+
+  seed_bars:
+    query: seed_curve
+    type: bar
+    title: What a seed line is worth
+    subtitle: Average simulated wins for the four teams on each seed
+    x: seed
+    y: expected_wins
+    x_label: Seed
+    y_label: Expected wins
+    height: 420
+    style:
+      orientation: vertical
+      number_format: ".1f"
+      legend:
+        visible: false
+
+  survival_grid:
+    query: survival
+    type: heatmap
+    title: How far each seed line gets
+    subtitle: Share of simulations reaching the round. The grid is the bracket's own prior, priced.
+    x: round_name
+    y: seed
+    color: survival
+    x_label: Round
+    y_label: Seed
+    height: 620
+    sort: { by: round_order, order: asc }
+
+  field_table:
+    query: field
+    type: table
+    title: The field, by title odds
+    subtitle: The twenty teams the simulation rates highest
+    style:
+      columns:
+        seed:
+          label: Seed
+          format: integer
+          align: right
+          width: 70
+        team_name:
+          label: Team
+        conference_name:
+          label: Conference
+        region_name:
+          label: Region
+        record:
+          label: Record
+          align: right
+        adjusted_efficiency_margin:
+          label: Margin
+          format: "+.1f"
+          align: right
+        reached_sweet_16:
+          label: Sweet 16
+          format: percent_whole
+          align: right
+        reached_final_four:
+          label: Final Four
+          format: percent_whole
+          align: right
+        won_championship:
+          label: Title
+          format: ".1%"
+          align: right
+          scale:
+            background:
+              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              domain: data
+        expected_wins:
+          label: Exp. wins
+          format: ".2f"
+          align: right
+
+rows:
+  - text: |
+      The bracket is run twenty thousand times. Nothing here is a prediction of
+      one tournament: it is the distribution of all of them, which is the only
+      honest thing a model can say about a single-elimination field of 64.
+
+      [Charts home](/charts/) · [Did the model beat the market?](/charts/model/) · [The season](/charts/season/)
+  - cols: [kpi_favourite, kpi_final_four, kpi_sims]
+  - cols: [odds_bars, seed_bars]
+  - title: Survival
+    text: |
+      A one seed is not four times a four seed. Read across a row to see where
+      a seed line usually stops, and down a column to see how quickly the field
+      thins once the games get hard.
+    cols: [survival_grid]
+  - cols: [field_table]

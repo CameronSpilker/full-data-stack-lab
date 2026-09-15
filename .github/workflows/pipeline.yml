@@ -34,6 +34,10 @@ on:
     paths:
       - "transform/**"
       - "ingestion/**"
+      # The boards are rendered here, against the warehouse this run builds,
+      # so editing one only reaches the site when this workflow runs again.
+      - "charts/**"
+      - "scripts/render-charts.sh"
       - ".github/workflows/pipeline.yml"
 
   workflow_dispatch:
@@ -78,7 +82,9 @@ jobs:
           cache: pip
 
       - name: Install
-        run: pip install -e ingestion -r transform/requirements.txt
+        run: |
+          pip install -e ingestion -r transform/requirements.txt
+          pip install -r charts/requirements.txt
 
       # A daily run corrects and extends the warehouse it built yesterday, so
       # it has to start from that one. Its absence is not an error: the first
@@ -156,6 +162,21 @@ jobs:
           cp transform/target/catalog.json dist/docs/
           tar -czf dbt-docs.tar.gz -C dist docs
 
+      # The dbt charts boards are static pages: the SQL runs here, against the
+      # warehouse this run just built and tested, and what ships is the drawn
+      # result. So they are packaged beside the docs and ride the same release,
+      # and the dashboard build unpacks both from one place.
+      #
+      # After dbt, because a board reads marts that this run may have only just
+      # produced. A broken board fails the step rather than publishing a page
+      # with a hole in it, which is `dct render`'s default.
+      - name: Render the dbt charts boards
+        env:
+          DUCKDB_PATH: data/warehouse.duckdb
+        run: |
+          bash scripts/render-charts.sh
+          tar -czf charts.tar.gz -C dist charts
+
       # Published only after dbt passes, so a warehouse that failed its own
       # tests is never the one the dashboard builds from.
       - name: Publish the warehouse
@@ -170,7 +191,7 @@ jobs:
           fi
 
           gh release upload "$WAREHOUSE_RELEASE" \
-            data/warehouse.duckdb dbt-docs.tar.gz --clobber
+            data/warehouse.duckdb dbt-docs.tar.gz charts.tar.gz --clobber
 
           echo "### Warehouse published" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -178,6 +199,7 @@ jobs:
           echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
           echo "| warehouse.duckdb | $(du -h data/warehouse.duckdb | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
           echo "| dbt-docs.tar.gz | $(du -h dbt-docs.tar.gz | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| charts.tar.gz | $(du -h charts.tar.gz | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
 
       # Publishing a warehouse changes nothing a reader can see. The dashboard
       # is a static site that reads the warehouse at build time and bakes the

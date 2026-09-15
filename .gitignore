@@ -43,6 +43,11 @@ data/raw/**/*.parquet
 # Fetched, never authored, and 3MB of generated HTML.
 dashboard/static/docs/
 
+# The rendered dbt charts boards, same story: drawn by the pipeline, unpacked
+# here at build time. dist/ is where scripts/render-charts.sh writes them.
+dashboard/static/charts/
+dist/
+
 data/warehouse.duckdb
 data/warehouse.duckdb.wal
 
