@@ -18,33 +18,25 @@ reads it are one diff.
 | `season.yml` | `/charts/season/` | Who was good and which conferences were deep |
 | `tournament.yml` | `/charts/tournament/` | Title odds, seed value and survival, from 20,000 simulated brackets |
 
-Every board opens with the same top bar: eight buttons in a fixed order, seven
-for the boards and one for the Evidence dashboard, with the button for the page
-you are on filled in rather than linked. A button is a nested block carrying a
-link, styled through the two anchors each file defines once, `&nav_button` and
-`&nav_current`, so the buttons on a page cannot drift apart from each other.
+Every board opens with the same top bar: seven buttons in a fixed order, one
+per board, with the button for the page you are on filled in rather than
+linked. The boards are a site of their own under `/charts`, so the bar never
+links to the Evidence dashboard. Each button is a cell carrying a link, styled
+through the two anchors each file defines once, `&nav_button` and
+`&nav_current`.
 
-Under the buttons, inside the same card, is one line saying what the page you
-landed on gets you. That line is the board's description, and the card is the
-only place it appears: clicking a button is how you read it, so there is no
-list of all seven descriptions anywhere for the boards to drift away from.
+dbt Charts draws every markdown link underlined and blue, with the style inline
+on the text. `scripts/render-charts.sh` adds one stylesheet to each rendered
+page, scoped to links that point inside `/charts/`, which turns the bar's links
+into plain button labels. Other links on a board keep the default style.
 
-The bar itself is copied into all seven files, because a board cannot inherit a
-layout row from `meta.yml`. Adding a board means adding a row to the table above
-and a button to all seven bars, in the same order in each. `scripts/render-charts.sh`
-renders every board, so a bar that was missed is visible in the output rather
-than silently wrong.
+Under the bar is one line saying what the page gets you. The bar is copied into
+all seven files, because a board cannot inherit a layout row from `meta.yml`.
+Adding a board means adding a row to the table above and a button to all seven
+bars, in the same order in each.
 
-Markdown bold does not render in the serif face these pages draw with, so a
-button label is plain text and the current page is marked by the fill alone.
-
-Two of the boards have a counterpart on the Evidence side that does the same
-job with a picker on it: `/scorecard` and `/matchup`. They are not duplicates
-by accident. These pages render to static HTML, which is what makes them cheap
-and what means a variable widget cannot survive the export, so a board is fixed
-on one team or one game and says so with a link to the version that is not.
-Both read the same marts, so the two can differ in what they let you ask and
-never in the answer.
+The scorecard and matchup boards are fixed on one team and one game, because
+these pages render to static HTML and a picker would not survive the export.
 
 `meta.yml` is not a board. dbt Charts applies it to every file in this folder,
 and it carries the two things that must not be decided per board: the palette,
@@ -53,7 +45,7 @@ between the two presentation layers sees the same three category hues, and
 `title.font.case: none`, because the default is Chicago title case and the rest
 of the site is sentence case.
 
-Boards read `marts` only, the same boundary the Evidence dashboard keeps. A
+Boards read `marts` only, the same boundary the rest of the repository keeps. A
 question the marts cannot answer is a question for a new dbt model, not for a
 longer query here.
 
@@ -89,8 +81,8 @@ catches most mistakes before anything touches the warehouse.
 The pages are static. `scripts/render-charts.sh` runs each board's SQL against
 the warehouse and writes the drawn result to HTML, the daily pipeline publishes
 that as `charts.tar.gz` on the `warehouse-latest` release, and the dashboard
-build unpacks it into `dashboard/static/charts`. It is the same route the dbt
-docs take.
+build unpacks it and `dashboard/scripts/assemble-site.sh` puts it at
+`/charts`. The dbt docs take the same route to `/docs`.
 
 Two consequences worth knowing:
 

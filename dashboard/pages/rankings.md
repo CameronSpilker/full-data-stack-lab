@@ -39,8 +39,7 @@ season, because a team that has not played cannot be rated or ranked.
 -- season's ratings and the synthetic demo seasons are far narrower than a real
 -- one. A rank cut is the same diagonal, drawn where the field actually sits.
 --
--- The same cut as the rankings board at /charts/rankings/, so the two
--- presentation layers put a team in the same tier.
+-- Keep this cut in step with charts/rankings.yml in the repository.
 select
     team_id,
     team_name,
@@ -213,10 +212,6 @@ from ${field}
     <Column id=adjusted_tempo title="Tempo" fmt='0.0' align=right />
     <Column id=elo_rating title="Elo" fmt='0' align=right />
 </DataTable>
-
-The same order as a static board, with the full field in one table, is at
-[the rankings board](https://lab.cameronspilker.com/charts/rankings/). Both read
-`mart_team_season`, so they cannot disagree about who is where.
 
 <style>
     .ladder {

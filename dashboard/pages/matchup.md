@@ -452,10 +452,6 @@ nightly run.
 
 {/if}
 
-The same view without the pickers, fixed on one featured game, is on the
-[matchup board](https://lab.cameronspilker.com/charts/matchup/). Both read the same
-`mart_matchup_odds` table, so they cannot disagree about a price.
-
 <style>
     .pickers {
         display: flex;

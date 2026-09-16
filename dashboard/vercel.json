@@ -2,5 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build:deploy",
   "outputDirectory": "build",
-  "installCommand": "npm ci"
+  "installCommand": "npm ci",
+  "redirects": [
+    { "source": "/rankings", "destination": "/evidence/rankings", "permanent": true },
+    { "source": "/scorecard", "destination": "/evidence/scorecard", "permanent": true },
+    { "source": "/matchup", "destination": "/evidence/matchup", "permanent": true },
+    { "source": "/picks", "destination": "/evidence/picks", "permanent": true },
+    { "source": "/bracket", "destination": "/evidence/bracket", "permanent": true },
+    { "source": "/conferences", "destination": "/evidence/conferences", "permanent": true },
+    { "source": "/model", "destination": "/evidence/model", "permanent": true },
+    { "source": "/how-it-works", "destination": "/evidence/how-it-works", "permanent": true },
+    { "source": "/teams/:path*", "destination": "/evidence/teams/:path*", "permanent": true }
+  ]
 }

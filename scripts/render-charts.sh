@@ -43,4 +43,21 @@ for board in charts/*.yml; do
     dct render "$board" --format html --output "$target"
 done
 
+# dbt Charts draws every markdown link underlined and blue, with the style
+# inline on the text, so the top bar would read as a row of links rather than
+# buttons. One stylesheet, scoped to links that stay inside /charts (which only
+# the bar has), turns those into plain labels. Everything else on a board keeps
+# the default link style.
+NAV_CSS='<style id="nav-bar">a[href^="/charts/"] tspan{text-decoration:none!important;fill:#3d4b5a!important;font-weight:500!important}a[href^="/charts/"]:hover tspan{fill:#2a78d6!important}</style>'
+find "$OUT" -name index.html -print0 | while IFS= read -r -d '' page; do
+    python3 - "$page" "$NAV_CSS" <<'PY'
+import sys
+path, css = sys.argv[1], sys.argv[2]
+html = open(path, encoding="utf-8").read()
+if 'id="nav-bar"' not in html:
+    html = html.replace("</head>", css + "</head>", 1)
+    open(path, "w", encoding="utf-8").write(html)
+PY
+done
+
 echo "Rendered $(find "$OUT" -name '*.html' | wc -l | tr -d ' ') pages into $OUT."
