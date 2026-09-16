@@ -18,10 +18,20 @@ reads it are one diff.
 | `season.yml` | `/charts/season/` | Who was good and which conferences were deep |
 | `tournament.yml` | `/charts/tournament/` | Title odds, seed value and survival, from 20,000 simulated brackets |
 
-Every board opens with the same banner of links to the other six and to the
-Evidence dashboard, with its own entry in bold rather than linked. The banner is
-generated from one list, so adding a board means adding a row above and a line
-to that list rather than editing seven files that then drift apart.
+Every board opens with the same top bar: eight buttons in a fixed order, seven
+for the boards and one for the Evidence dashboard, with the button for the page
+you are on filled in rather than linked. A button is a nested block carrying a
+link, styled through the two anchors each file defines once, `&nav_button` and
+`&nav_current`, so the buttons on a page cannot drift apart from each other.
+
+The bar itself is copied into all seven files, because a board cannot inherit a
+layout row from `meta.yml`. Adding a board means adding a row to the table above
+and a button to all seven bars, in the same order in each. `scripts/render-charts.sh`
+renders every board, so a bar that was missed is visible in the output rather
+than silently wrong.
+
+Markdown bold does not render in the serif face these pages draw with, so a
+button label is plain text and the current page is marked by the fill alone.
 
 Two of the boards have a counterpart on the Evidence side that does the same
 job with a picker on it: `/scorecard` and `/matchup`. They are not duplicates
