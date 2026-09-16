@@ -53,11 +53,34 @@ jobs:
           DUCKDB_PATH: ../data/warehouse.duckdb
         run: dbt build --target ci
 
+      # The daily run is `ingest daily`, which skips the team dimension on
+      # purpose, and the pipeline carries the previous warehouse forward. So a
+      # column added to the team extractor reaches dbt weeks before anything
+      # re-extracts the teams, and a model that reads it plainly fails every
+      # nightly run in between. `logo_url` did exactly that and took the
+      # pipeline down for a day: CI was green the whole time, because CI always
+      # builds raw from a fresh `ingest demo` and never sees the narrow table
+      # production actually has.
+      #
+      # So this drops the newest such column and rebuilds. It runs last, after
+      # docs, because it deliberately leaves the warehouse in the older shape.
       - name: dbt docs generate
         working-directory: transform
         env:
           DUCKDB_PATH: ../data/warehouse.duckdb
         run: dbt docs generate --target ci
+
+      - name: Build against a team table that predates the newest column
+        env:
+          DUCKDB_PATH: data/warehouse.duckdb
+        run: |
+          python -c "
+          import duckdb
+          with duckdb.connect('data/warehouse.duckdb') as con:
+              con.execute('alter table raw.ncaa_teams drop column logo_url')
+          print('Dropped logo_url from raw.ncaa_teams.')
+          "
+          cd transform && DUCKDB_PATH=../data/warehouse.duckdb dbt build --target ci
 
   orchestrate:
     name: Dagster definitions
