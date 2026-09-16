@@ -148,73 +148,63 @@ charts:
               domain: data
 
 rows:
-  # The top bar, and under it the one line that says what this page gets you.
-  # Both sit in the same card, so the description reads as part of the bar
-  # rather than as the first paragraph of the page. Every board carries the
-  # same eight buttons in the same order, and the button for the page you are
-  # on is filled in rather than linked. Each file writes the two button styles
-  # once and anchors the rest to them, so a restyle is one edit per file
-  # instead of eight.
+  # The top bar: one strip of buttons, the same seven on every board in the
+  # same order. The button for the page you are on is filled in rather than
+  # linked. Links are drawn without an underline so each cell reads as a
+  # button. The boards are their own site, so nothing here leaves /charts.
+  # Each file writes the two button styles once and anchors the rest to them.
   - style:
       padding: 4
-      gap: 4
       background: dbt-grays.surface-subtle
       border:
         width: 1
         color: dbt-grays.border
         radius: 10
-    rows:
-      - cols:
-        - width: "12.4%"
-          text: "Charts home"
-          style: &nav_current
-            padding: 6
-            background: "category[1]"
-            font:
-              color: dbt-grays.canvas
-            border:
-              width: 1
-              color: "category[1]"
-              radius: 8
-            text:
-              align: center
-        - width: "12.4%"
-          text: "[Rankings](/charts/rankings/)"
-          style: &nav_button
-            padding: 6
-            background: dbt-grays.canvas
-            border:
-              width: 1
-              color: dbt-grays.border
-              radius: 8
-            text:
-              align: center
-        - width: "12.4%"
-          text: "[Scorecard](/charts/scorecard/)"
-          style: *nav_button
-        - width: "12.4%"
-          text: "[Matchup](/charts/matchup/)"
-          style: *nav_button
-        - width: "12.4%"
-          text: "[Model](/charts/model/)"
-          style: *nav_button
-        - width: "12.4%"
-          text: "[Season](/charts/season/)"
-          style: *nav_button
-        - width: "12.4%"
-          text: "[Tournament](/charts/tournament/)"
-          style: *nav_button
-        - width: "12.4%"
-          text: "[Dashboard](/)"
-          style: *nav_button
-      - text: |
-          Headline numbers for the latest season, and the way into the six
-          boards that carry the detail.
-        style:
-          padding: 8
-          background: dbt-grays.surface-subtle
+    cols:
+      - width: "14.28%"
+        text: "Home"
+        style: &nav_current
+          padding: 7
+          background: "category[1]"
+          font:
+            color: dbt-grays.canvas
+            weight: 600
           border:
             width: 0
+            radius: 7
+          text:
+            align: center
+      - width: "14.28%"
+        text: "[Rankings](/charts/rankings/)"
+        style: &nav_button
+          padding: 7
+          font:
+            decoration: none
+            weight: 500
+          border:
+            width: 0
+            radius: 7
+          text:
+            align: center
+      - width: "14.28%"
+        text: "[Scorecard](/charts/scorecard/)"
+        style: *nav_button
+      - width: "14.28%"
+        text: "[Matchup](/charts/matchup/)"
+        style: *nav_button
+      - width: "14.28%"
+        text: "[Model](/charts/model/)"
+        style: *nav_button
+      - width: "14.28%"
+        text: "[Season](/charts/season/)"
+        style: *nav_button
+      - width: "14.28%"
+        text: "[Tournament](/charts/tournament/)"
+        style: *nav_button
+  # What this page gets you, on its own line under the bar.
+  - text: |
+      Headline numbers for the latest season, and the way into the six
+      boards that carry the detail.
   - cols: [kpi_season, kpi_games, kpi_accuracy]
   - cols: [elo_trend, top_10_table]
   # Each board's description now sits under the bar on the board itself, so
@@ -230,10 +220,10 @@ rows:
       dbt models it reads, so a chart and the column behind it change in one
       commit and get reviewed together.
 
-      The pipeline is the same one behind the Evidence dashboard, which the
-      last button above goes to: public APIs into Parquet, DuckDB and dbt in
-      the middle, Dagster on a nightly schedule. These pages are a second
-      opinion on the presentation layer, not a second pipeline.
+      The data comes from public APIs into Parquet, through DuckDB and dbt,
+      on a nightly Dagster schedule. The
+      [dbt docs](https://lab.cameronspilker.com/docs/) show every model
+      these boards read and how it is built.
 
       Built with [dbt Charts](https://dbtcharts.com). The source for every
       board is in

@@ -29,6 +29,7 @@
   for separation rather than for whose colours they are.
 -->
 <script>
+    import { addBasePath } from '@evidence-dev/sdk/utils/svelte';
     import { onMount } from 'svelte';
 
     export let teamId = '';
@@ -57,7 +58,9 @@
         resolved = '';
         if (!id) return;
 
-        const candidate = `/logos/${id}.png`;
+        // The dashboard is served under /evidence, so the path takes the
+        // configured base rather than assuming the site root.
+        const candidate = addBasePath(`/logos/${id}.png`);
         const image = new Image();
         image.onload = () => {
             if (teamId === id) resolved = candidate;

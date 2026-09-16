@@ -100,7 +100,9 @@ plugins:
     "@evidence-dev/duckdb": {}
 
 deployment:
-  # Served from a domain of its own, so the dashboard sits at the root. A host
-  # that serves it under a subpath (a GitHub Pages project site, say) needs the
-  # prefix here instead.
-  basePath: ""
+  # The site root is a landing page with two tiles, and each tool lives under
+  # its own prefix: this dashboard at /evidence, the dbt Charts boards at
+  # /charts. SvelteKit writes the build flat regardless of the base path, so
+  # scripts/assemble-site.sh moves it under build/evidence afterwards. The dbt
+  # docs sit at /docs, shared by both.
+  basePath: "/evidence"

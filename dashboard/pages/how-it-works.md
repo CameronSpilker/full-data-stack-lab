@@ -6,14 +6,13 @@ title: How it works
     import ViewNav from '$lib/ViewNav.svelte';
 </script>
 
-<ViewNav />
+<ViewNav current="how-it-works" />
 
 Everything on this site is built by one repository, from the API call to the
 page you are reading. This is what each stage does and why it is the way it is.
 
 [Read the source on GitHub](https://github.com/CameronSpilker/full-data-stack-lab)
 · [Browse the dbt docs and lineage](https://lab.cameronspilker.com/docs/)
-· [The same marts, in dbt Charts](https://lab.cameronspilker.com/charts/)
 
 ## The pipeline, in order
 
@@ -45,20 +44,6 @@ the warehouse.
 
 Dashboards as code, versioned in the same repository as the models they read.
 Nothing here lives only inside a BI tool's UI.
-
-### 6. And with dbt Charts, on /charts
-
-The same marts, read a second way. A [dbt Charts](https://dbtcharts.com) board
-is one YAML file: its queries, its charts and its layout, with no component
-code. The pipeline renders the boards to static pages against the warehouse it
-has just built and tested, and publishes them beside the docs, so
-[/charts](https://lab.cameronspilker.com/charts/) is drawn from exactly the
-run that produced these pages.
-
-Two presentation layers over one set of marts is the point rather than an
-accident. Evidence gets the interactive pages, where a reader picks a team and
-the page answers. dbt Charts gets the ones that are the same for everybody,
-where the whole board is a file small enough to read in a pull request.
 
 ## When it runs
 
@@ -106,9 +91,3 @@ local run.
   the ones that saw the future.
 - Team pages: a game log, an Elo timeline, and the priced matchup against
   anyone else in the country. Open one from any team on the season overview.
-- [The dbt Charts boards](https://lab.cameronspilker.com/charts/): seven static
-  boards drawn straight from the marts. No team picker and no filters: a board
-  is the same page for everybody, which is what lets it be one YAML file. The
-  two that are about one team or one game, the scorecard and the matchup, pick
-  their subject in SQL and link back here for the version that lets you
-  choose.

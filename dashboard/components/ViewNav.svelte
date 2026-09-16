@@ -1,43 +1,28 @@
 <!--
-  The row of view buttons that sits at the top of every page.
+  The top bar of view buttons on every Evidence page.
 
-  Evidence builds its own sidebar from the pages directory, which is the right
-  nav for someone who already knows the site. This is for someone who does
-  not: the views are a small fixed set, they answer different questions about
-  the same season, and the useful thing is to be able to step between them
+  Evidence builds its own sidebar from the pages directory, which suits a
+  reader who already knows the site. This bar is for one who does not: the
+  views are a small fixed set, and the useful thing is to step between them
   without going back to a menu.
 
-  It also reaches the dbt Charts boards under /charts, which the sidebar cannot
-  list at all. Those pages are static HTML unpacked into this site's static
-  directory by the deploy script, so Evidence never sees them as routes. They
-  are the second presentation layer over the same marts, and the banner is what
-  makes the two feel like one site rather than two that happen to share a
-  domain.
+  The dashboard stands on its own. It is served under /evidence, and nothing
+  here points outside it: the dbt Charts boards are a separate site with a
+  bar of their own.
 
-  `current` is the slug of the page drawing it. That entry renders as text
-  rather than as a link, because a link to the page you are already on is a
-  dead control that costs a reader a click to discover.
+  Every href goes through addBasePath. Evidence only rewrites literal hrefs
+  in page markdown, so a path built in a component would otherwise skip the
+  /evidence prefix and send the reader to the landing page instead.
+
+  `current` is the slug of the page drawing it. That entry is filled in and
+  rendered as text, because a link to the page you are already on is a dead
+  control.
 -->
 <script>
+    import { addBasePath } from '@evidence-dev/sdk/utils/svelte';
+
     export let current = '';
 
-    /** The whole of the site's navigation, in one list.
-     *
-     *  The boards are named by absolute URL, which is the same way
-     *  how-it-works already links to them, and it is not a style choice. The
-     *  boards are an optional release asset: `scripts/fetch-warehouse.sh`
-     *  unpacks them when the release has them and says so when it does not,
-     *  and the dashboard is still a dashboard either way. A site-relative
-     *  /charts/ makes that optional thing mandatory, because SvelteKit's
-     *  prerenderer crawls every internal link it finds and fails the whole
-     *  build on one that 404s. An off-origin URL is not crawled, so a missing
-     *  board costs a reader one dead link instead of costing everyone the
-     *  site.
-     *
-     *  `rel="external"` on top of that keeps the client router from trying to
-     *  resolve it as a route.
-     */
-    const BOARDS = 'https://lab.cameronspilker.com/charts/';
     const views = [
         { slug: 'index', label: 'Overview', href: '/' },
         { slug: 'rankings', label: 'Rankings', href: '/rankings' },
@@ -47,63 +32,87 @@
         { slug: 'bracket', label: 'Bracket', href: '/bracket' },
         { slug: 'conferences', label: 'Conferences', href: '/conferences' },
         { slug: 'model', label: 'Model', href: '/model' },
-        { slug: 'charts', label: 'Charts', href: BOARDS, external: true },
+        { slug: 'how-it-works', label: 'How it works', href: '/how-it-works' },
     ];
 </script>
 
-<nav class="view-nav" aria-label="Views">
-    {#each views as view (view.slug)}
-        {#if view.slug === current}
-            <span class="view is-current" aria-current="page">{view.label}</span>
-        {:else if view.external}
-            <a class="view" href={view.href} rel="external">{view.label}</a>
-        {:else}
-            <a class="view" href={view.href}>{view.label}</a>
-        {/if}
-    {/each}
+<nav class="view-nav" aria-label="Dashboard views">
+    <ul>
+        {#each views as view (view.slug)}
+            <li>
+                {#if view.slug === current}
+                    <span class="view is-current" aria-current="page">{view.label}</span>
+                {:else}
+                    <a class="view" href={addBasePath(view.href)}>{view.label}</a>
+                {/if}
+            </li>
+        {/each}
+    </ul>
 </nav>
 
 <style>
-    /* Colours are derived from `currentColor` rather than named, so the row
-       follows the reader's appearance without a hex being written twice. This
-       is the same rule the AwaitingData placeholder follows. */
+    /* One bar, not a row of loose links: a raised strip holding equal
+       buttons. The colours are the theme's own variables, so the bar follows
+       light and dark without a hex written here. */
     .view-nav {
+        margin: 0 0 1.75rem;
+        padding: 0.3rem;
+        border: 1px solid var(--base-300);
+        border-radius: 0.6rem;
+        background: var(--base-200);
+        /* On a narrow screen the bar scrolls sideways instead of wrapping
+           into a ragged second row. */
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .view-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    ul {
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-        margin: 0 0 1.5rem;
+        gap: 0.25rem;
+        margin: 0;
         padding: 0;
+        list-style: none;
+    }
+
+    li {
+        flex: 1 0 auto;
+        margin: 0;
     }
 
     .view {
-        padding: 0.3rem 0.7rem;
-        border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-        border-radius: 0.375rem;
-        background: color-mix(in srgb, currentColor 3%, transparent);
-        font-size: 0.8rem;
-        line-height: 1.4;
+        display: block;
+        padding: 0.45rem 0.85rem;
+        border-radius: 0.4rem;
+        font-size: 0.82rem;
+        font-weight: 500;
+        line-height: 1.3;
+        text-align: center;
         text-decoration: none;
-        color: inherit;
         white-space: nowrap;
+        color: var(--base-content);
+        transition:
+            background-color 120ms ease,
+            color 120ms ease;
     }
 
     a.view:hover {
-        border-color: color-mix(in srgb, currentColor 38%, transparent);
-        background: color-mix(in srgb, currentColor 8%, transparent);
+        background: var(--base-100);
+        color: var(--base-heading);
+        box-shadow: 0 1px 2px color-mix(in srgb, var(--base-heading) 10%, transparent);
     }
 
-    /* The current view reads as pressed rather than as a link. */
     .is-current {
-        border-color: color-mix(in srgb, currentColor 45%, transparent);
-        background: color-mix(in srgb, currentColor 12%, transparent);
+        background: var(--primary);
+        color: #fff;
         font-weight: 600;
     }
 
-    /* Keyboard focus has to stay visible: the buttons are small, and losing
-       the ring on a wrapped row makes the whole banner unusable without a
-       mouse. */
     a.view:focus-visible {
-        outline: 2px solid currentColor;
-        outline-offset: 2px;
+        outline: 2px solid var(--primary);
+        outline-offset: 1px;
     }
 </style>
