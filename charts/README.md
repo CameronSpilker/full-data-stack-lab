@@ -24,6 +24,11 @@ you are on filled in rather than linked. A button is a nested block carrying a
 link, styled through the two anchors each file defines once, `&nav_button` and
 `&nav_current`, so the buttons on a page cannot drift apart from each other.
 
+Under the buttons, inside the same card, is one line saying what the page you
+landed on gets you. That line is the board's description, and the card is the
+only place it appears: clicking a button is how you read it, so there is no
+list of all seven descriptions anywhere for the boards to drift away from.
+
 The bar itself is copied into all seven files, because a board cannot inherit a
 layout row from `meta.yml`. Adding a board means adding a row to the table above
 and a button to all seven bars, in the same order in each. `scripts/render-charts.sh`

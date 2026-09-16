@@ -284,10 +284,12 @@ charts:
           label: Made the field
 
 rows:
-  # The top bar. Every board carries the same eight buttons in the same order,
-  # so the bar does not move between pages, and the button for the page you are
+  # The top bar, and under it the one line that says what this page gets you.
+  # Both sit in the same card, so the description reads as part of the bar
+  # rather than as the first paragraph of the page. Every board carries the
+  # same eight buttons in the same order, and the button for the page you are
   # on is filled in rather than linked. Each file writes the two button styles
-  # once and anchors the rest to them, so a restyle here is one edit per file
+  # once and anchors the rest to them, so a restyle is one edit per file
   # instead of eight.
   - style:
       padding: 4
@@ -297,53 +299,61 @@ rows:
         width: 1
         color: dbt-grays.border
         radius: 10
-    cols:
-      - width: "12.4%"
-        text: "[Charts home](/charts/)"
-        style: &nav_button
-          padding: 6
-          background: dbt-grays.canvas
+    rows:
+      - cols:
+        - width: "12.4%"
+          text: "[Charts home](/charts/)"
+          style: &nav_button
+            padding: 6
+            background: dbt-grays.canvas
+            border:
+              width: 1
+              color: dbt-grays.border
+              radius: 8
+            text:
+              align: center
+        - width: "12.4%"
+          text: "Rankings"
+          style: &nav_current
+            padding: 6
+            background: "category[1]"
+            font:
+              color: dbt-grays.canvas
+            border:
+              width: 1
+              color: "category[1]"
+              radius: 8
+            text:
+              align: center
+        - width: "12.4%"
+          text: "[Scorecard](/charts/scorecard/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Matchup](/charts/matchup/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Model](/charts/model/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Season](/charts/season/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Tournament](/charts/tournament/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Dashboard](/)"
+          style: *nav_button
+      - text: |
+          Every Division I team the model rated this season in one order, cut into
+          tiers, and the same field plotted offence against defence.
+        style:
+          padding: 8
+          background: dbt-grays.surface-subtle
           border:
-            width: 1
-            color: dbt-grays.border
-            radius: 8
-          text:
-            align: center
-      - width: "12.4%"
-        text: "Rankings"
-        style: &nav_current
-          padding: 6
-          background: "category[1]"
-          font:
-            color: dbt-grays.canvas
-          border:
-            width: 1
-            color: "category[1]"
-            radius: 8
-          text:
-            align: center
-      - width: "12.4%"
-        text: "[Scorecard](/charts/scorecard/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Matchup](/charts/matchup/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Model](/charts/model/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Season](/charts/season/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Tournament](/charts/tournament/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Dashboard](/)"
-        style: *nav_button
+            width: 0
   - text: |
-      Every Division I team the model rated this season, in one order. The tier
-      a team lands in is a cut on its rank, not a judgement: the top 16, the
-      next 32, the next 52, and everyone else.
+      The tier a team lands in is a cut on its rank, not a judgement: the top
+      16, the next 32, the next 52, and everyone else.
 
       The rating is adjusted efficiency margin, which is how many points per
       100 possessions better than an average team the model thinks a team is,

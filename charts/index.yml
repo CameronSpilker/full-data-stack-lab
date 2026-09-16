@@ -148,10 +148,12 @@ charts:
               domain: data
 
 rows:
-  # The top bar. Every board carries the same eight buttons in the same order,
-  # so the bar does not move between pages, and the button for the page you are
+  # The top bar, and under it the one line that says what this page gets you.
+  # Both sit in the same card, so the description reads as part of the bar
+  # rather than as the first paragraph of the page. Every board carries the
+  # same eight buttons in the same order, and the button for the page you are
   # on is filled in rather than linked. Each file writes the two button styles
-  # once and anchors the rest to them, so a restyle here is one edit per file
+  # once and anchors the rest to them, so a restyle is one edit per file
   # instead of eight.
   - style:
       padding: 4
@@ -161,50 +163,69 @@ rows:
         width: 1
         color: dbt-grays.border
         radius: 10
-    cols:
-      - width: "12.4%"
-        text: "Charts home"
-        style: &nav_current
-          padding: 6
-          background: "category[1]"
-          font:
-            color: dbt-grays.canvas
+    rows:
+      - cols:
+        - width: "12.4%"
+          text: "Charts home"
+          style: &nav_current
+            padding: 6
+            background: "category[1]"
+            font:
+              color: dbt-grays.canvas
+            border:
+              width: 1
+              color: "category[1]"
+              radius: 8
+            text:
+              align: center
+        - width: "12.4%"
+          text: "[Rankings](/charts/rankings/)"
+          style: &nav_button
+            padding: 6
+            background: dbt-grays.canvas
+            border:
+              width: 1
+              color: dbt-grays.border
+              radius: 8
+            text:
+              align: center
+        - width: "12.4%"
+          text: "[Scorecard](/charts/scorecard/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Matchup](/charts/matchup/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Model](/charts/model/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Season](/charts/season/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Tournament](/charts/tournament/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Dashboard](/)"
+          style: *nav_button
+      - text: |
+          Headline numbers for the latest season, and the way into the six
+          boards that carry the detail.
+        style:
+          padding: 8
+          background: dbt-grays.surface-subtle
           border:
-            width: 1
-            color: "category[1]"
-            radius: 8
-          text:
-            align: center
-      - width: "12.4%"
-        text: "[Rankings](/charts/rankings/)"
-        style: &nav_button
-          padding: 6
-          background: dbt-grays.canvas
-          border:
-            width: 1
-            color: dbt-grays.border
-            radius: 8
-          text:
-            align: center
-      - width: "12.4%"
-        text: "[Scorecard](/charts/scorecard/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Matchup](/charts/matchup/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Model](/charts/model/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Season](/charts/season/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Tournament](/charts/tournament/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Dashboard](/)"
-        style: *nav_button
-  - text: |
+            width: 0
+  - cols: [kpi_season, kpi_games, kpi_accuracy]
+  - cols: [elo_trend, top_10_table]
+  # Each board's description now sits under the bar on the board itself, so
+  # there is no list of them here. What is left is how the boards are built,
+  # which is worth saying once and is not what a reader came to the page for:
+  # the numbers go above it.
+  - style:
+      text:
+        column:
+          max_number: 1
+    text: |
       These boards are YAML. Each one is a file in the same repository as the
       dbt models it reads, so a chart and the column behind it change in one
       commit and get reviewed together.
@@ -213,34 +234,6 @@ rows:
       last button above goes to: public APIs into Parquet, DuckDB and dbt in
       the middle, Dagster on a nightly schedule. These pages are a second
       opinion on the presentation layer, not a second pipeline.
-  - cols: [kpi_season, kpi_games, kpi_accuracy]
-  - cols: [elo_trend, top_10_table]
-  # The buttons are the only way between boards now, so this reads as their
-  # legend: same labels, same order, no second set of links to keep in step
-  # with the bar above.
-  - title: What each button gets you
-    style:
-      text:
-        column:
-          max_number: 1
-    text: |
-      Rankings: every team in the country in one order, cut into tiers, and
-      the same field plotted offence against defence.
-
-      Scorecard: one team on one screen, where it ranks, what it is good at,
-      and which way its season has been going.
-
-      Matchup: one game priced at a neutral site, with the two halves of the
-      model shown separately so their disagreement is readable.
-
-      Model: three predictors scored on the same season, and the calibration
-      curve that decides which of them means what it says.
-
-      Season: who was good, which conferences were deep, and how the two halves
-      of a rating trade off against each other.
-
-      Tournament: twenty thousand simulated brackets, title odds, what a seed
-      line is really worth, and how fast the field thins.
 
       Built with [dbt Charts](https://dbtcharts.com). The source for every
       board is in

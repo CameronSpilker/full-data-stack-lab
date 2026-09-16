@@ -328,10 +328,12 @@ charts:
               color: negative.text
 
 rows:
-  # The top bar. Every board carries the same eight buttons in the same order,
-  # so the bar does not move between pages, and the button for the page you are
+  # The top bar, and under it the one line that says what this page gets you.
+  # Both sit in the same card, so the description reads as part of the bar
+  # rather than as the first paragraph of the page. Every board carries the
+  # same eight buttons in the same order, and the button for the page you are
   # on is filled in rather than linked. Each file writes the two button styles
-  # once and anchors the rest to them, so a restyle here is one edit per file
+  # once and anchors the rest to them, so a restyle is one edit per file
   # instead of eight.
   - style:
       padding: 4
@@ -341,53 +343,62 @@ rows:
         width: 1
         color: dbt-grays.border
         radius: 10
-    cols:
-      - width: "12.4%"
-        text: "[Charts home](/charts/)"
-        style: &nav_button
-          padding: 6
-          background: dbt-grays.canvas
+    rows:
+      - cols:
+        - width: "12.4%"
+          text: "[Charts home](/charts/)"
+          style: &nav_button
+            padding: 6
+            background: dbt-grays.canvas
+            border:
+              width: 1
+              color: dbt-grays.border
+              radius: 8
+            text:
+              align: center
+        - width: "12.4%"
+          text: "[Rankings](/charts/rankings/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "Scorecard"
+          style: &nav_current
+            padding: 6
+            background: "category[1]"
+            font:
+              color: dbt-grays.canvas
+            border:
+              width: 1
+              color: "category[1]"
+              radius: 8
+            text:
+              align: center
+        - width: "12.4%"
+          text: "[Matchup](/charts/matchup/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Model](/charts/model/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Season](/charts/season/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Tournament](/charts/tournament/)"
+          style: *nav_button
+        - width: "12.4%"
+          text: "[Dashboard](/)"
+          style: *nav_button
+      - text: |
+          One team on one screen: where it ranks, what it is good at, and which
+          way its season has been going.
+        style:
+          padding: 8
+          background: dbt-grays.surface-subtle
           border:
-            width: 1
-            color: dbt-grays.border
-            radius: 8
-          text:
-            align: center
-      - width: "12.4%"
-        text: "[Rankings](/charts/rankings/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "Scorecard"
-        style: &nav_current
-          padding: 6
-          background: "category[1]"
-          font:
-            color: dbt-grays.canvas
-          border:
-            width: 1
-            color: "category[1]"
-            radius: 8
-          text:
-            align: center
-      - width: "12.4%"
-        text: "[Matchup](/charts/matchup/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Model](/charts/model/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Season](/charts/season/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Tournament](/charts/tournament/)"
-        style: *nav_button
-      - width: "12.4%"
-        text: "[Dashboard](/)"
-        style: *nav_button
+            width: 0
   - text: |
-      One team, at the altitude you read before a game rather than after one.
-      The four numbers below are the whole summary: where the team ranks, what
-      it has done, how good the model thinks it is, and how hard a schedule it
+      This is the altitude you read before a game rather than after one. The
+      four numbers below are the whole summary: where the team ranks, what it
+      has done, how good the model thinks it is, and how hard a schedule it
       says that against.
 
       This board is fixed on one team, because the pages here render to static
