@@ -75,7 +75,7 @@ options:
     <rect x="0" y="{{ y }}" width="{{ width }}" height="{{ row_h }}" rx="6" fill="{{ ink }}" fill-opacity="0.035"/>
   {% endif %}
 
-  <text x="{{ rank_x }}" y="{{ mid }}" dy="0.36em" text-anchor="end" font-family="{{ display }}"
+  <text class="named" x="{{ rank_x }}" y="{{ mid }}" dy="0.36em" text-anchor="end" font-family="{{ display }}"
         font-size="{{ name_size + 2 }}" font-weight="600" fill="{{ muted }}">
     {{- row[options.rank] if options.rank else loop.index -}}
   </text>
@@ -96,16 +96,16 @@ options:
   <g id="{{ uid }}-crest-{{ row[options.team_id] }}" class="crest">
     <circle cx="{{ crest_x }}" cy="{{ mid }}" r="{{ r + 2.5 }}" fill="{{ fill }}" fill-opacity="0.18"/>
     <circle cx="{{ crest_x }}" cy="{{ mid }}" r="{{ r }}" fill="{{ fill }}"/>
-    <text x="{{ crest_x }}" y="{{ mid }}" dy="0.36em" text-anchor="middle" font-family="{{ display }}"
+    <text class="named" x="{{ crest_x }}" y="{{ mid }}" dy="0.36em" text-anchor="middle" font-family="{{ display }}"
           font-size="{{ r * (0.62 if code | length <= 3 else 0.52) }}" font-weight="600"
           letter-spacing="0.4" fill="{{ code_ink }}">{{ code }}</text>
   </g>
 
   {% if options.detail %}
-    <text x="{{ name_x }}" y="{{ mid - 1 }}" font-size="{{ name_size }}" font-weight="600" fill="{{ ink }}">{{ row[channels.x] }}</text>
-    <text x="{{ name_x }}" y="{{ mid + detail_size + 1 }}" font-size="{{ detail_size }}" fill="{{ muted }}">{{ row[options.detail] }}</text>
+    <text class="named" x="{{ name_x }}" y="{{ mid - 1 }}" font-size="{{ name_size }}" font-weight="600" fill="{{ ink }}">{{ row[channels.x] }}</text>
+    <text class="named" x="{{ name_x }}" y="{{ mid + detail_size + 1 }}" font-size="{{ detail_size }}" fill="{{ muted }}">{{ row[options.detail] }}</text>
   {% else %}
-    <text x="{{ name_x }}" y="{{ mid }}" dy="0.36em" font-size="{{ name_size }}" font-weight="600" fill="{{ ink }}">{{ row[channels.x] }}</text>
+    <text class="named" x="{{ name_x }}" y="{{ mid }}" dy="0.36em" font-size="{{ name_size }}" font-weight="600" fill="{{ ink }}">{{ row[channels.x] }}</text>
   {% endif %}
 
   {% set v = row[channels.y] or 0 %}
@@ -114,6 +114,6 @@ options:
   <rect x="{{ bar_x }}" y="{{ mid - bh / 2 }}" width="{{ bar_w }}" height="{{ bh }}" rx="{{ bh / 2 }}" fill="{{ ink }}" fill-opacity="0.06"/>
   {% set paint = color_for(row[channels.color], channels.color) if channels.color else accent %}
   <rect x="{{ bar_x }}" y="{{ mid - bh / 2 }}" width="{{ [w, bh] | max }}" height="{{ bh }}" rx="{{ bh / 2 }}" fill="{{ paint }}"/>
-  <text x="{{ width - 4 }}" y="{{ mid }}" dy="0.36em" text-anchor="end" font-family="{{ display }}"
+  <text class="named" x="{{ width - 4 }}" y="{{ mid }}" dy="0.36em" text-anchor="end" font-family="{{ display }}"
         font-size="{{ name_size + 2 }}" font-weight="600" fill="{{ ink }}">{{ v | format(options.value_format) }}</text>
 {% endfor %}

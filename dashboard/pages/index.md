@@ -152,7 +152,7 @@ where season = (select max(season) from team_season)
 order by is_top
 ```
 
-<ScatterPlot
+<LogoScatter
     data={quadrant}
     x=adjusted_offensive_efficiency
     y=adjusted_defensive_efficiency

@@ -1,0 +1,134 @@
+<!-- Added to every board's <head> by scripts/render-charts.sh. See that script. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link id="display-face" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap">
+<script id="team-logos">
+(function () {
+    "use strict";
+    var NS = "http://www.w3.org/2000/svg";
+    // The logos live with the Evidence dashboard, which serves them at
+    // /evidence/logos/<team_id>.png beside a manifest of what is there.
+    var BASE = "/evidence/logos/";
+
+    // Calls back with true only once the file has really loaded, so a team
+    // without a logo never shows a broken image.
+    function probe(url, done) {
+        var image = new Image();
+        image.onload = function () { done(true); };
+        image.onerror = function () { done(false); };
+        image.src = url;
+    }
+
+    function logo(url, x, y, size) {
+        var image = document.createElementNS(NS, "image");
+        image.setAttribute("href", url);
+        image.setAttribute("x", x);
+        image.setAttribute("y", y);
+        image.setAttribute("width", size);
+        image.setAttribute("height", size);
+        image.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        return image;
+    }
+
+    // Crests drawn by the templates: <g class="crest" id="...-crest-<team_id>">
+    // holding a halo and a disc. The disc turns white, keeps its colour as a
+    // ring, and the team's code (if there is one) gives way to the logo.
+    function crests() {
+        document.querySelectorAll('g.crest[id*="-crest-"]').forEach(function (group) {
+            var id = group.id.split("-crest-").pop();
+            var disc = group.querySelectorAll("circle")[1];
+            if (!id || !disc) return;
+            var url = BASE + encodeURIComponent(id) + ".png";
+            probe(url, function (ok) {
+                if (!ok) return;
+                var cx = +disc.getAttribute("cx");
+                var cy = +disc.getAttribute("cy");
+                var r = +disc.getAttribute("r");
+                var size = r * 1.5;
+                disc.setAttribute("stroke", disc.getAttribute("fill"));
+                disc.setAttribute("stroke-width", Math.max(1.5, r / 7));
+                disc.setAttribute("fill", "#ffffff");
+                var code = group.querySelector("text");
+                if (code) code.remove();
+                group.appendChild(logo(url, cx - size / 2, cy - size / 2, size));
+            });
+        });
+    }
+
+    // Any other text on a board that is exactly a team's name (a table cell,
+    // a bar's axis label, a KPI) gets the logo in front of it. Text the
+    // templates draw beside their own crests is marked `named` and skipped.
+    function names(byName) {
+        document.querySelectorAll("svg text").forEach(function (text) {
+            // Legend entries are skipped too: they sit in a row sized to the
+            // words, and the swatch beside each already says which is which.
+            if (text.closest("g.crest") || text.closest(".named") || text.classList.contains("named") ||
+                text.closest(".role-legend")) return;
+            var id = byName[(text.textContent || "").trim()];
+            if (!id) return;
+            var url = BASE + encodeURIComponent(id) + ".png";
+            probe(url, function (ok) {
+                if (ok) place(text, url);
+            });
+        });
+    }
+
+    function place(text, url) {
+        var box = text.getBBox();
+        // Headline-sized text (a KPI value) is left alone: its card is sized
+        // to the name, so a logo would push the end of it out of view.
+        if (!box.width || box.height > 26) return;
+        var size = Math.round(box.height * 1.2);
+        var gap = Math.max(4, Math.round(size / 4));
+        var span = text.querySelector("tspan[text-anchor]") || text;
+        var anchor = span.getAttribute("text-anchor") || text.getAttribute("text-anchor") ||
+            window.getComputedStyle(text).textAnchor || "start";
+        var y = box.y + box.height / 2 - size / 2;
+        var image;
+        if (text.closest(".role-axis-label")) {
+            // A bar's axis label already fills the space up to the bars, so
+            // its logo goes in front of it, into the card's padding, a little
+            // smaller so it fits there.
+            size = Math.min(size, 13);
+            y = box.y + box.height / 2 - size / 2;
+            image = logo(url, box.x - size - 3, y, size);
+        } else if (anchor === "end") {
+            // Right-aligned text: the logo goes in front.
+            image = logo(url, box.x - size - gap, y, size);
+        } else if (anchor === "start") {
+            // Left-aligned (table cells, mostly): the text moves over for it,
+            // through its own x where it has one and through dx where it is
+            // placed some other way.
+            var moved = false;
+            [text].concat([].slice.call(text.querySelectorAll("tspan"))).forEach(function (node) {
+                var x = node.getAttribute("x");
+                if (x !== null && x !== "" && x.indexOf(" ") === -1) {
+                    node.setAttribute("x", parseFloat(x) + size + gap);
+                    moved = true;
+                }
+            });
+            if (!moved) text.setAttribute("dx", (parseFloat(text.getAttribute("dx")) || 0) + size + gap);
+            image = logo(url, box.x, y, size);
+        } else {
+            return;
+        }
+        var transform = text.getAttribute("transform");
+        if (transform) image.setAttribute("transform", transform);
+        text.parentNode.insertBefore(image, text);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        crests();
+        fetch(BASE + "manifest.json")
+            .then(function (response) { return response.ok ? response.json() : {}; })
+            .then(function (manifest) {
+                var byName = {};
+                Object.keys(manifest).forEach(function (id) {
+                    if (manifest[id] && manifest[id].team_name) byName[manifest[id].team_name] = id;
+                });
+                names(byName);
+            })
+            .catch(function () {});
+    });
+})();
+</script>

@@ -58,6 +58,26 @@ queries:
       WHERE season = (SELECT max(season) FROM marts.mart_team_season)
       ORDER BY national_rank
 
+  # The same field for the scatter, worst first, so the top tiers are drawn
+  # last and sit on top of the cloud rather than under it.
+  field_points:
+    notes: Every team as a point, tiered, the best drawn last.
+    sql: |
+      SELECT
+          team_id,
+          team_name,
+          adjusted_offensive_efficiency,
+          adjusted_defensive_efficiency,
+          CASE
+              WHEN national_rank <= 16 THEN 'Title favourites'
+              WHEN national_rank <= 48 THEN 'Final four potential'
+              WHEN national_rank <= 100 THEN 'Hit or miss'
+              ELSE 'The rest'
+          END AS tier
+      FROM marts.mart_team_season
+      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      ORDER BY national_rank DESC
+
   top_25:
     notes: The top of the order, at a length where one row per team is still readable.
     sql: |
@@ -185,38 +205,32 @@ charts:
       min_height: 1100
       max_height: 1100
 
+  # Each team is its logo, ringed in its tier's colour (templates/team_scatter).
   quadrant:
-    query: field
-    type: scatter
+    query: field_points
     title: Every team in the country, offence against defence
-    subtitle: Up and to the right is good. The defensive axis runs downward, because points allowed is a number to minimise.
+    subtitle: Up and to the right is good. The defensive axis runs downward, because points allowed is a number to minimise. Hover a logo for the team.
+    type: custom
+    template: team_scatter
     x: adjusted_offensive_efficiency
     y: adjusted_defensive_efficiency
     color: tier
-    size: adjusted_efficiency_margin
-    x_label: Points scored per 100 possessions
-    y_label: Points allowed per 100 possessions
-    height: 560
+    options:
+      team_id: team_id
+      team_name: team_name
+      # The window is the same on the season board's quadrant, so the two
+      # plots read against each other. Defence runs downward because points
+      # allowed is a number to minimise: up and to the right is good on both.
+      x_min: 80
+      x_max: 140
+      y_min: 80
+      y_max: 130
+      y_reverse: true
+      x_label: Points scored per 100 possessions
+      y_label: Points allowed per 100 possessions
     style:
-      axis_y:
-        scale:
-          continuous:
-            # Descending on purpose: defensive efficiency is points allowed,
-            # so putting the low numbers at the top makes "up and to the
-            # right" mean good on both axes, the way a reader expects.
-            #
-            # The window is the one the season board's quadrant uses, stop for
-            # stop. Two boards drawing the same plot have to be readable
-            # against each other, and an auto-scaled axis would move under a
-            # reader going between them.
-            domain: [128, 86]
-        labels:
-          format: ".0f"
-      axis_x:
-        scale:
-          continuous:
-            zero: false
-            domain: [84, 136]
+      min_height: 600
+      max_height: 600
 
   tier_table:
     query: tier_counts

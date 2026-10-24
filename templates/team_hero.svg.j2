@@ -56,22 +56,22 @@ options:
   <g id="{{ uid }}-crest-{{ row[options.team_id] }}" class="crest">
     <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r + 5 }}" fill="{{ fill }}" fill-opacity="0.16"/>
     <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r }}" fill="{{ fill }}"/>
-    <text x="{{ cx }}" y="{{ cy }}" dy="0.36em" text-anchor="middle" font-family="{{ display }}"
+    <text class="named" x="{{ cx }}" y="{{ cy }}" dy="0.36em" text-anchor="middle" font-family="{{ display }}"
           font-size="{{ r * (0.62 if code | length <= 3 else 0.52) }}" font-weight="600"
           letter-spacing="0.8" fill="{{ code_ink }}">{{ code }}</text>
   </g>
 
   {% set tx = cx + r + 24 %}
-  <text x="{{ tx }}" y="{{ cy - 2 }}" font-family="{{ display }}" font-size="38" font-weight="600"
+  <text class="named" x="{{ tx }}" y="{{ cy - 2 }}" font-family="{{ display }}" font-size="38" font-weight="600"
         fill="{{ ink }}">{{ row[channels.x] }}</text>
   {% if options.detail %}
-    <text x="{{ tx }}" y="{{ cy + 26 }}" font-size="15" fill="{{ muted }}">{{ row[options.detail] }}</text>
+    <text class="named" x="{{ tx }}" y="{{ cy + 26 }}" font-size="15" fill="{{ muted }}">{{ row[options.detail] }}</text>
   {% endif %}
 
   {% if options.rank and row[options.rank] is not none %}
-    <text x="{{ width - 8 }}" y="{{ cy + 8 }}" text-anchor="end" font-family="{{ display }}"
+    <text class="named" x="{{ width - 8 }}" y="{{ cy + 8 }}" text-anchor="end" font-family="{{ display }}"
           font-size="64" font-weight="700" fill="{{ orange }}">#{{ row[options.rank] }}</text>
-    <text x="{{ width - 8 }}" y="{{ cy + 32 }}" text-anchor="end" font-family="{{ display }}"
+    <text class="named" x="{{ width - 8 }}" y="{{ cy + 32 }}" text-anchor="end" font-family="{{ display }}"
           font-size="13" font-weight="500" letter-spacing="1.6" fill="{{ muted }}">{{ options.rank_label | upper }}</text>
   {% endif %}
 {% endif %}

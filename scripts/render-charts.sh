@@ -44,26 +44,24 @@ for board in charts/*.yml; do
     dct render "$board" --format html --output "$target"
 done
 
-# Two additions to every page's <head>, both things a board's YAML cannot say:
+# Two additions to every page's <head>, both things a board's YAML cannot
+# say. They live in scripts/charts-head.html, read in here:
 #
 # The display face. Headings, numbers and the banner are set in Oswald, the
 # condensed capitals a scoreboard uses. Every stack that names it falls back
 # to a narrow system face, so a blocked font request changes letterforms and
 # nothing else.
 #
-# Team logos. A crest drawn by templates/team_leaderboard.svg.j2 and friends is
-# the team's code on a disc of its colour, inside <g class="crest"
-# id="...-crest-<team_id>">. dbt Charts will not put an <image> in a custom
-# chart, so the logo is added here, in the browser, the same way the Evidence
-# TeamCrest does it: probe /evidence/logos/<team_id>.png, and only once it has
-# loaded swap the code for the logo on a white disc ringed in the team colour.
-# A team with no mirrored logo keeps its code, with no broken image and no
-# layout shift, which is what lets the mirror be partial.
-HEAD_EXTRA=$(cat <<'HTML'
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link id="display-face" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap">
-<script id="team-logos">document.addEventListener("DOMContentLoaded",function(){var ns="http://www.w3.org/2000/svg";document.querySelectorAll('g.crest[id*="-crest-"]').forEach(function(g){var id=g.id.split("-crest-").pop(),disc=g.querySelectorAll("circle")[1],code=g.querySelector("text");if(!id||!disc)return;var src="/evidence/logos/"+encodeURIComponent(id)+".png",probe=new Image();probe.onload=function(){var cx=+disc.getAttribute("cx"),cy=+disc.getAttribute("cy"),r=+disc.getAttribute("r"),s=r*1.5,img=document.createElementNS(ns,"image");disc.setAttribute("stroke",disc.getAttribute("fill"));disc.setAttribute("stroke-width",Math.max(1.5,r/9));disc.setAttribute("fill","#ffffff");img.setAttribute("href",src);img.setAttribute("x",cx-s/2);img.setAttribute("y",cy-s/2);img.setAttribute("width",s);img.setAttribute("height",s);img.setAttribute("preserveAspectRatio","xMidYMid meet");if(code)code.remove();g.appendChild(img)};probe.src=src})});</script>
-HTML
-)
+# Team logos. dbt Charts will not put an <image> in a chart, so logos are
+# added in the browser from the files the Evidence dashboard serves at
+# /evidence/logos/, the same way its TeamCrest does it: a logo appears only
+# once its file has loaded, so a team without one shows no broken image.
+# Two kinds of place get one. A crest drawn by the templates (<g
+# class="crest" id="...-crest-<team_id>">, the leaderboards, the scatters,
+# the name plate, the scoreboard) swaps its code for the logo. And any other
+# text that is exactly a team's name, looked up in the logos' manifest.json,
+# gets the logo in front of it: table cells, bar labels, a KPI.
+HEAD_EXTRA="$(cat scripts/charts-head.html)"
 find "$OUT" -name index.html -print0 | while IFS= read -r -d '' page; do
     python3 - "$page" "$HEAD_EXTRA" <<'PY'
 import sys

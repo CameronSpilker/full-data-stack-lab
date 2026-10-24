@@ -809,8 +809,9 @@ where season = (select max(season) from team_season)
 order by is_subject
 ```
 
-<ScatterPlot
+<LogoScatter
     data={landscape}
+    highlight={landscape.find((d) => d.is_subject === 1)?.team_name}
     x=adjusted_offensive_efficiency
     y=adjusted_defensive_efficiency
     series=highlight

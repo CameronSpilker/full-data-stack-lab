@@ -216,7 +216,7 @@ where days_out <= 7
 
 {#if agreement.length > 0}
 
-<ScatterPlot
+<LogoScatter
     data={agreement}
     x=market_probability_for_pick
     y=pick_win_probability

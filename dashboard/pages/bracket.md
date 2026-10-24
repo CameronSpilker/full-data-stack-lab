@@ -93,7 +93,7 @@ limit 16
 
 ## Title contenders
 
-<BarChart
+<LogoBarChart
     data={favourites}
     x=team_name
     y=won_championship
