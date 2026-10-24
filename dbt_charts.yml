@@ -5,7 +5,6 @@
 # board is never more than one pipeline run behind the models it draws. It is
 # not in git: the pipeline builds it and publishes it as a release asset, and
 # charts/README.md says how to get a copy locally.
-name: full_data_stack_lab_charts
 
 sources:
   warehouse:
