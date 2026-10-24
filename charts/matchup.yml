@@ -379,7 +379,7 @@ charts:
     type: custom
     template: team_pair_bars
     title: The two teams, measure by measure
-    subtitle: Each measure is shifted so that a longer bar is always the better number
+    subtitle: A longer bar is always better
     x: measure
     y: value
     color: team_name
@@ -394,7 +394,7 @@ charts:
     query: gauntlet
     type: bar
     title: Against the fifteen best teams in the country
-    subtitle: Neutral site, so the only thing separating these is how good the model thinks the two teams are
+    subtitle: Win probability at a neutral site
     x: opponent
     y: win_probability
     y_label: Win probability
@@ -420,7 +420,7 @@ charts:
     query: gauntlet
     type: table
     title: The same games, with both halves of the model
-    subtitle: Where the two disagree, the blend is somewhere between them and the game is less settled than one number suggests
+    subtitle: The blend, and each half of the model on its own
     style:
       columns:
         opponent_rank:
@@ -470,30 +470,11 @@ rows:
   # The header: the court banner from _header.yml, with the bar of buttons
   # in it. This board's button is the one named in charts.banner.
   - banner
-  # What this page gets you, on its own line under the banner.
+  # One short line saying what the page is. The charts carry the rest.
   - text: |
-      One game priced at a neutral site, with the two halves of the model
-      shown separately so their disagreement is readable.
-  - text: |
-      The model is a blend of two ratings
-      that fail differently: adjusted efficiency, which is opponent-adjusted
-      and barely moves inside a season, and Elo, which is noisier but knows a
-      team has won nine straight. The two cards on the right say what each
-      half thinks on its own.
-
-      When they agree, the game is what it looks like. When they disagree, the
-      blend sits between them and the game is less settled than a single
-      number suggests.
-
-      Pick both teams in the top right. The address keeps the picks, so a link
-      opens on the same game.
+      Any two teams at a neutral site. Pick both in the top right.
   - scoreboard
   - cols: [kpi_favourite, kpi_margin, kpi_efficiency, kpi_elo]
   - cols: [comparison_bars]
-  - title: Everyone worth being afraid of
-    text: |
-      The same team against the fifteen best teams in the country, all at a
-      neutral site, so nothing separates these games except how good the model
-      thinks the two sides are.
-    cols: [gauntlet_bars]
+  - cols: [gauntlet_bars]
   - cols: [gauntlet_table]
