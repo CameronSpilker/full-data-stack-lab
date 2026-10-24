@@ -485,8 +485,8 @@ rows:
       blend sits between them and the game is less settled than a single
       number suggests.
 
-      This board is fixed on one featured matchup, because these pages render
-      to static HTML and a picker would not survive the export.
+      Pick both teams in the top right. The address keeps the picks, so a link
+      opens on the same game.
   - scoreboard
   - cols: [kpi_favourite, kpi_margin, kpi_efficiency, kpi_elo]
   - cols: [comparison_bars]

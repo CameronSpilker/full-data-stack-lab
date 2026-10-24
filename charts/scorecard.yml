@@ -436,8 +436,8 @@ rows:
       has done, how good the model thinks it is, and how hard a schedule it
       says that against.
 
-      This board is fixed on one team, because the pages here render to static
-      HTML and a picker would not survive the export.
+      Pick any team in the top right. The address keeps the pick, so a link
+      opens on the same team.
   - team_plate
   - cols: [kpi_rank, kpi_record, kpi_rating, kpi_schedule]
   - cols: [strength_bars, elo_line]
