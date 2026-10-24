@@ -33,8 +33,9 @@ on), because dbt Charts checks that a chart is complete before it merges in
 what a board extends. Under the banner is one line saying what the page gets
 you.
 
-The scorecard and matchup boards are fixed on one team and one game, because
-these pages render to static HTML and a picker would not survive the export.
+On the published site the scorecard and matchup boards are fixed on one team
+and one game, because these pages render to static HTML and a picker does not
+survive the export. Under `dct serve` they have team pickers (see below).
 
 `meta.yml` is not a board. dbt Charts applies it to every file in this folder,
 and it carries what must not be decided per board: the look (a pale maple
@@ -173,9 +174,10 @@ Two consequences worth knowing:
   re-fetch the pages the last pipeline run drew.
 
 Static also means the variable widgets `dct serve` gives you do not survive the
-render, so the boards here are authored without them. A board that is about one
-team or one game picks its subject in SQL instead: `scorecard.yml` and
-`matchup.yml` both open with a `focus` CTE that resolves to BYU, or to the
-top-ranked team when a season arrives without them, which is also what makes
-them render against the synthetic demo seasons. A page that needs the reader to
-choose belongs on the Evidence side, and both of those boards link to it.
+render. `scorecard.yml` has a `team` variable and `matchup.yml` has `team` and
+`opponent`: under `dct serve` they are dropdowns and URL parameters
+(`/scorecard/?team=Duke Blue Devils`), and the export draws their defaults.
+Each board's `focus` CTE takes the picked team first, then BYU, then the
+top-ranked team, which is also what makes them render against the synthetic
+demo seasons. On the published site, a page that needs the reader to choose
+belongs on the Evidence side, and both of those boards link to it.

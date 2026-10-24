@@ -7,16 +7,40 @@ notes: >
 tags: [matchup, predictions]
 extends: [./_header.yml]
 
-# The board is fixed on one matchup, because these pages render to static HTML
-# and a picker would not survive the export. The version with two team pickers
-# is the Evidence page at /evidence/matchup, which is a separate site and is
-# not linked from here.
+# Two team pickers. Under `dct serve` they are dropdowns and URL parameters
+# (?team=...&opponent=...); the static export draws the defaults and drops
+# the controls.
 #
-# The featured game is the board's focus team against the best other team in
-# the country: BYU where the season has them, the top-ranked team otherwise,
-# which is the same rule the scorecard board uses so the two agree about who
-# the subject is.
+# The featured game is the picked team against the picked opponent. Without
+# a pick, or when a season lacks the named school, it falls back to BYU (else
+# the top-ranked team) against the best other team in the country, the same
+# rule the scorecard board uses so the two agree about who the subject is.
+variables:
+  team:
+    input: select
+    notes: The team the board is about.
+    options:
+      query: team_names
+      column: team_name
+    default: BYU Cougars
+  opponent:
+    input: select
+    notes: Who they play, at a neutral site.
+    options:
+      query: team_names
+      column: team_name
+    default: Michigan Wolverines
+
+
 queries:
+  team_names:
+    notes: Every ranked team in the latest season, for the team pickers.
+    sql: |
+      SELECT team_name
+      FROM marts.mart_team_season
+      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      ORDER BY team_name
+
   # mart_matchup_odds stores each pair once, in team_id order, because a grid
   # of every pair both ways is twice the rows for none of the information.
   # Reading it from one team's point of view therefore means putting the
@@ -56,9 +80,10 @@ queries:
           WHERE season = (SELECT max(season) FROM marts.mart_team_season)
           ORDER BY
               CASE
+                  WHEN team_name = {{ team }} THEN 0
                   WHEN team_name ILIKE '%BYU%'
-                    OR team_name ILIKE 'Brigham Young%' THEN 0
-                  ELSE 1
+                    OR team_name ILIKE 'Brigham Young%' THEN 1
+                  ELSE 2
               END,
               national_rank
           LIMIT 1
@@ -68,7 +93,9 @@ queries:
           FROM marts.mart_team_season AS team
           WHERE team.season = (SELECT max(season) FROM marts.mart_team_season)
             AND team.team_id <> (SELECT team_id FROM focus)
-          ORDER BY team.national_rank
+          ORDER BY
+              CASE WHEN team.team_name = {{ opponent }} THEN 0 ELSE 1 END,
+              team.national_rank
           LIMIT 1
       )
       SELECT
@@ -131,9 +158,10 @@ queries:
           WHERE season = (SELECT max(season) FROM marts.mart_team_season)
           ORDER BY
               CASE
+                  WHEN team_name = {{ team }} THEN 0
                   WHEN team_name ILIKE '%BYU%'
-                    OR team_name ILIKE 'Brigham Young%' THEN 0
-                  ELSE 1
+                    OR team_name ILIKE 'Brigham Young%' THEN 1
+                  ELSE 2
               END,
               national_rank
           LIMIT 1
@@ -143,7 +171,9 @@ queries:
           FROM marts.mart_team_season
           WHERE season = (SELECT max(season) FROM marts.mart_team_season)
             AND team_id <> (SELECT team_id FROM focus)
-          ORDER BY national_rank
+          ORDER BY
+              CASE WHEN team_name = {{ opponent }} THEN 0 ELSE 1 END,
+              national_rank
           LIMIT 1
       ),
       pair AS (
@@ -217,9 +247,10 @@ queries:
           WHERE season = (SELECT max(season) FROM marts.mart_team_season)
           ORDER BY
               CASE
+                  WHEN team_name = {{ team }} THEN 0
                   WHEN team_name ILIKE '%BYU%'
-                    OR team_name ILIKE 'Brigham Young%' THEN 0
-                  ELSE 1
+                    OR team_name ILIKE 'Brigham Young%' THEN 1
+                  ELSE 2
               END,
               national_rank
           LIMIT 1

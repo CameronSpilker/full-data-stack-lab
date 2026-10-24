@@ -19,16 +19,36 @@ style:
           Middle of the pack: "#898781"
           Weakness: "#e34948"
 
+# The team picker. Under `dct serve` it is a dropdown and a URL parameter
+# (?team=Duke Blue Devils); the static export draws the default and drops the
+# control.
+variables:
+  team:
+    input: select
+    notes: The team the whole board is about.
+    options:
+      query: team_names
+      column: team_name
+    default: BYU Cougars
+
 # Every query below opens with the same `focus` CTE, which picks the team this
 # board is about. It is repeated rather than shared because a board's queries
-# are independent SQL and the render is static: there is no picker to carry a
-# choice between them, and a variable would not survive the export.
+# are independent SQL.
 #
-# BYU, or the top-ranked team when a season arrives without them in it. The
+# The picked team, then BYU, then the top-ranked team when a season arrives
+# without either in it. The
 # fallback is what makes this board render against the synthetic demo seasons,
 # whose teams are generated and include no real school. It mirrors the rule
 # the Evidence scorecard at /scorecard uses, so the two open on the same team.
 queries:
+  team_names:
+    notes: Every ranked team in the latest season, for the team pickers.
+    sql: |
+      SELECT team_name
+      FROM marts.mart_team_season
+      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      ORDER BY team_name
+
   identity:
     notes: Who the board is about, and the one-line verdict on them.
     sql: |
@@ -38,9 +58,10 @@ queries:
           WHERE season = (SELECT max(season) FROM marts.mart_team_season)
           ORDER BY
               CASE
+                  WHEN team_name = {{ team }} THEN 0
                   WHEN team_name ILIKE '%BYU%'
-                    OR team_name ILIKE 'Brigham Young%' THEN 0
-                  ELSE 1
+                    OR team_name ILIKE 'Brigham Young%' THEN 1
+                  ELSE 2
               END,
               national_rank
           LIMIT 1
@@ -101,9 +122,10 @@ queries:
           WHERE season = (SELECT max(season) FROM marts.mart_team_season)
           ORDER BY
               CASE
+                  WHEN team_name = {{ team }} THEN 0
                   WHEN team_name ILIKE '%BYU%'
-                    OR team_name ILIKE 'Brigham Young%' THEN 0
-                  ELSE 1
+                    OR team_name ILIKE 'Brigham Young%' THEN 1
+                  ELSE 2
               END,
               national_rank
           LIMIT 1
@@ -163,9 +185,10 @@ queries:
           WHERE season = (SELECT max(season) FROM marts.mart_team_season)
           ORDER BY
               CASE
+                  WHEN team_name = {{ team }} THEN 0
                   WHEN team_name ILIKE '%BYU%'
-                    OR team_name ILIKE 'Brigham Young%' THEN 0
-                  ELSE 1
+                    OR team_name ILIKE 'Brigham Young%' THEN 1
+                  ELSE 2
               END,
               national_rank
           LIMIT 1
@@ -188,9 +211,10 @@ queries:
           WHERE season = (SELECT max(season) FROM marts.mart_team_season)
           ORDER BY
               CASE
+                  WHEN team_name = {{ team }} THEN 0
                   WHEN team_name ILIKE '%BYU%'
-                    OR team_name ILIKE 'Brigham Young%' THEN 0
-                  ELSE 1
+                    OR team_name ILIKE 'Brigham Young%' THEN 1
+                  ELSE 2
               END,
               national_rank
           LIMIT 1
