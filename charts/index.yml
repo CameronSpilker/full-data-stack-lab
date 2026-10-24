@@ -119,7 +119,7 @@ charts:
     query: elo_history
     type: line
     title: The number the lab exists to move
-    subtitle: Elo's regular-season accuracy, scored only on games it had not seen
+    subtitle: Regular-season accuracy on games it had not seen
     x: season
     y: accuracy
     y_label: Accuracy
@@ -143,7 +143,7 @@ charts:
     type: custom
     template: team_leaderboard
     title: The top ten
-    subtitle: By adjusted efficiency margin, which is the model's own opinion
+    subtitle: By adjusted efficiency margin
     x: team_name
     y: adjusted_efficiency_margin
     options:
@@ -163,30 +163,12 @@ rows:
   # The header: the court banner from _header.yml, with the bar of buttons
   # in it. This board's button is the one named in charts.banner.
   - banner
-  # What this page gets you, on its own line under the banner.
+  # One short line saying what the page is. The charts carry the rest.
   - text: |
-      Headline numbers for the latest season, and the way into the six
-      boards that carry the detail.
+      This season's headline numbers. The buttons above go to the detail.
   - cols: [kpi_season, kpi_games, kpi_accuracy]
   - cols: [top_10_board, elo_trend]
-  # Each board's description now sits under the bar on the board itself, so
-  # there is no list of them here. What is left is how the boards are built,
-  # which is worth saying once and is not what a reader came to the page for:
-  # the numbers go above it.
-  - style:
-      text:
-        column:
-          max_number: 1
-    text: |
-      These boards are YAML. Each one is a file in the same repository as the
-      dbt models it reads, so a chart and the column behind it change in one
-      commit and get reviewed together.
-
-      The data comes from public APIs into Parquet, through DuckDB and dbt,
-      on a nightly Dagster schedule. The
-      [dbt docs](https://lab.cameronspilker.com/docs/) show every model
-      these boards read and how it is built.
-
-      Built with [dbt Charts](https://dbtcharts.com). The source for every
-      board is in
-      [full-data-stack-lab](https://github.com/CameronSpilker/full-data-stack-lab/tree/main/charts).
+  - text: |
+      Built with [dbt Charts](https://dbtcharts.com) ·
+      [source](https://github.com/CameronSpilker/full-data-stack-lab/tree/main/charts) ·
+      [dbt docs](https://lab.cameronspilker.com/docs/)

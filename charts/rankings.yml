@@ -199,7 +199,7 @@ charts:
     type: custom
     template: team_leaderboard
     title: The top 25, in order
-    subtitle: Adjusted efficiency margin, which is points per 100 possessions better than an average team. Bars are coloured by tier, which is also named under each team.
+    subtitle: Points per 100 possessions above an average team, coloured by tier
     x: team_name
     y: adjusted_efficiency_margin
     color: tier
@@ -218,7 +218,7 @@ charts:
   quadrant:
     query: field_points
     title: Every team in the country, offence against defence
-    subtitle: Up and to the right is good. The defensive axis runs downward, because points allowed is a number to minimise. Hover a logo for the team.
+    subtitle: Up and to the right is better. Hover a logo for the team.
     type: custom
     template: team_scatter
     x: adjusted_offensive_efficiency
@@ -246,7 +246,7 @@ charts:
     query: tier_counts
     type: table
     title: What each tier looks like
-    subtitle: The cut is on rank, so the bands describe this field rather than a fixed rating
+    subtitle: Tiers are cuts on rank
     style:
       columns:
         tier:
@@ -341,24 +341,10 @@ rows:
   # The header: the court banner from _header.yml, with the bar of buttons
   # in it. This board's button is the one named in charts.banner.
   - banner
-  # What this page gets you, on its own line under the banner.
+  # One short line saying what the page is. The charts carry the rest.
   - text: |
-      Every Division I team the model rated this season in one order, cut into
-      tiers, and the same field plotted offence against defence.
-  - text: |
-      The tier a team lands in is a cut on its rank, not a judgement: the top
-      16, the next 32, the next 52, and everyone else.
-
-      The rating is adjusted efficiency margin, which is how many points per
-      100 possessions better than an average team the model thinks a team is,
-      after adjusting for who it played. It is the same number the order, the
-      tiers and the quadrant are all drawn from.
+      Every Division I team, ranked and cut into tiers.
   - cols: [kpi_teams, kpi_best]
   - cols: [quadrant]
   - cols: [order_board, tier_table]
-  - title: The full field
-    text: |
-      Sortable, and wide enough to compare the two halves of a rating. A team
-      can rank tenth overall on the strength of one side of the ball, and the
-      offence and defence ranks beside the margin are where that shows.
-    cols: [full_table]
+  - cols: [full_table]

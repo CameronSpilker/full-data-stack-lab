@@ -332,7 +332,7 @@ charts:
     query: strengths
     type: bar
     title: What this team is good at
-    subtitle: Percentile against every ranked team, so 90% means better than nine in ten of them
+    subtitle: National percentile
     x: measure
     y: percentile
     y_label: National percentile
@@ -355,7 +355,7 @@ charts:
     query: trajectory
     type: line
     title: Which way the season has been going
-    subtitle: Elo after each game. It is the one rating here that moves inside a season.
+    subtitle: Elo after each game
     x: game_number
     y: elo_after
     x_label: Game
@@ -375,7 +375,7 @@ charts:
     query: results
     type: table
     title: Every game
-    subtitle: Most recent first, with what the model gave the team before tip-off
+    subtitle: Most recent first
     style:
       pagination:
         enabled: true
@@ -426,23 +426,10 @@ rows:
   # The header: the court banner from _header.yml, with the bar of buttons
   # in it. This board's button is the one named in charts.banner.
   - banner
-  # What this page gets you, on its own line under the banner.
+  # One short line saying what the page is. The charts carry the rest.
   - text: |
-      One team on one screen: where it ranks, what it is good at, and which
-      way its season has been going.
-  - text: |
-      This is the altitude you read before a game rather than after one. The
-      four numbers below are the whole summary: where the team ranks, what it
-      has done, how good the model thinks it is, and how hard a schedule it
-      says that against.
-
-      Pick any team in the top right. The address keeps the pick, so a link
-      opens on the same team.
+      One team at a glance. Pick a team in the top right.
   - team_plate
   - cols: [kpi_rank, kpi_record, kpi_rating, kpi_schedule]
   - cols: [strength_bars, elo_line]
-  - title: The season in full
-    text: |
-      The model's pre-game probability is beside each result, so a loss it
-      expected and a loss it did not are not the same row.
-    cols: [results_table]
+  - cols: [results_table]

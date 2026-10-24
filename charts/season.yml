@@ -189,7 +189,7 @@ charts:
   quadrant:
     query: offense_defense
     title: Offence against defence, every team in the country
-    subtitle: Up and to the right is good. The defensive axis runs downward, because points allowed is a number to minimise. Hover a logo for the team.
+    subtitle: Up and to the right is better. Hover a logo for the team.
     type: custom
     template: team_scatter
     x: adjusted_offensive_efficiency
@@ -217,7 +217,7 @@ charts:
     query: conference_margin
     type: bar
     title: Which league was actually deep
-    subtitle: Average efficiency margin across every team in the conference
+    subtitle: Average efficiency margin
     x: conference_name
     y: avg_efficiency_margin
     # Signed around zero, the average team, so the side of zero is the colour.
@@ -272,7 +272,7 @@ charts:
     query: top_20
     type: table
     title: The top 20
-    subtitle: Ranked by the model, which has never watched a game
+    subtitle: Ranked by the model
     style:
       columns:
         national_rank:
@@ -316,21 +316,11 @@ rows:
   # The header: the court banner from _header.yml, with the bar of buttons
   # in it. This board's button is the one named in charts.banner.
   - banner
-  # What this page gets you, on its own line under the banner.
+  # One short line saying what the page is. The charts carry the rest.
   - text: |
-      Who was good, which conferences were deep, and how the two halves of a
-      rating trade off against each other.
-  - text: |
-      Everything here describes the last completed season. A team that has not
-      played cannot be rated, so the board waits for games rather than drawing
-      an empty axis.
+      Who was good, and which conferences were deep.
   - cols: [kpi_teams, kpi_games, kpi_best]
   - cols: [margin_board, quadrant]
   - cols: [top_20_table]
-  - title: Conferences
-    text: |
-      A conference is only as strong as the teams nobody talks about. Bids
-      reward the top of a league; average efficiency margin measures the whole
-      of it, and the two disagree more often than the bracket suggests.
-    cols: [conference_bars]
+  - cols: [conference_bars]
   - cols: [conference_table]

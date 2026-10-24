@@ -168,7 +168,7 @@ charts:
     type: custom
     template: team_leaderboard
     title: Who wins it
-    subtitle: Share of 20,000 simulated tournaments ending with this team holding the trophy
+    subtitle: Share of 20,000 simulations won
     x: team_name
     y: won_championship
     options:
@@ -187,7 +187,7 @@ charts:
     query: seed_curve
     type: bar
     title: What a seed line is worth
-    subtitle: Average simulated wins for the four teams on each seed
+    subtitle: Average simulated wins per team
     x: seed
     y: expected_wins
     x_label: Seed
@@ -209,7 +209,7 @@ charts:
     query: survival
     type: heatmap
     title: How far each seed line gets
-    subtitle: Share of simulations reaching the round. The grid is the bracket's own prior, priced.
+    subtitle: Share of simulations reaching each round
     x: round_name
     y: seed
     color: survival
@@ -226,7 +226,7 @@ charts:
     query: field
     type: table
     title: The field, by title odds
-    subtitle: The twenty teams the simulation rates highest
+    subtitle: Top 20 by title odds
     style:
       columns:
         seed:
@@ -272,20 +272,10 @@ rows:
   # The header: the court banner from _header.yml, with the bar of buttons
   # in it. This board's button is the one named in charts.banner.
   - banner
-  # What this page gets you, on its own line under the banner.
+  # One short line saying what the page is. The charts carry the rest.
   - text: |
-      Twenty thousand simulated brackets: title odds, what a seed line is
-      really worth, and how fast the field thins.
-  - text: |
-      Nothing here is a prediction of one tournament. It is the distribution of
-      all twenty thousand, which is the only honest thing a model can say about
-      a single-elimination field of 64.
+      Title odds and seed value from 20,000 simulated brackets.
   - cols: [kpi_favourite, kpi_final_four, kpi_sims]
   - cols: [odds_board, seed_bars]
-  - title: Survival
-    text: |
-      A one seed is not four times a four seed. Read across a row to see where
-      a seed line usually stops, and down a column to see how quickly the field
-      thins once the games get hard.
-    cols: [survival_grid]
+  - cols: [survival_grid]
   - cols: [field_table]
