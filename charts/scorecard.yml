@@ -1,9 +1,11 @@
+_schema_version: "0.10.0"  # written automatically by dct migrate
 title: Team scorecard
 notes: >
   One team on one screen, at the altitude someone reads before a game rather
   than after one: where the team ranks, what it is good at, and which way it
   has been moving.
 tags: [teams, scorecard]
+extends: [./_header.yml]
 
 # Every query below opens with the same `focus` CTE, which picks the team this
 # board is about. It is repeated rather than shared because a board's queries
@@ -42,7 +44,14 @@ queries:
           WHERE season = (SELECT max(season) FROM marts.mart_team_season)
       )
       SELECT
+          team.team_id,
           team.team_name,
+          team.team_abbreviation,
+          team.team_color,
+          team.conference_name || ' · ' || team.record
+              || ' (' || team.conference_record || ' in conference)'
+              || ' · No. ' || team.conference_rank || ' in the '
+              || team.conference_name AS team_detail,
           team.conference_name,
           team.record,
           team.conference_record,
@@ -184,6 +193,33 @@ queries:
       ORDER BY timeline.game_date DESC
 
 charts:
+  banner:
+    type: custom
+    template: court_banner
+    query: season_banner
+    style:
+      min_height: 132
+      max_height: 132
+    options:
+      current: Scorecard
+
+  # The name plate under the banner, so the board says who it is about
+  # before it says anything about them.
+  team_plate:
+    query: identity
+    type: custom
+    template: team_hero
+    x: team_name
+    options:
+      team_id: team_id
+      abbreviation: team_abbreviation
+      team_color: team_color
+      detail: team_detail
+      rank: national_rank
+    style:
+      min_height: 140
+      max_height: 140
+
   kpi_rank:
     query: identity
     type: kpi
@@ -192,13 +228,14 @@ charts:
     support:
       value: teams_ranked
       label: Teams ranked
-      format: integer
     style:
       value:
         format: integer
       label:
         font:
           case: none
+      support:
+        format: "integer"
 
   kpi_record:
     query: identity
@@ -221,13 +258,14 @@ charts:
     support:
       value: elo_rating
       label: Elo
-      format: integer
     style:
       value:
         format: "+.1f"
       label:
         font:
           case: none
+      support:
+        format: "integer"
 
   kpi_schedule:
     query: identity
@@ -237,13 +275,14 @@ charts:
     support:
       value: wins_vs_top_50
       label: Wins against the top 50
-      format: integer
     style:
       value:
         format: integer
       label:
         font:
           case: none
+      support:
+        format: "integer"
 
   strength_bars:
     query: strengths
@@ -259,13 +298,14 @@ charts:
       order: desc
     style:
       orientation: horizontal
-      number_format: ".0%"
       legend:
         visible: false
       axis_y:
         scale:
           continuous:
             domain: [0, 1]
+        labels:
+          format: ".0%"
 
   elo_line:
     query: trajectory
@@ -278,13 +318,14 @@ charts:
     y_label: Elo
     height: 360
     style:
-      number_format: integer
       legend:
         visible: false
       axis_y:
         scale:
           continuous:
             zero: false
+        labels:
+          format: "integer"
 
   results_table:
     query: results
@@ -328,60 +369,10 @@ charts:
               color: negative.text
 
 rows:
-  # The top bar: one strip of buttons, the same seven on every board in the
-  # same order. The button for the page you are on is filled in rather than
-  # linked. Links are drawn without an underline so each cell reads as a
-  # button. The boards are their own site, so nothing here leaves /charts.
-  # Each file writes the two button styles once and anchors the rest to them.
-  - style:
-      padding: 4
-      background: dbt-grays.surface-subtle
-      border:
-        width: 1
-        color: dbt-grays.border
-        radius: 10
-    cols:
-      - width: "14.28%"
-        text: "[Home](/charts/)"
-        style: &nav_button
-          padding: 7
-          font:
-            decoration: none
-            weight: 500
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "[Rankings](/charts/rankings/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "Scorecard"
-        style: &nav_current
-          padding: 7
-          background: "category[1]"
-          font:
-            color: dbt-grays.canvas
-            weight: 600
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "[Matchup](/charts/matchup/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Model](/charts/model/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Season](/charts/season/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Tournament](/charts/tournament/)"
-        style: *nav_button
-  # What this page gets you, on its own line under the bar.
+  # The header: the court banner from _header.yml, with the bar of buttons
+  # in it. This board's button is the one named in charts.banner.
+  - banner
+  # What this page gets you, on its own line under the banner.
   - text: |
       One team on one screen: where it ranks, what it is good at, and which
       way its season has been going.
@@ -393,6 +384,7 @@ rows:
 
       This board is fixed on one team, because the pages here render to static
       HTML and a picker would not survive the export.
+  - team_plate
   - cols: [kpi_rank, kpi_record, kpi_rating, kpi_schedule]
   - cols: [strength_bars, elo_line]
   - title: The season in full

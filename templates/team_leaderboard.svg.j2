@@ -1,0 +1,119 @@
+{#---
+description: >
+  A ranked list of teams, one row each: rank, the team's crest, its name with
+  a line of detail under it, and a bar for the number the list is sorted by.
+  The crest is the team's abbreviation on a disc of its own colour; the page
+  swaps in the team's logo when one is mirrored (see scripts/render-charts.sh).
+  Team colour is used on the crest only. The bar takes the board's palette,
+  because team colours are chosen by schools, not for telling bars apart.
+channels:
+  x:
+    description: Team name.
+  y:
+    description: The value the bar draws. Rows are drawn in query order.
+  color:
+    description: Optional grouping that colours the bar from the board palette.
+    default: null
+options:
+  team_id:
+    type: column
+    description: Warehouse team id, which names the crest so a logo can find it.
+  abbreviation:
+    type: column
+    description: Short team code for the crest.
+  team_color:
+    type: column
+    default: null
+    description: Six hex digits with no leading "#", as the warehouse stores it.
+  rank:
+    type: column
+    default: null
+    description: The number printed at the start of the row. Omit to count rows.
+  detail:
+    type: column
+    default: null
+    description: One line of text under the team name.
+  value_format:
+    type: string
+    default: ".1f"
+  bar_color:
+    type: color
+    default: null
+---#}
+{% set display = "'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif" %}
+{% set ink = style.font.color or "#14213d" %}
+{% set muted = style.muted or "#6b7280" %}
+{% set accent = options.bar_color or style.charts.color.categorical.palette[0] %}
+{% set hexdigits = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7,
+                    "8": 8, "9": 9, "a": 10, "b": 11, "c": 12, "d": 13, "e": 14, "f": 15} %}
+
+{% set n = rows | length %}
+{% set row_h = height / (n if n > 0 else 1) %}
+{% set r = [row_h * 0.36, 17] | min %}
+{% set name_size = [row_h * 0.38, 15] | min %}
+{% set detail_size = [row_h * 0.3, 11.5] | min %}
+
+{#- Lay the columns out from what they hold rather than from guesses. -#}
+{% set ns = namespace(top=0, name_w=0) %}
+{% for row in rows %}
+  {% set ns.top = [ns.top, row[channels.y] or 0] | max %}
+  {% set w = text_width(row[channels.x], name_size, 600) %}
+  {% if options.detail %}{% set w = [w, text_width(row[options.detail] or "", detail_size)] | max %}{% endif %}
+  {% set ns.name_w = [ns.name_w, w] | max %}
+{% endfor %}
+{% set rank_x = 26 %}
+{% set crest_x = rank_x + 12 + r %}
+{% set name_x = crest_x + r + 12 %}
+{% set bar_x = name_x + ns.name_w + 18 %}
+{% set value_w = 58 %}
+{% set bar_w = [width - bar_x - value_w, 40] | max %}
+
+{% for row in rows %}
+  {% set y = loop.index0 * row_h %}
+  {% set mid = y + row_h / 2 %}
+  {% if loop.index0 is even %}
+    <rect x="0" y="{{ y }}" width="{{ width }}" height="{{ row_h }}" rx="6" fill="{{ ink }}" fill-opacity="0.035"/>
+  {% endif %}
+
+  <text x="{{ rank_x }}" y="{{ mid }}" dy="0.36em" text-anchor="end" font-family="{{ display }}"
+        font-size="{{ name_size + 2 }}" font-weight="600" fill="{{ muted }}">
+    {{- row[options.rank] if options.rank else loop.index -}}
+  </text>
+
+  {#- The crest. Ink flips to dark on a light team colour so the code stays legible. -#}
+  {% set c = (row[options.team_color] or "") | lower if options.team_color else "" %}
+  {% if c | length == 6 %}
+    {% set lum = 0.299 * (hexdigits[c[0]] * 16 + hexdigits[c[1]])
+               + 0.587 * (hexdigits[c[2]] * 16 + hexdigits[c[3]])
+               + 0.114 * (hexdigits[c[4]] * 16 + hexdigits[c[5]]) %}
+    {% set fill = "#" ~ c %}
+    {% set code_ink = "#14213d" if lum > 170 else "#ffffff" %}
+  {% else %}
+    {% set fill = muted %}
+    {% set code_ink = "#ffffff" %}
+  {% endif %}
+  {% set code = row[options.abbreviation] or "" %}
+  <g id="{{ uid }}-crest-{{ row[options.team_id] }}" class="crest">
+    <circle cx="{{ crest_x }}" cy="{{ mid }}" r="{{ r + 2.5 }}" fill="{{ fill }}" fill-opacity="0.18"/>
+    <circle cx="{{ crest_x }}" cy="{{ mid }}" r="{{ r }}" fill="{{ fill }}"/>
+    <text x="{{ crest_x }}" y="{{ mid }}" dy="0.36em" text-anchor="middle" font-family="{{ display }}"
+          font-size="{{ r * (0.62 if code | length <= 3 else 0.52) }}" font-weight="600"
+          letter-spacing="0.4" fill="{{ code_ink }}">{{ code }}</text>
+  </g>
+
+  {% if options.detail %}
+    <text x="{{ name_x }}" y="{{ mid - 1 }}" font-size="{{ name_size }}" font-weight="600" fill="{{ ink }}">{{ row[channels.x] }}</text>
+    <text x="{{ name_x }}" y="{{ mid + detail_size + 1 }}" font-size="{{ detail_size }}" fill="{{ muted }}">{{ row[options.detail] }}</text>
+  {% else %}
+    <text x="{{ name_x }}" y="{{ mid }}" dy="0.36em" font-size="{{ name_size }}" font-weight="600" fill="{{ ink }}">{{ row[channels.x] }}</text>
+  {% endif %}
+
+  {% set v = row[channels.y] or 0 %}
+  {% set w = (v / ns.top * bar_w) if ns.top > 0 else 0 %}
+  {% set bh = [row_h * 0.3, 12] | min %}
+  <rect x="{{ bar_x }}" y="{{ mid - bh / 2 }}" width="{{ bar_w }}" height="{{ bh }}" rx="{{ bh / 2 }}" fill="{{ ink }}" fill-opacity="0.06"/>
+  {% set paint = color_for(row[channels.color], channels.color) if channels.color else accent %}
+  <rect x="{{ bar_x }}" y="{{ mid - bh / 2 }}" width="{{ [w, bh] | max }}" height="{{ bh }}" rx="{{ bh / 2 }}" fill="{{ paint }}"/>
+  <text x="{{ width - 4 }}" y="{{ mid }}" dy="0.36em" text-anchor="end" font-family="{{ display }}"
+        font-size="{{ name_size + 2 }}" font-weight="600" fill="{{ ink }}">{{ v | format(options.value_format) }}</text>
+{% endfor %}

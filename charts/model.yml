@@ -1,8 +1,10 @@
+_schema_version: "0.10.0"  # written automatically by dct migrate
 title: Did the model beat the market?
 notes: >
   Scores every predictor against the same season and asks the question that
   settles it: when a model says 70%, does it happen 70% of the time?
 tags: [model, accuracy, calibration]
+extends: [./_header.yml]
 
 queries:
   # One CASE lives in each query rather than a shared view, because the
@@ -104,6 +106,16 @@ queries:
           model
 
 charts:
+  banner:
+    type: custom
+    template: court_banner
+    query: season_banner
+    style:
+      min_height: 132
+      max_height: 132
+    options:
+      current: Model
+
   scoreboard:
     query: accuracy_by_model
     type: table
@@ -159,7 +171,6 @@ charts:
     sort: { by: brier_score, order: asc }
     style:
       orientation: horizontal
-      number_format: ".3f"
       legend:
         visible: false
       marks:
@@ -168,6 +179,9 @@ charts:
             visible: true
             position: above
             format: ".3f"
+      axis_y:
+        labels:
+          format: ".3f"
 
   elo_trend:
     query: elo_history
@@ -178,7 +192,6 @@ charts:
     y: accuracy
     y_label: Regular-season accuracy
     style:
-      number_format: ".0%"
       legend:
         visible: false
       axis_y:
@@ -187,6 +200,8 @@ charts:
             # Auto-scaling a 1.5-point range draws a cliff. The window is wide
             # enough that a real move looks like one and noise does not.
             domain: [0.66, 0.78]
+        labels:
+          format: ".0%"
 
   reliability:
     query: calibration
@@ -200,10 +215,12 @@ charts:
     y_label: Share that actually won
     height: 440
     style:
-      number_format: percent_whole
       axis_x:
         labels:
           format: percent_whole
+      axis_y:
+        labels:
+          format: "percent_whole"
 
   phase_bars:
     query: by_game_type
@@ -217,63 +234,15 @@ charts:
     style:
       orientation: vertical
       stack: none
-      number_format: percent_whole
+      axis_y:
+        labels:
+          format: "percent_whole"
 
 rows:
-  # The top bar: one strip of buttons, the same seven on every board in the
-  # same order. The button for the page you are on is filled in rather than
-  # linked. Links are drawn without an underline so each cell reads as a
-  # button. The boards are their own site, so nothing here leaves /charts.
-  # Each file writes the two button styles once and anchors the rest to them.
-  - style:
-      padding: 4
-      background: dbt-grays.surface-subtle
-      border:
-        width: 1
-        color: dbt-grays.border
-        radius: 10
-    cols:
-      - width: "14.28%"
-        text: "[Home](/charts/)"
-        style: &nav_button
-          padding: 7
-          font:
-            decoration: none
-            weight: 500
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "[Rankings](/charts/rankings/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Scorecard](/charts/scorecard/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Matchup](/charts/matchup/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "Model"
-        style: &nav_current
-          padding: 7
-          background: "category[1]"
-          font:
-            color: dbt-grays.canvas
-            weight: 600
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "[Season](/charts/season/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Tournament](/charts/tournament/)"
-        style: *nav_button
-  # What this page gets you, on its own line under the bar.
+  # The header: the court banner from _header.yml, with the bar of buttons
+  # in it. This board's button is the one named in charts.banner.
+  - banner
+  # What this page gets you, on its own line under the banner.
   - text: |
       Three predictors scored on the same season, and the calibration curve
       that decides which of them means what it says.

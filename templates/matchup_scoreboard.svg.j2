@@ -1,0 +1,87 @@
+{#---
+description: >
+  One game set out like a scoreboard: each team's crest, name, rank and
+  record on its own side, its chance of winning in big numerals, and a bar
+  split between the two in proportion. The crests follow team_leaderboard's
+  rules. The two halves of the bar take the board's first two palette
+  colours, never the teams' own. Reads the first row only.
+options:
+  left_id: {type: column}
+  left_name: {type: column}
+  left_abbreviation: {type: column}
+  left_color: {type: column}
+  left_detail: {type: column}
+  right_id: {type: column}
+  right_name: {type: column}
+  right_abbreviation: {type: column}
+  right_color: {type: column}
+  right_detail: {type: column}
+  left_probability:
+    type: column
+    description: The left team's chance of winning, from 0 to 1.
+  headline:
+    type: column
+    description: The line in the middle, such as who is favoured and by how much.
+  kicker:
+    type: string
+    default: "Neutral site"
+---#}
+{% set display = "'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif" %}
+{% set ink = style.font.color or "#14213d" %}
+{% set muted = style.muted or "#6b7280" %}
+{% set palette = style.charts.color.categorical.palette %}
+{% set hexdigits = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7,
+                    "8": 8, "9": 9, "a": 10, "b": 11, "c": 12, "d": 13, "e": 14, "f": 15} %}
+
+{% macro crest(id, code, color, cx, cy, r) %}
+  {% set c = (color or "") | lower %}
+  {% if c | length == 6 %}
+    {% set lum = 0.299 * (hexdigits[c[0]] * 16 + hexdigits[c[1]])
+               + 0.587 * (hexdigits[c[2]] * 16 + hexdigits[c[3]])
+               + 0.114 * (hexdigits[c[4]] * 16 + hexdigits[c[5]]) %}
+    {% set fill = "#" ~ c %}
+    {% set code_ink = "#14213d" if lum > 170 else "#ffffff" %}
+  {% else %}
+    {% set fill = muted %}
+    {% set code_ink = "#ffffff" %}
+  {% endif %}
+  <g id="{{ uid }}-crest-{{ id }}" class="crest">
+    <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r + 5 }}" fill="{{ fill }}" fill-opacity="0.16"/>
+    <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r }}" fill="{{ fill }}"/>
+    <text x="{{ cx }}" y="{{ cy }}" dy="0.36em" text-anchor="middle" font-family="{{ display }}"
+          font-size="{{ r * (0.62 if (code or '') | length <= 3 else 0.52) }}" font-weight="600"
+          letter-spacing="0.8" fill="{{ code_ink }}">{{ code }}</text>
+  </g>
+{% endmacro %}
+
+{% if rows %}
+  {% set row = rows[0] %}
+  {% set p = row[options.left_probability] or 0.5 %}
+  {% set bar_h = 16 %}
+  {% set bar_y = height - bar_h - 4 %}
+  {% set top = bar_y - 22 %}
+  {% set r = [top * 0.3, 40] | min %}
+  {% set cy = top * 0.42 %}
+
+  {#- Left side. -#}
+  {{ crest(row[options.left_id], row[options.left_abbreviation], row[options.left_color], r + 8, cy, r) }}
+  <text x="{{ 2 * r + 30 }}" y="{{ cy - 4 }}" font-family="{{ display }}" font-size="26" font-weight="600" fill="{{ ink }}">{{ row[options.left_name] }}</text>
+  <text x="{{ 2 * r + 30 }}" y="{{ cy + 18 }}" font-size="13" fill="{{ muted }}">{{ row[options.left_detail] }}</text>
+  <text x="{{ 8 }}" y="{{ top }}" font-family="{{ display }}" font-size="44" font-weight="700" fill="{{ palette[0] }}">{{ p | format(".0%") }}</text>
+
+  {#- Right side, mirrored. -#}
+  {{ crest(row[options.right_id], row[options.right_abbreviation], row[options.right_color], width - r - 8, cy, r) }}
+  <text x="{{ width - 2 * r - 30 }}" y="{{ cy - 4 }}" text-anchor="end" font-family="{{ display }}" font-size="26" font-weight="600" fill="{{ ink }}">{{ row[options.right_name] }}</text>
+  <text x="{{ width - 2 * r - 30 }}" y="{{ cy + 18 }}" text-anchor="end" font-size="13" fill="{{ muted }}">{{ row[options.right_detail] }}</text>
+  <text x="{{ width - 8 }}" y="{{ top }}" text-anchor="end" font-family="{{ display }}" font-size="44" font-weight="700" fill="{{ palette[1] }}">{{ (1 - p) | format(".0%") }}</text>
+
+  {#- The middle. -#}
+  <text x="{{ width / 2 }}" y="{{ top - 40 }}" text-anchor="middle" font-family="{{ display }}" font-size="12" font-weight="500" letter-spacing="2" fill="{{ muted }}">{{ options.kicker | upper }}</text>
+  <text x="{{ width / 2 }}" y="{{ top - 8 }}" text-anchor="middle" font-family="{{ display }}" font-size="22" font-weight="600" fill="{{ ink }}">{{ row[options.headline] }}</text>
+
+  {#- The split. -#}
+  {% set split = 8 + (width - 16) * p %}
+  <rect x="8" y="{{ bar_y }}" width="{{ width - 16 }}" height="{{ bar_h }}" rx="{{ bar_h / 2 }}" fill="{{ palette[1] }}"/>
+  <rect x="8" y="{{ bar_y }}" width="{{ split - 8 }}" height="{{ bar_h }}" rx="{{ bar_h / 2 }}" fill="{{ palette[0] }}"/>
+  <rect x="{{ split - 1.5 }}" y="{{ bar_y - 4 }}" width="3" height="{{ bar_h + 8 }}" fill="#ffffff"/>
+{% endif %}

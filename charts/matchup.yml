@@ -1,9 +1,11 @@
+_schema_version: "0.10.0"  # written automatically by dct migrate
 title: Matchup
 notes: >
   One head-to-head priced by the model, with the two halves of its rating
   shown separately, and the same team against every other side worth being
   afraid of.
 tags: [matchup, predictions]
+extends: [./_header.yml]
 
 # The board is fixed on one matchup, because these pages render to static HTML
 # and a picker would not survive the export. The version with two team pickers
@@ -66,7 +68,21 @@ queries:
           LIMIT 1
       )
       SELECT
+          oriented.side_id,
           oriented.side_name,
+          side.team_abbreviation AS side_abbreviation,
+          side.team_color AS side_color,
+          '#' || side.national_rank || ' · ' || side.record || ' · '
+              || oriented.side_conference AS side_detail,
+          oriented.other_id,
+          other.team_abbreviation AS other_abbreviation,
+          other.team_color AS other_color,
+          '#' || other.national_rank || ' · ' || other.record || ' · '
+              || oriented.other_conference AS other_detail,
+          CASE
+              WHEN oriented.win_probability >= 0.5 THEN oriented.side_name
+              ELSE oriented.other_name
+          END || ' by ' || printf('%.1f', abs(oriented.margin)) AS headline,
           oriented.side_conference,
           oriented.other_name,
           oriented.other_conference,
@@ -205,6 +221,40 @@ queries:
       ORDER BY other.national_rank
 
 charts:
+  banner:
+    type: custom
+    template: court_banner
+    query: season_banner
+    style:
+      min_height: 132
+      max_height: 132
+    options:
+      current: Matchup
+
+  # The game as a scoreboard: who, how likely, and by how much, before the
+  # four numbers below take the model apart.
+  scoreboard:
+    query: featured
+    type: custom
+    template: matchup_scoreboard
+    options:
+      left_id: side_id
+      left_name: side_name
+      left_abbreviation: side_abbreviation
+      left_color: side_color
+      left_detail: side_detail
+      right_id: other_id
+      right_name: other_name
+      right_abbreviation: other_abbreviation
+      right_color: other_color
+      right_detail: other_detail
+      left_probability: win_probability
+      headline: headline
+      kicker: Neutral site · projected margin
+    style:
+      min_height: 190
+      max_height: 190
+
   kpi_favourite:
     query: featured
     type: kpi
@@ -213,11 +263,16 @@ charts:
     support:
       value: favourite_probability
       label: Win probability
-      format: percent_whole
     style:
+      # A team name rather than a number: smaller, so it fits its card.
+      value:
+        font:
+          size: 28
       label:
         font:
           case: none
+      support:
+        format: "percent_whole"
 
   kpi_margin:
     query: featured
@@ -227,13 +282,14 @@ charts:
     support:
       value: win_probability
       label: Chance the focus team wins
-      format: percent_whole
     style:
       value:
         format: "+.1f"
       label:
         font:
           case: none
+      support:
+        format: "percent_whole"
 
   kpi_efficiency:
     query: featured
@@ -272,7 +328,9 @@ charts:
     style:
       orientation: horizontal
       stack: none
-      number_format: "+.1f"
+      axis_y:
+        labels:
+          format: "+.1f"
 
   gauntlet_bars:
     query: gauntlet
@@ -288,13 +346,14 @@ charts:
       order: desc
     style:
       orientation: horizontal
-      number_format: percent_whole
       legend:
         visible: false
       axis_y:
         scale:
           continuous:
             domain: [0, 1]
+        labels:
+          format: "percent_whole"
 
   gauntlet_table:
     query: gauntlet
@@ -341,60 +400,10 @@ charts:
           align: right
 
 rows:
-  # The top bar: one strip of buttons, the same seven on every board in the
-  # same order. The button for the page you are on is filled in rather than
-  # linked. Links are drawn without an underline so each cell reads as a
-  # button. The boards are their own site, so nothing here leaves /charts.
-  # Each file writes the two button styles once and anchors the rest to them.
-  - style:
-      padding: 4
-      background: dbt-grays.surface-subtle
-      border:
-        width: 1
-        color: dbt-grays.border
-        radius: 10
-    cols:
-      - width: "14.28%"
-        text: "[Home](/charts/)"
-        style: &nav_button
-          padding: 7
-          font:
-            decoration: none
-            weight: 500
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "[Rankings](/charts/rankings/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Scorecard](/charts/scorecard/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "Matchup"
-        style: &nav_current
-          padding: 7
-          background: "category[1]"
-          font:
-            color: dbt-grays.canvas
-            weight: 600
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "[Model](/charts/model/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Season](/charts/season/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Tournament](/charts/tournament/)"
-        style: *nav_button
-  # What this page gets you, on its own line under the bar.
+  # The header: the court banner from _header.yml, with the bar of buttons
+  # in it. This board's button is the one named in charts.banner.
+  - banner
+  # What this page gets you, on its own line under the banner.
   - text: |
       One game priced at a neutral site, with the two halves of the model
       shown separately so their disagreement is readable.
@@ -411,6 +420,7 @@ rows:
 
       This board is fixed on one featured matchup, because these pages render
       to static HTML and a picker would not survive the export.
+  - scoreboard
   - cols: [kpi_favourite, kpi_margin, kpi_efficiency, kpi_elo]
   - cols: [comparison_bars]
   - title: Everyone worth being afraid of

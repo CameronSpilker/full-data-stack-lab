@@ -18,32 +18,67 @@ reads it are one diff.
 | `season.yml` | `/charts/season/` | Who was good and which conferences were deep |
 | `tournament.yml` | `/charts/tournament/` | Title odds, seed value and survival, from 20,000 simulated brackets |
 
-Every board opens with the same top bar: seven buttons in a fixed order, one
-per board, with the button for the page you are on filled in rather than
-linked. The boards are a site of their own under `/charts`, so the bar never
-links to the Evidence dashboard. Each button is a cell carrying a link, styled
-through the two anchors each file defines once, `&nav_button` and
-`&nav_current`.
+Every board opens with the same header: a navy court banner with the season
+it reports on and seven buttons in a fixed order, one per board, with the
+button for the page you are on filled in orange rather than linked. The
+boards are a site of their own under `/charts`, so the bar never links to the
+Evidence dashboard.
 
-dbt Charts draws every markdown link underlined and blue, with the style inline
-on the text. `scripts/render-charts.sh` adds one stylesheet to each rendered
-page, scoped to links that point inside `/charts/`, which turns the bar's links
-into plain button labels. Other links on a board keep the default style.
-
-Under the bar is one line saying what the page gets you. The bar is copied into
-all seven files, because a board cannot inherit a layout row from `meta.yml`.
-Adding a board means adding a row to the table above and a button to all seven
-bars, in the same order in each.
+The banner is a custom chart drawn by `templates/court_banner.svg.j2`, and the
+list of boards lives in that template, so adding a board means adding a row
+to the table above and one line to the template. Each board extends
+`_header.yml` for the query the banner reads, and still declares
+`charts.banner` itself (type, template, query, height and which button it is
+on), because dbt Charts checks that a chart is complete before it merges in
+what a board extends. Under the banner is one line saying what the page gets
+you.
 
 The scorecard and matchup boards are fixed on one team and one game, because
 these pages render to static HTML and a picker would not survive the export.
 
 `meta.yml` is not a board. dbt Charts applies it to every file in this folder,
-and it carries the two things that must not be decided per board: the palette,
-ported stop for stop from `dashboard/evidence.config.yaml` so a reader moving
-between the two presentation layers sees the same three category hues, and
-`title.font.case: none`, because the default is Chicago title case and the rest
-of the site is sentence case.
+and it carries what must not be decided per board: the look (a pale maple
+floor, white cards, navy ink, and Oswald for headings and numbers the way a
+scoreboard sets them), the palette, ported stop for stop from
+`dashboard/evidence.config.yaml` so a reader moving between the two
+presentation layers sees the same three category hues, and
+`title.font.case: none`, because the default is Chicago title case and the
+rest of the site is sentence case. Files starting with an underscore, like
+`_header.yml`, are pieces boards extend and are never rendered as pages.
+
+## Templates, crests and logos
+
+`templates/` at the repository root holds the custom charts, which is where
+dbt Charts looks for them:
+
+| Template | Used on | Draws |
+| --- | --- | --- |
+| `court_banner.svg.j2` | every board | The header and the bar of buttons |
+| `team_leaderboard.svg.j2` | Home, Rankings, Season, Tournament | Rank, crest, name with a line of detail, and a bar |
+| `team_hero.svg.j2` | Scorecard | One team's name plate and national rank |
+| `matchup_scoreboard.svg.j2` | Matchup | Both teams, each one's chance, and the split between them |
+
+`dct describe templates/` prints each one's channels and options.
+
+A crest is the team's abbreviation on a disc of its own colour, both straight
+from `mart_team_season`. Team colour goes on the crest and nowhere else: bars
+and lines take the board palette, because a school picks its colours for
+itself, not so two bars can be told apart.
+
+dbt Charts will not put an `<image>` in a custom chart, so logos are added in
+the browser. `scripts/render-charts.sh` adds a small script to each page that
+looks for every crest (`<g class="crest" id="...-crest-<team_id>">`), probes
+`/evidence/logos/<team_id>.png`, and only once that file has loaded swaps the
+code for the logo on a white disc ringed in the team colour. This is the same
+rule the Evidence `TeamCrest` component follows, against the same mirrored
+files, so a team without a logo keeps its code and nothing breaks. Today no
+logos are mirrored: the published warehouse has no `team_logo_url` yet, and
+`dashboard/static/logos/README.md` says how to fill it. When those files land,
+the boards pick them up with no change here.
+
+The same script loads Oswald from Google Fonts. Every font stack that names it
+falls back to a narrow system face, so a blocked request changes letterforms
+and nothing else.
 
 Boards read `marts` only, the same boundary the rest of the repository keeps. A
 question the marts cannot answer is a question for a new dbt model, not for a

@@ -37,6 +37,8 @@ on:
       # The boards are rendered here, against the warehouse this run builds,
       # so editing one only reaches the site when this workflow runs again.
       - "charts/**"
+      - "templates/**"
+      - "dbt_charts.yml"
       - "scripts/render-charts.sh"
       - ".github/workflows/pipeline.yml"
 

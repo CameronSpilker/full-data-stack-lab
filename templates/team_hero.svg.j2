@@ -1,0 +1,77 @@
+{#---
+description: >
+  One team's name plate, for a board about a single team: a large crest, the
+  name, a line of detail, and the national rank set like a jersey number.
+  The crest follows the same rules as team_leaderboard: the team's code on a
+  disc of its own colour, upgraded to the logo in the browser when one is
+  mirrored. Reads the first row only.
+channels:
+  x:
+    description: Team name.
+options:
+  team_id:
+    type: column
+  abbreviation:
+    type: column
+  team_color:
+    type: column
+    default: null
+  detail:
+    type: column
+    default: null
+    description: The line under the name.
+  rank:
+    type: column
+    default: null
+    description: National rank, printed on the right.
+  rank_label:
+    type: string
+    default: "nationally"
+---#}
+{% set display = "'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif" %}
+{% set ink = style.font.color or "#14213d" %}
+{% set muted = style.muted or "#6b7280" %}
+{% set orange = "#f47b20" %}
+{% set hexdigits = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7,
+                    "8": 8, "9": 9, "a": 10, "b": 11, "c": 12, "d": 13, "e": 14, "f": 15} %}
+
+{% if rows %}
+  {% set row = rows[0] %}
+  {% set r = [height * 0.36, 52] | min %}
+  {% set cx = r + 8 %}
+  {% set cy = height / 2 %}
+
+  {% set c = (row[options.team_color] or "") | lower if options.team_color else "" %}
+  {% if c | length == 6 %}
+    {% set lum = 0.299 * (hexdigits[c[0]] * 16 + hexdigits[c[1]])
+               + 0.587 * (hexdigits[c[2]] * 16 + hexdigits[c[3]])
+               + 0.114 * (hexdigits[c[4]] * 16 + hexdigits[c[5]]) %}
+    {% set fill = "#" ~ c %}
+    {% set code_ink = "#14213d" if lum > 170 else "#ffffff" %}
+  {% else %}
+    {% set fill = muted %}
+    {% set code_ink = "#ffffff" %}
+  {% endif %}
+  {% set code = row[options.abbreviation] or "" %}
+  <g id="{{ uid }}-crest-{{ row[options.team_id] }}" class="crest">
+    <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r + 5 }}" fill="{{ fill }}" fill-opacity="0.16"/>
+    <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r }}" fill="{{ fill }}"/>
+    <text x="{{ cx }}" y="{{ cy }}" dy="0.36em" text-anchor="middle" font-family="{{ display }}"
+          font-size="{{ r * (0.62 if code | length <= 3 else 0.52) }}" font-weight="600"
+          letter-spacing="0.8" fill="{{ code_ink }}">{{ code }}</text>
+  </g>
+
+  {% set tx = cx + r + 24 %}
+  <text x="{{ tx }}" y="{{ cy - 2 }}" font-family="{{ display }}" font-size="38" font-weight="600"
+        fill="{{ ink }}">{{ row[channels.x] }}</text>
+  {% if options.detail %}
+    <text x="{{ tx }}" y="{{ cy + 26 }}" font-size="15" fill="{{ muted }}">{{ row[options.detail] }}</text>
+  {% endif %}
+
+  {% if options.rank and row[options.rank] is not none %}
+    <text x="{{ width - 8 }}" y="{{ cy + 8 }}" text-anchor="end" font-family="{{ display }}"
+          font-size="64" font-weight="700" fill="{{ orange }}">#{{ row[options.rank] }}</text>
+    <text x="{{ width - 8 }}" y="{{ cy + 32 }}" text-anchor="end" font-family="{{ display }}"
+          font-size="13" font-weight="500" letter-spacing="1.6" fill="{{ muted }}">{{ options.rank_label | upper }}</text>
+  {% endif %}
+{% endif %}
