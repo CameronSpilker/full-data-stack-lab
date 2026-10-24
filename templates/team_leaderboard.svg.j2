@@ -4,8 +4,9 @@ description: >
   a line of detail under it, and a bar for the number the list is sorted by.
   The crest is the team's abbreviation on a disc of its own colour; the page
   swaps in the team's logo when one is mirrored (see scripts/render-charts.sh).
-  Team colour is used on the crest only. The bar takes the board's palette,
-  because team colours are chosen by schools, not for telling bars apart.
+  The bar takes the board's palette when its colour means something (a
+  `color` channel for a tier); with `team_bars` it takes the team's own
+  colour, for a list where colour only says which team.
 channels:
   x:
     description: Team name.
@@ -39,6 +40,16 @@ options:
   bar_color:
     type: color
     default: null
+  team_bars:
+    type: boolean
+    default: false
+    description: >
+      Draw each bar in its team's own colour. For a list where colour says
+      nothing but which team, rather than a group or a scale.
+  secondary_color:
+    type: column
+    default: null
+    description: The team's second colour, for a primary too light to see as a bar.
 ---#}
 {% set display = "'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif" %}
 {% set ink = style.font.color or "#14213d" %}
@@ -112,7 +123,22 @@ options:
   {% set w = (v / ns.top * bar_w) if ns.top > 0 else 0 %}
   {% set bh = [row_h * 0.3, 12] | min %}
   <rect x="{{ bar_x }}" y="{{ mid - bh / 2 }}" width="{{ bar_w }}" height="{{ bh }}" rx="{{ bh / 2 }}" fill="{{ ink }}" fill-opacity="0.06"/>
-  {% set paint = color_for(row[channels.color], channels.color) if channels.color else accent %}
+  {% if channels.color %}
+    {% set paint = color_for(row[channels.color], channels.color) %}
+  {% elif options.team_bars and c | length == 6 %}
+    {#- A primary as light as the bar's track would vanish, so the second
+        colour stands in, and the accent if there is none. -#}
+    {% set alt = ((row[options.secondary_color] or "") | lower) if options.secondary_color else "" %}
+    {% if lum <= 215 %}
+      {% set paint = "#" ~ c %}
+    {% elif alt | length == 6 %}
+      {% set paint = "#" ~ alt %}
+    {% else %}
+      {% set paint = accent %}
+    {% endif %}
+  {% else %}
+    {% set paint = accent %}
+  {% endif %}
   <rect x="{{ bar_x }}" y="{{ mid - bh / 2 }}" width="{{ [w, bh] | max }}" height="{{ bh }}" rx="{{ bh / 2 }}" fill="{{ paint }}"/>
   <text class="named" x="{{ width - 4 }}" y="{{ mid }}" dy="0.36em" text-anchor="end" font-family="{{ display }}"
         font-size="{{ name_size + 2 }}" font-weight="600" fill="{{ ink }}">{{ v | format(options.value_format) }}</text>

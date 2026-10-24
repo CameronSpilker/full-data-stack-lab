@@ -1,0 +1,95 @@
+{#---
+description: >
+  Two teams compared measure by measure: one group of two horizontal bars per
+  measure, each team in its own colour. The colours come from the query,
+  which reads them from mart_matchup_odds so they are the pair's display
+  colours (a secondary where the two primaries are alike). A team without a
+  colour takes the board palette. Bars run from a zero line and may be
+  negative.
+channels:
+  x:
+    description: The measure each group is.
+  y:
+    description: The value the bar draws.
+  color:
+    description: The team each bar belongs to.
+options:
+  paint:
+    type: column
+    description: Six hex digits with no leading "#", the team's colour for this pair.
+  value_format:
+    type: string
+    default: "+.1f"
+  axis_label:
+    type: string
+    default: ""
+---#}
+{% set ink = style.font.color or "#14213d" %}
+{% set muted = style.muted or "#6b7280" %}
+{% set palette = style.charts.color.categorical.palette %}
+{% set grid = "#e7e2d8" %}
+
+{#- Groups and teams in the order the query first names them. -#}
+{% set ns = namespace(measures=[], teams=[], paints=[], lo=0, hi=0, label_w=0) %}
+{% for row in rows %}
+  {% if row[channels.x] not in ns.measures %}{% set ns.measures = ns.measures + [row[channels.x]] %}{% endif %}
+  {% if row[channels.color] not in ns.teams %}
+    {% set ns.teams = ns.teams + [row[channels.color]] %}
+    {% set c = row[options.paint] %}
+    {% set ns.paints = ns.paints + [("#" ~ c) if c else palette[(ns.teams | length) - 1]] %}
+  {% endif %}
+  {% set ns.lo = [ns.lo, row[channels.y] or 0] | min %}
+  {% set ns.hi = [ns.hi, row[channels.y] or 0] | max %}
+  {% set ns.label_w = [ns.label_w, text_width(row[channels.x], 12)] | max %}
+{% endfor %}
+
+{% set legend_h = 28 %}
+{% set axis_h = 36 %}
+{% set left = ns.label_w + 16 %}
+{% set right = 56 %}
+{% set pw = width - left - right %}
+{% set top = legend_h %}
+{% set ph = height - top - axis_h %}
+{% set span = (ns.hi - ns.lo) if ns.hi > ns.lo else 1 %}
+{% macro sx(v) %}{{ left + (v - ns.lo) / span * pw }}{% endmacro %}
+
+{#- Legend: a swatch and the team's name, in its colour's order. -#}
+{% set lx = namespace(x=left) %}
+{% for team in ns.teams %}
+  <rect x="{{ lx.x }}" y="6" width="12" height="12" rx="3" fill="{{ ns.paints[loop.index0] }}"/>
+  <text class="named" x="{{ lx.x + 18 }}" y="12" dy="0.35em" font-size="12" fill="{{ ink }}">{{ team }}</text>
+  {% set lx.x = lx.x + 18 + text_width(team, 12) + 24 %}
+{% endfor %}
+
+{#- Gridlines every 10, and the zero line heavier. -#}
+{% set first = ((ns.lo / 10) | int) * 10 %}
+{% for i in range(((ns.hi - first) / 10) | int + 1) %}
+  {% set v = first + i * 10 %}
+  {% if v >= ns.lo and v <= ns.hi %}
+    <line x1="{{ sx(v) }}" x2="{{ sx(v) }}" y1="{{ top }}" y2="{{ top + ph }}"
+          stroke="{{ muted if v == 0 else grid }}" stroke-width="{{ 1.5 if v == 0 else 1 }}"/>
+    <text x="{{ sx(v) }}" y="{{ top + ph + 16 }}" text-anchor="middle" font-size="11" fill="{{ muted }}">{{ v | format("+.0f") if v != 0 else "0" }}</text>
+  {% endif %}
+{% endfor %}
+<text x="{{ left + pw / 2 }}" y="{{ height - 4 }}" text-anchor="middle" font-size="11" fill="{{ muted }}">{{ options.axis_label }}</text>
+
+{#- The bars. -#}
+{% set band = ph / (ns.measures | length if ns.measures else 1) %}
+{% set bar = [band * 0.34, 26] | min %}
+{% for measure in ns.measures %}
+  {% set gy = top + loop.index0 * band %}
+  <text x="{{ left - 12 }}" y="{{ gy + band / 2 }}" dy="0.35em" text-anchor="end" font-size="12" fill="{{ ink }}">{{ measure }}</text>
+  {% for row in rows if row[channels.x] == measure %}
+    {#- Rows come team by team, so within a measure the loop index is the team's. -#}
+    {% set i = loop.index0 %}
+    {% set v = row[channels.y] or 0 %}
+    {% set y = gy + band / 2 - bar - 2 + i * (bar + 4) %}
+    {% set x0 = [sx(0) | float, sx(v) | float] | min %}
+    {% set w = ((sx(v) | float) - (sx(0) | float)) | abs %}
+    <rect x="{{ x0 }}" y="{{ y }}" width="{{ [w, 2] | max }}" height="{{ bar }}" rx="4" fill="{{ ns.paints[i] }}"/>
+    {#- A negative bar's value goes just right of the zero line, because to
+        the left of its bar is the measure's name. -#}
+    <text x="{{ (sx(v) | float) + 6 if v >= 0 else (sx(0) | float) + 6 }}" y="{{ y + bar / 2 }}" dy="0.35em"
+          font-size="11" font-weight="600" fill="{{ ink }}">{{ v | format(options.value_format) }}</text>
+  {% endfor %}
+{% endfor %}

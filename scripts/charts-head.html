@@ -46,7 +46,9 @@
                 var r = +disc.getAttribute("r");
                 var size = r * 1.5;
                 disc.setAttribute("stroke", disc.getAttribute("fill"));
-                disc.setAttribute("stroke-width", Math.max(1.5, r / 7));
+                // Thick enough to read as a colour on a scatter's small
+                // points, capped so a large crest does not get a heavy ring.
+                disc.setAttribute("stroke-width", Math.min(4, Math.max(2.5, r / 3.5)));
                 disc.setAttribute("fill", "#ffffff");
                 var code = group.querySelector("text");
                 if (code) code.remove();

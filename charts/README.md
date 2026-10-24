@@ -53,11 +53,19 @@ reader learns it once:
 
 | Kind of number | Colour | Examples |
 | --- | --- | --- |
-| A rating: how good a team is | Blue | Leaderboards of efficiency margin, Elo lines, margin columns |
-| A chance, from the model or the simulated brackets | Orange | Title odds, seed value, the survival grid, win probability columns |
+| Which team, and nothing else | The team's own colours | Bars in a top-N list (Home, Season, title odds), both teams in a matchup |
+| A rating: how good a team is | Blue | Elo lines, margin columns |
+| A chance, from the model or the simulated brackets | Orange | Seed value, the survival grid, win probability columns |
 | Signed around a baseline (zero, the median) | Blue for the good side, red for the bad side, grey for the middle | Conference depth, a team's strengths by thirds, game margins |
-| Ordered groups | One blue ramp, darkest first | The ranking tiers |
+| Ordered groups | One blue ramp, darkest first | The ranking tiers, which also draw larger the higher they are |
 | Context, not a contender | Grey | "The rest", the model that saw its own season |
+
+A team's own colours come from the marts: `team_color` from the source and
+`team_secondary_color` read from its logo (`scripts/derive_team_colors.py`,
+into a dbt seed). When two teams are drawn together, `mart_matchup_odds`
+gives each side a display colour, switching one to its secondary where the
+two primaries are alike, so BYU and Michigan, both navy, are blue and maize.
+A primary too light to see as a bar gives way to the secondary.
 
 Table cell ramps stop at mid-tone, because dbt Charts writes cell text in the
 same dark ink whatever the fill: every step clears APCA Lc 55 against it. The
@@ -77,6 +85,7 @@ dbt Charts looks for them:
 | `team_leaderboard.svg.j2` | Home, Rankings, Season, Tournament | Rank, crest, name with a line of detail, and a bar |
 | `team_hero.svg.j2` | Scorecard | One team's name plate and national rank |
 | `matchup_scoreboard.svg.j2` | Matchup | Both teams, each one's chance, and the split between them |
+| `team_pair_bars.svg.j2` | Matchup | Two teams measure by measure, each in its own colour |
 | `team_scatter.svg.j2` | Rankings, Season | Every team as its logo, ringed in its tier's or conference's colour, with the team's name on hover |
 
 `dct describe templates/` prints each one's channels and options.

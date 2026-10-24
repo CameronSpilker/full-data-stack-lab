@@ -35,6 +35,10 @@ options:
   radius:
     type: number
     default: 9
+  radius_column:
+    type: column
+    default: null
+    description: Per-point radius, for drawing the groups that matter larger.
 ---#}
 {% set ink = style.font.color or "#14213d" %}
 {% set muted = style.muted or "#6b7280" %}
@@ -79,10 +83,11 @@ options:
   {% set py = row[channels.y] %}
   {% if px is not none and py is not none %}
     {% set paint = color_for(row[channels.color], channels.color) %}
+    {% set pr = (row[options.radius_column] or r) if options.radius_column else r %}
     <g id="{{ uid }}-crest-{{ row[options.team_id] }}" class="crest">
       <title>{{ row[options.team_name] }}</title>
-      <circle cx="{{ sx(px) }}" cy="{{ sy(py) }}" r="{{ r + 1.5 }}" fill="#ffffff" fill-opacity="0.9"/>
-      <circle cx="{{ sx(px) }}" cy="{{ sy(py) }}" r="{{ r }}" fill="{{ paint }}"/>
+      <circle cx="{{ sx(px) }}" cy="{{ sy(py) }}" r="{{ pr + 1.5 }}" fill="#ffffff" fill-opacity="0.9"/>
+      <circle cx="{{ sx(px) }}" cy="{{ sy(py) }}" r="{{ pr }}" fill="{{ paint }}"/>
     </g>
   {% endif %}
 {% endfor %}

@@ -28,6 +28,7 @@ queries:
           odds.team_name,
           team.team_abbreviation,
           team.team_color,
+          team.team_secondary_color,
           odds.seed || ' seed · ' || odds.region_name || ' · ' || odds.record AS detail,
           odds.won_championship,
           odds.seed,
@@ -176,7 +177,8 @@ charts:
       team_color: team_color
       detail: detail
       value_format: ".1%"
-      bar_color: "#eb6834"
+      team_bars: true
+      secondary_color: team_secondary_color
     style:
       min_height: 640
       max_height: 640

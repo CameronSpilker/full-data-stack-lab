@@ -363,6 +363,21 @@ unpivot (
 )
 ```
 
+```sql pair_paint
+-- Each team's colour for this pair, from the matchup grid: primaries, or a
+-- secondary where the two are alike (BYU and Michigan are both navy). The
+-- grid stores the pair once, in team_id order, so both ends are read.
+select team_name, team_display_color as paint
+from matchup_odds
+where team_id::varchar in ((select team_id from ${home_pick}), (select team_id from ${away_pick}))
+    and opponent_team_id::varchar in ((select team_id from ${home_pick}), (select team_id from ${away_pick}))
+union all
+select opponent_name, opponent_display_color
+from matchup_odds
+where team_id::varchar in ((select team_id from ${home_pick}), (select team_id from ${away_pick}))
+    and opponent_team_id::varchar in ((select team_id from ${home_pick}), (select team_id from ${away_pick}))
+```
+
 <BarChart
     data={comparison}
     x=measure
@@ -372,6 +387,7 @@ unpivot (
     swapXY=true
     yFmt='+0.0'
     title="Every measure, shifted so a longer bar is better"
+    seriesColors={Object.fromEntries(pair_paint.filter((d) => d.paint).map((d) => [d.team_name, '#' + d.paint]))}
 />
 
 ```sql ranks

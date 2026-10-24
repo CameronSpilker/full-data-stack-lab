@@ -9,6 +9,7 @@ select
     -- the team's initials rather than a broken image.
     team_logo_url,
     team_color,
+    team_secondary_color,
     record,
     conference_record,
     wins,

@@ -13,17 +13,19 @@ style:
       # The tier is the category here, so the slots are pinned to it rather
       # than left to fall out alphabetically. Tiers are ordered, so they are
       # one blue ramp from the validated sequential steps, darkest at the top,
-      # rather than three unrelated hues: orange means a chance on every other
-      # board. The grey belongs to "The rest": it is the bucket every team not
-      # in the conversation lands in. Hex rather than `category[n]`, because
+      # rather than three unrelated hues, spread as far apart in lightness as
+      # the ramp goes (700, 450, 250) so the three read apart as a scatter's
+      # thin rings. The grey belongs to "The rest": it is the bucket every
+      # team not in the conversation lands in, and it is lighter than the
+      # palette's grey so the blues stand out of it. Hex rather than `category[n]`, because
       # those tokens resolve against dbt Charts' built-in theme, not the
       # palette meta.yml sets.
       tier:
         values:
-          Title favourites: "#184f95"
-          Final four potential: "#3987e5"
+          Title favourites: "#0d366b"
+          Final four potential: "#2a78d6"
           Hit or miss: "#86b6ef"
-          The rest: "#898781"
+          The rest: "#b4b1aa"
 
 queries:
   # The tiers are cut on national rank rather than on an efficiency number.
@@ -73,7 +75,14 @@ queries:
               WHEN national_rank <= 48 THEN 'Final four potential'
               WHEN national_rank <= 100 THEN 'Hit or miss'
               ELSE 'The rest'
-          END AS tier
+          END AS tier,
+          -- The tiers that matter drawn larger, so they read out of the cloud.
+          CASE
+              WHEN national_rank <= 16 THEN 13
+              WHEN national_rank <= 48 THEN 11
+              WHEN national_rank <= 100 THEN 9.5
+              ELSE 8
+          END AS point_radius
       FROM marts.mart_team_season
       WHERE season = (SELECT max(season) FROM marts.mart_team_season)
       ORDER BY national_rank DESC
@@ -225,6 +234,7 @@ charts:
       x_max: 140
       y_min: 80
       y_max: 130
+      radius_column: point_radius
       y_reverse: true
       x_label: Points scored per 100 possessions
       y_label: Points allowed per 100 possessions

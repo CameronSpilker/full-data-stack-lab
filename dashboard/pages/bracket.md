@@ -75,19 +75,25 @@ bracket, not the bracket.
 
 ```sql favourites
 select
-    team_name,
-    '/teams/' || team_id as team_link,
-    seed,
-    region_name,
-    conference_name,
-    record,
-    won_championship,
-    reached_final_four,
-    reached_elite_eight,
-    reached_sweet_16,
-    expected_wins
-from tournament_odds
-order by won_championship desc
+    odds.team_name,
+    '/teams/' || odds.team_id as team_link,
+    -- The team's own colours, for its bar: a list of teams where the colour
+    -- says nothing but which team.
+    team.team_color,
+    team.team_secondary_color,
+    odds.seed,
+    odds.region_name,
+    odds.conference_name,
+    odds.record,
+    odds.won_championship,
+    odds.reached_final_four,
+    odds.reached_elite_eight,
+    odds.reached_sweet_16,
+    odds.expected_wins
+from tournament_odds as odds
+left join team_season as team
+    on odds.team_id = team.team_id and odds.season = team.season
+order by odds.won_championship desc
 limit 16
 ```
 
@@ -95,6 +101,8 @@ limit 16
 
 <LogoBarChart
     data={favourites}
+    colorColumn=team_color
+    altColorColumn=team_secondary_color
     x=team_name
     y=won_championship
     swapXY=true
