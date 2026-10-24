@@ -20,20 +20,25 @@ a visible diff rather than a silent one.
 
 ## Where they come from
 
-Two sources, recorded per file in `manifest.json`:
+Every Division I team in the warehouse has one, from three sources recorded
+per file in `manifest.json`:
 
 - `scripts/import_npm_logos.mjs` draws the forty programs the
   [`ncaa-team-logos`](https://www.npmjs.com/package/ncaa-team-logos) npm
-  package carries (version 1.8.0). That covers most of the teams the boards
-  put at the top of a list. The script's header says how to run it and how
-  its team ids were matched.
+  package carries (version 1.8.0) from vector art.
+- `scripts/import_archive_logos.py` fills in every other team from
+  [`sports-assets-archive-polymarket-team-logos-2`](https://www.npmjs.com/package/sports-assets-archive-polymarket-team-logos-2),
+  a snapshot of the images Polymarket serves for its college basketball
+  markets. Teams are matched by name, with the ones that disagree listed in
+  the script and checked by eye; a team whose image is the archive's shared
+  placeholder is skipped.
 - `scripts/fetch_logos.py`, below, mirrors every team the warehouse has a
-  `team_logo_url` for. The published warehouse has none yet, so this source is
-  empty until the team dimension is re-extracted.
+  `team_logo_url` for. The published warehouse has none yet.
 
-`fetch_logos.py` skips any team that already has a file, so running it later
-fills in the rest without touching these. `--force` there replaces them with
-the source's own images.
+Each script skips a team that already has a file, so they can run in any
+order without overwriting each other. `--force` on any of them replaces what
+is there with that source's image. A new team (a school moving up to
+Division I) shows its code until one of them is run again.
 
 ## Refreshing them
 
