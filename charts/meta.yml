@@ -64,6 +64,26 @@ style:
       color: "#e4d9c6"
       radius: 12
 
+    # Colour by the job it does, the same way on every board:
+    #
+    #   Ratings, how good a team is      blue    #2a78d6, and the table ramp
+    #                                            #dfebfb #a2c3f0 #83afea
+    #   Chances, from the model or the   orange  #eb6834, and the table ramp
+    #   20,000 simulated brackets                #ffe9e2 #fcbea7 #f9a78a
+    #   Signed, either side of a         red, grey, blue around the baseline:
+    #   baseline (zero, the median)      #fbb2ab #f0efec #a2c3f0 in tables;
+    #                                    on bars a `band` column pinned to
+    #                                    blue #2a78d6 (good side), grey
+    #                                    #898781 (middle or context) and red
+    #                                    #e34948 (bad side), with its words
+    #                                    in the legend
+    #
+    # Table ramps stop at mid-tone on purpose. dbt Charts writes cell text in
+    # the ink colour whatever the fill, so the darkest step must still read
+    # with dark text: each one above clears APCA Lc 55 against #14213d. The
+    # survival heatmap has no text in its cells and takes the full orange
+    # ramp down to #832d05.
+    #
     # The palette is the one cameronspilker.com ships and the Evidence
     # dashboard already mirrors, ported stop for stop rather than picked again
     # here: three categorical hues that clear colour-vision separation, a grey

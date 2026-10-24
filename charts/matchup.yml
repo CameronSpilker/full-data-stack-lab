@@ -346,6 +346,9 @@ charts:
       order: desc
     style:
       orientation: horizontal
+      # A chance, so orange, the same as the Model column in the table below.
+      color:
+        static: "#eb6834"
       legend:
         visible: false
       axis_y:
@@ -378,13 +381,19 @@ charts:
           label: Margin
           format: "+.1f"
           align: right
+          scale:
+            background:
+              palette: ["#fbb2ab", "#f0efec", "#a2c3f0"]
+              domain: data
+              hinge: 0
+              arm_mode: symmetric
         win_probability:
           label: Model
           format: percent_whole
           align: right
           scale:
             background:
-              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              palette: ["#ffe9e2", "#fcbea7", "#f9a78a"]
               domain: data
         efficiency_probability:
           label: Efficiency only

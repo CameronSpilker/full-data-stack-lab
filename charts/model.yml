@@ -5,6 +5,15 @@ notes: >
   settles it: when a model says 70%, does it happen 70% of the time?
 tags: [model, accuracy, calibration]
 extends: [./_header.yml]
+style:
+  charts:
+    category_colors:
+      # The model that saw the season it is scored on is context, not a
+      # contender, so it is the grey.
+      band:
+        values:
+          Honest forecast: "#2a78d6"
+          Saw the season: "#898781"
 
 queries:
   # One CASE lives in each query rather than a shared view, because the
@@ -27,7 +36,11 @@ queries:
           mean_absolute_margin_error,
           mean_margin_bias,
           games_scored,
-          CASE WHEN is_point_in_time THEN 'Yes' ELSE 'No' END AS forecast
+          CASE WHEN is_point_in_time THEN 'Yes' ELSE 'No' END AS forecast,
+          CASE
+              WHEN is_point_in_time THEN 'Honest forecast'
+              ELSE 'Saw the season'
+          END AS band
       FROM marts.mart_model_accuracy
       WHERE game_type = 'regular_season'
         AND season = (SELECT max(season) FROM marts.mart_model_accuracy)
@@ -135,7 +148,7 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#104281", "#2a78d6", "#86b6ef"]
+              palette: ["#83afea", "#a2c3f0", "#dfebfb"]
               domain: data
         log_loss:
           label: Log loss
@@ -160,6 +173,8 @@ charts:
         forecast:
           label: Forecast?
           align: right
+        band:
+          visible: false
 
   brier_bars:
     query: accuracy_by_model
@@ -168,11 +183,12 @@ charts:
     subtitle: Mean squared error on the probability itself, not on the pick
     x: model
     y: brier_score
+    # The model that saw the season it is scored on is drawn in grey, so the
+    # lowest bar is not mistaken for the best forecast.
+    color: band
     sort: { by: brier_score, order: asc }
     style:
       orientation: horizontal
-      legend:
-        visible: false
       marks:
         bar:
           labels:

@@ -11,14 +11,18 @@ style:
   charts:
     category_colors:
       # The tier is the category here, so the slots are pinned to it rather
-      # than left to fall out alphabetically. The grey belongs to "The rest":
-      # it is the bucket every team that is not in the conversation lands in,
-      # and a bucket should not hold one of the three real hues.
+      # than left to fall out alphabetically. Tiers are ordered, so they are
+      # one blue ramp from the validated sequential steps, darkest at the top,
+      # rather than three unrelated hues: orange means a chance on every other
+      # board. The grey belongs to "The rest": it is the bucket every team not
+      # in the conversation lands in. Hex rather than `category[n]`, because
+      # those tokens resolve against dbt Charts' built-in theme, not the
+      # palette meta.yml sets.
       tier:
         values:
-          Title favourites: category[1]
-          Final four potential: category[2]
-          Hit or miss: category[3]
+          Title favourites: "#184f95"
+          Final four potential: "#3987e5"
+          Hit or miss: "#86b6ef"
           The rest: "#898781"
 
 queries:
@@ -280,7 +284,7 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              palette: ["#dfebfb", "#a2c3f0", "#83afea"]
               domain: data
         adjusted_offensive_efficiency:
           label: Offence

@@ -14,10 +14,16 @@ style:
       # "Other": it is the bucket, not a conference.
       conference:
         values:
-          Big Ten: category[1]
-          SEC: category[2]
-          Big 12: category[3]
+          Big Ten: "#2a78d6"
+          SEC: "#eb6834"
+          Big 12: "#1baf7a"
           Other: "#898781"
+      # Which side of the average team a conference sits on. The same words
+      # and colours as every other signed bar (see meta.yml).
+      band:
+        values:
+          Above average: "#2a78d6"
+          Below average: "#e34948"
 
 queries:
   season_kpis:
@@ -104,7 +110,11 @@ queries:
     sql: |
       SELECT
           conference_name,
-          avg_efficiency_margin
+          avg_efficiency_margin,
+          CASE
+              WHEN avg_efficiency_margin >= 0 THEN 'Above average'
+              ELSE 'Below average'
+          END AS band
       FROM marts.mart_conference_strength
       WHERE season = (SELECT max(season) FROM marts.mart_conference_strength)
       ORDER BY conference_rank
@@ -215,12 +225,12 @@ charts:
     subtitle: Average efficiency margin across every team in the conference
     x: conference_name
     y: avg_efficiency_margin
+    # Signed around zero, the average team, so the side of zero is the colour.
+    color: band
     sort: { by: avg_efficiency_margin, order: desc }
     height: 460
     style:
       orientation: horizontal
-      legend:
-        visible: false
       axis_y:
         labels:
           format: "+.1f"
@@ -244,7 +254,9 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              palette: ["#fbb2ab", "#f0efec", "#a2c3f0"]
+              hinge: 0
+              arm_mode: symmetric
               domain: data
         teams_in_top_50:
           label: Top 50
@@ -286,7 +298,7 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              palette: ["#dfebfb", "#a2c3f0", "#83afea"]
               domain: data
         adjusted_offensive_efficiency:
           label: Offence

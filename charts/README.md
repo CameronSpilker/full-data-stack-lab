@@ -46,6 +46,26 @@ presentation layers sees the same three category hues, and
 rest of the site is sentence case. Files starting with an underscore, like
 `_header.yml`, are pieces boards extend and are never rendered as pages.
 
+## Colour
+
+Colour says what kind of number it is, the same way on every board, so a
+reader learns it once:
+
+| Kind of number | Colour | Examples |
+| --- | --- | --- |
+| A rating: how good a team is | Blue | Leaderboards of efficiency margin, Elo lines, margin columns |
+| A chance, from the model or the simulated brackets | Orange | Title odds, seed value, the survival grid, win probability columns |
+| Signed around a baseline (zero, the median) | Blue for the good side, red for the bad side, grey for the middle | Conference depth, a team's strengths by thirds, game margins |
+| Ordered groups | One blue ramp, darkest first | The ranking tiers |
+| Context, not a contender | Grey | "The rest", the model that saw its own season |
+
+Table cell ramps stop at mid-tone, because dbt Charts writes cell text in the
+same dark ink whatever the fill: every step clears APCA Lc 55 against it. The
+exact values, and why, are in `meta.yml`. Bars that split on a baseline get a
+`band` column naming the side, so the legend says it in words as well as
+colour. `category[n]` tokens resolve against dbt Charts' built-in theme
+rather than this palette, so pins use hex.
+
 ## Templates, crests and logos
 
 `templates/` at the repository root holds the custom charts, which is where

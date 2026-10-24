@@ -6,6 +6,18 @@ notes: >
   has been moving.
 tags: [teams, scorecard]
 extends: [./_header.yml]
+style:
+  charts:
+    category_colors:
+      # Thirds of the country, in the signed colours meta.yml describes. A
+      # team can go a season without one of them (no weakness at all, say),
+      # and the render then warns that a pin went unused. That warning is
+      # expected here and does not fail anything.
+      band:
+        values:
+          Strength: "#2a78d6"
+          Middle of the pack: "#898781"
+          Weakness: "#e34948"
 
 # Every query below opens with the same `focus` CTE, which picks the team this
 # board is about. It is repeated rather than shared because a board's queries
@@ -117,7 +129,15 @@ queries:
               percent_rank() OVER (ORDER BY strength_of_schedule) AS schedule
           FROM season
       )
-      SELECT measure, percentile FROM (
+      SELECT
+          measure,
+          percentile,
+          CASE
+              WHEN percentile >= 2 / 3 THEN 'Strength'
+              WHEN percentile >= 1 / 3 THEN 'Middle of the pack'
+              ELSE 'Weakness'
+          END AS band
+      FROM (
           SELECT
               ranked.overall AS "Overall rating",
               ranked.offence AS "Offence",
@@ -292,14 +312,14 @@ charts:
     x: measure
     y: percentile
     y_label: National percentile
+    # Thirds of the country: top third blue, bottom third red, the middle grey.
+    color: band
     height: 420
     sort:
       by: percentile
       order: desc
     style:
       orientation: horizontal
-      legend:
-        visible: false
       axis_y:
         scale:
           continuous:
@@ -351,10 +371,20 @@ charts:
           label: Margin
           format: "+.0f"
           align: right
+          scale:
+            background:
+              palette: ["#fbb2ab", "#f0efec", "#a2c3f0"]
+              domain: data
+              hinge: 0
+              arm_mode: symmetric
         pregame_win_probability:
           label: Model gave them
           format: percent_whole
           align: right
+          scale:
+            background:
+              palette: ["#ffe9e2", "#fcbea7", "#f9a78a"]
+              domain: data
         was_upset_win:
           label: Upset
     conditional_formatting:

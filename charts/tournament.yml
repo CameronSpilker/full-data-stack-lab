@@ -176,6 +176,7 @@ charts:
       team_color: team_color
       detail: detail
       value_format: ".1%"
+      bar_color: "#eb6834"
     style:
       min_height: 640
       max_height: 640
@@ -192,6 +193,10 @@ charts:
     height: 420
     style:
       orientation: vertical
+      # Orange because it is simulation output: chances are orange on every
+      # board, ratings blue.
+      color:
+        static: "#eb6834"
       legend:
         visible: false
       axis_y:
@@ -210,6 +215,10 @@ charts:
     y_label: Seed
     height: 620
     sort: { by: round_order, order: asc }
+    style:
+      color:
+        gradient:
+          palette: ["#ffe9e2", "#fcbea7", "#f9a78a", "#eb6834", "#bf4a17", "#832d05"]
 
   field_table:
     query: field
@@ -250,7 +259,7 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              palette: ["#ffe9e2", "#fcbea7", "#f9a78a"]
               domain: data
         expected_wins:
           label: Exp. wins
