@@ -177,6 +177,14 @@ jobs:
           dbt deps
           DUCKDB_PATH=../data/warehouse.duckdb dbt build --target ci
 
+      # The same rewrite the pipeline does before it publishes, for the same
+      # reason: dbt writes with whatever DuckDB pip resolves, and Evidence
+      # reads with the older one its lockfile pins. When DuckDB 2.0 arrived
+      # this job built a file Evidence could not open at all ("version number
+      # 999, but we can only read versions between 64 and 67").
+      - name: Normalise the warehouse storage format
+        run: bash scripts/normalise-warehouse.sh
+
       # Evidence resolves its SQL at build time, so a renamed mart column is a
       # broken dashboard rather than a failed dbt run. This closes that gap
       # before the much slower Evidence build runs.
