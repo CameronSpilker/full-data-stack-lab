@@ -58,3 +58,6 @@ data/warehouse.duckdb.wal
 
 # os
 .DS_Store
+
+# The live boards project builds an empty static folder (see vercel.json).
+.vercel-static/

@@ -181,3 +181,25 @@ Each board's `focus` CTE takes the picked team first, then BYU, then the
 top-ranked team, which is also what makes them render against the synthetic
 demo seasons. On the published site, a page that needs the reader to choose
 belongs on the Evidence side, and both of those boards link to it.
+
+## The live boards
+
+The scorecard and matchup boards have team pickers, which a static page
+cannot keep, so those two are also served live: `api/index.py` runs dbt
+Charts' own server as a Vercel Function in a second Vercel project,
+`lab-charts-live`, deployed from the repository root (`vercel.json`,
+`pyproject.toml` and `uv.lock` there belong to it and to nothing else).
+
+- It answers `/scorecard/` and `/matchup/` only. The inspector, live reload,
+  the other boards and the server's own top bar are local authoring tools
+  and are not exposed.
+- It downloads the published warehouse on first use and again once that copy
+  is six hours old, so it is never more than a pipeline run and a few hours
+  behind.
+- The CDN keeps each drawn page for an hour, keyed on its URL, so a team
+  someone has already opened comes back at once and only a new pick waits
+  the two seconds a render takes. The first visit after a quiet spell also
+  pays for the function starting and fetching the warehouse, about ten
+  seconds.
+- Picks live in the URL (`/charts/scorecard/?team=Duke Blue Devils`), so a
+  link opens on the team it was copied from.

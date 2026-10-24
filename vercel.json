@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "mkdir -p .vercel-static && printf 'User-agent: *\\nDisallow: /\\n' > .vercel-static/robots.txt",
+  "outputDirectory": ".vercel-static",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{dashboard/**,ingestion/**,transform/**,orchestration/**,data/**,dist/**,.github/**,**/tests/**}"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index?__path=/$1"
+    }
+  ]
+}

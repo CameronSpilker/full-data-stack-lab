@@ -1,0 +1,21 @@
+# The live scorecard and matchup boards (api/index.py), deployed as their own
+# Vercel project from the repository root. Nothing else in the repository
+# installs from this file: the pipeline's own packages live in ingestion/,
+# transform/ and orchestration/, each with its own requirements.
+[project]
+name = "lab-charts-live"
+version = "0.1.0"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    # Pinned to the same version as charts/requirements.txt, because the
+    # boards are validated against the compiler that ships with it.
+    "dbt-charts==0.10.0",
+]
+
+[tool.uv]
+package = false
+# dbtlabs-vortex, which dbt-core pulls in, still lists the `uuid` package
+# from PyPI: a Python 2 backport of a module the standard library has had
+# since 2.5, and one that no longer builds. Overridden to nothing so the
+# standard library's uuid is the one imported.
+override-dependencies = ["uuid; sys_platform == 'never'"]
