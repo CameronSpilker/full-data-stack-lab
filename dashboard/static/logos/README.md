@@ -18,6 +18,23 @@ and costs the build nothing, which is what lets the mirror be partial.
 Nothing reads it at build time. It is there so a logo that changes upstream is
 a visible diff rather than a silent one.
 
+## Where they come from
+
+Two sources, recorded per file in `manifest.json`:
+
+- `scripts/import_npm_logos.mjs` draws the forty programs the
+  [`ncaa-team-logos`](https://www.npmjs.com/package/ncaa-team-logos) npm
+  package carries (version 1.8.0). That covers most of the teams the boards
+  put at the top of a list. The script's header says how to run it and how
+  its team ids were matched.
+- `scripts/fetch_logos.py`, below, mirrors every team the warehouse has a
+  `team_logo_url` for. The published warehouse has none yet, so this source is
+  empty until the team dimension is re-extracted.
+
+`fetch_logos.py` skips any team that already has a file, so running it later
+fills in the rest without touching these. `--force` there replaces them with
+the source's own images.
+
 ## Refreshing them
 
 ```bash

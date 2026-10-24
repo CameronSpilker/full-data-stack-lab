@@ -91,10 +91,9 @@ looks for every crest (`<g class="crest" id="...-crest-<team_id>">`), probes
 `/evidence/logos/<team_id>.png`, and only once that file has loaded swaps the
 code for the logo on a white disc ringed in the team colour. This is the same
 rule the Evidence `TeamCrest` component follows, against the same mirrored
-files, so a team without a logo keeps its code and nothing breaks. Today no
-logos are mirrored: the published warehouse has no `team_logo_url` yet, and
-`dashboard/static/logos/README.md` says how to fill it. When those files land,
-the boards pick them up with no change here.
+files, so a team without a logo keeps its code and nothing breaks. Forty
+programs have a logo today (`dashboard/static/logos/README.md` says from
+where); every other team shows its code until that folder gains its file.
 
 The same script loads Oswald from Google Fonts. Every font stack that names it
 falls back to a narrow system face, so a blocked request changes letterforms
