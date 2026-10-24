@@ -383,7 +383,7 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#ffe9e2", "#fcbea7", "#f9a78a"]
+              palette: ["#dfebfb", "#a2c3f0", "#83afea"]
               domain: data
         was_upset_win:
           label: Upset
