@@ -3,8 +3,10 @@ description: >
   One game set out like a scoreboard: each team's crest, name, rank and
   record on its own side, its chance of winning in big numerals, and a bar
   split between the two in proportion. The crests follow team_leaderboard's
-  rules. The two halves of the bar take the board's first two palette
-  colours, never the teams' own. Reads the first row only.
+  rules. The two halves of the bar, and each side's percentage, are in the
+  teams' own colours for this pair (a secondary where the two primaries are
+  alike), falling back to the board's first two palette colours. Reads the
+  first row only.
 options:
   left_id: {type: column}
   left_name: {type: column}
@@ -16,6 +18,13 @@ options:
   right_abbreviation: {type: column}
   right_color: {type: column}
   right_detail: {type: column}
+  left_paint:
+    type: column
+    default: null
+    description: The left team's colour for this pair (mart_matchup_odds display colour).
+  right_paint:
+    type: column
+    default: null
   left_probability:
     type: column
     description: The left team's chance of winning, from 0 to 1.
@@ -48,14 +57,30 @@ options:
   <g id="{{ uid }}-crest-{{ id }}" class="crest">
     <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r + 5 }}" fill="{{ fill }}" fill-opacity="0.16"/>
     <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r }}" fill="{{ fill }}"/>
-    <text x="{{ cx }}" y="{{ cy }}" dy="0.36em" text-anchor="middle" font-family="{{ display }}"
+    <text class="named" x="{{ cx }}" y="{{ cy }}" dy="0.36em" text-anchor="middle" font-family="{{ display }}"
           font-size="{{ r * (0.62 if (code or '') | length <= 3 else 0.52) }}" font-weight="600"
           letter-spacing="0.8" fill="{{ code_ink }}">{{ code }}</text>
   </g>
 {% endmacro %}
 
+{% macro paint_for(value, fallback) -%}
+  {{- ("#" ~ value) if value and value | length == 6 else fallback -}}
+{%- endmacro %}
+{#- A colour light enough to vanish as text on white sets its number in ink. -#}
+{% macro ink_for(value, fallback) -%}
+  {%- set c = (value or "") | lower -%}
+  {%- if c | length == 6 -%}
+    {%- set lum = 0.299 * (hexdigits[c[0]] * 16 + hexdigits[c[1]]) + 0.587 * (hexdigits[c[2]] * 16 + hexdigits[c[3]]) + 0.114 * (hexdigits[c[4]] * 16 + hexdigits[c[5]]) -%}
+    {{- ink if lum > 170 else "#" ~ c -}}
+  {%- else -%}{{- fallback -}}{%- endif -%}
+{%- endmacro %}
+
 {% if rows %}
   {% set row = rows[0] %}
+  {% set left_color = paint_for(row[options.left_paint] if options.left_paint else none, palette[0]) %}
+  {% set right_color = paint_for(row[options.right_paint] if options.right_paint else none, palette[1]) %}
+  {% set left_text = ink_for(row[options.left_paint] if options.left_paint else none, palette[0]) %}
+  {% set right_text = ink_for(row[options.right_paint] if options.right_paint else none, palette[1]) %}
   {% set p = row[options.left_probability] or 0.5 %}
   {% set bar_h = 16 %}
   {% set bar_y = height - bar_h - 4 %}
@@ -65,23 +90,23 @@ options:
 
   {#- Left side. -#}
   {{ crest(row[options.left_id], row[options.left_abbreviation], row[options.left_color], r + 8, cy, r) }}
-  <text x="{{ 2 * r + 30 }}" y="{{ cy - 4 }}" font-family="{{ display }}" font-size="26" font-weight="600" fill="{{ ink }}">{{ row[options.left_name] }}</text>
-  <text x="{{ 2 * r + 30 }}" y="{{ cy + 18 }}" font-size="13" fill="{{ muted }}">{{ row[options.left_detail] }}</text>
-  <text x="{{ 8 }}" y="{{ top }}" font-family="{{ display }}" font-size="44" font-weight="700" fill="{{ palette[0] }}">{{ p | format(".0%") }}</text>
+  <text class="named" x="{{ 2 * r + 30 }}" y="{{ cy - 4 }}" font-family="{{ display }}" font-size="26" font-weight="600" fill="{{ ink }}">{{ row[options.left_name] }}</text>
+  <text class="named" x="{{ 2 * r + 30 }}" y="{{ cy + 18 }}" font-size="13" fill="{{ muted }}">{{ row[options.left_detail] }}</text>
+  <text class="named" x="{{ 8 }}" y="{{ top }}" font-family="{{ display }}" font-size="44" font-weight="700" fill="{{ left_text }}">{{ p | format(".0%") }}</text>
 
   {#- Right side, mirrored. -#}
   {{ crest(row[options.right_id], row[options.right_abbreviation], row[options.right_color], width - r - 8, cy, r) }}
-  <text x="{{ width - 2 * r - 30 }}" y="{{ cy - 4 }}" text-anchor="end" font-family="{{ display }}" font-size="26" font-weight="600" fill="{{ ink }}">{{ row[options.right_name] }}</text>
-  <text x="{{ width - 2 * r - 30 }}" y="{{ cy + 18 }}" text-anchor="end" font-size="13" fill="{{ muted }}">{{ row[options.right_detail] }}</text>
-  <text x="{{ width - 8 }}" y="{{ top }}" text-anchor="end" font-family="{{ display }}" font-size="44" font-weight="700" fill="{{ palette[1] }}">{{ (1 - p) | format(".0%") }}</text>
+  <text class="named" x="{{ width - 2 * r - 30 }}" y="{{ cy - 4 }}" text-anchor="end" font-family="{{ display }}" font-size="26" font-weight="600" fill="{{ ink }}">{{ row[options.right_name] }}</text>
+  <text class="named" x="{{ width - 2 * r - 30 }}" y="{{ cy + 18 }}" text-anchor="end" font-size="13" fill="{{ muted }}">{{ row[options.right_detail] }}</text>
+  <text class="named" x="{{ width - 8 }}" y="{{ top }}" text-anchor="end" font-family="{{ display }}" font-size="44" font-weight="700" fill="{{ right_text }}">{{ (1 - p) | format(".0%") }}</text>
 
   {#- The middle. -#}
-  <text x="{{ width / 2 }}" y="{{ top - 40 }}" text-anchor="middle" font-family="{{ display }}" font-size="12" font-weight="500" letter-spacing="2" fill="{{ muted }}">{{ options.kicker | upper }}</text>
-  <text x="{{ width / 2 }}" y="{{ top - 8 }}" text-anchor="middle" font-family="{{ display }}" font-size="22" font-weight="600" fill="{{ ink }}">{{ row[options.headline] }}</text>
+  <text class="named" x="{{ width / 2 }}" y="{{ top - 40 }}" text-anchor="middle" font-family="{{ display }}" font-size="12" font-weight="500" letter-spacing="2" fill="{{ muted }}">{{ options.kicker | upper }}</text>
+  <text class="named" x="{{ width / 2 }}" y="{{ top - 8 }}" text-anchor="middle" font-family="{{ display }}" font-size="22" font-weight="600" fill="{{ ink }}">{{ row[options.headline] }}</text>
 
   {#- The split. -#}
   {% set split = 8 + (width - 16) * p %}
-  <rect x="8" y="{{ bar_y }}" width="{{ width - 16 }}" height="{{ bar_h }}" rx="{{ bar_h / 2 }}" fill="{{ palette[1] }}"/>
-  <rect x="8" y="{{ bar_y }}" width="{{ split - 8 }}" height="{{ bar_h }}" rx="{{ bar_h / 2 }}" fill="{{ palette[0] }}"/>
+  <rect x="8" y="{{ bar_y }}" width="{{ width - 16 }}" height="{{ bar_h }}" rx="{{ bar_h / 2 }}" fill="{{ right_color }}"/>
+  <rect x="8" y="{{ bar_y }}" width="{{ split - 8 }}" height="{{ bar_h }}" rx="{{ bar_h / 2 }}" fill="{{ left_color }}"/>
   <rect x="{{ split - 1.5 }}" y="{{ bar_y - 4 }}" width="3" height="{{ bar_h + 8 }}" fill="#ffffff"/>
 {% endif %}

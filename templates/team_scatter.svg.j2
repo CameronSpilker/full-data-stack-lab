@@ -1,0 +1,107 @@
+{#---
+description: >
+  Every team as a point, drawn as a crest so the page can put the team's logo
+  there. Each point is a small disc in its group's colour (a tier, a
+  conference); once the logo loads (scripts/render-charts.sh) the disc turns
+  white with the logo inside and the group colour stays as its ring, so the
+  colour still reads. Hovering a point names the team. Rows are drawn in
+  query order, so order the query with the points that matter last.
+channels:
+  x:
+    description: Horizontal measure.
+  y:
+    description: Vertical measure.
+  color:
+    description: The group each point is coloured by, from the board's pins.
+options:
+  team_id:
+    type: column
+  team_name:
+    type: column
+  x_min: {type: number}
+  x_max: {type: number}
+  y_min: {type: number}
+  y_max: {type: number}
+  step:
+    type: number
+    default: 10
+    description: Gap between gridlines, on both axes.
+  y_reverse:
+    type: boolean
+    default: false
+    description: Put y_min at the top, for a measure where low is good.
+  x_label: {type: string, default: ""}
+  y_label: {type: string, default: ""}
+  radius:
+    type: number
+    default: 9
+  radius_column:
+    type: column
+    default: null
+    description: Per-point radius, for drawing the groups that matter larger.
+---#}
+{% set ink = style.font.color or "#14213d" %}
+{% set muted = style.muted or "#6b7280" %}
+{% set grid = "#e7e2d8" %}
+{% set left = 44 %}
+{% set right = 150 %}
+{% set top = 8 %}
+{% set bottom = 40 %}
+{% set pw = width - left - right %}
+{% set ph = height - top - bottom %}
+{% set r = options.radius %}
+
+{% macro sx(v) %}{{ left + (v - options.x_min) / (options.x_max - options.x_min) * pw }}{% endmacro %}
+{% macro sy(v) %}{% if options.y_reverse %}{{ top + (v - options.y_min) / (options.y_max - options.y_min) * ph }}{% else %}{{ top + ph - (v - options.y_min) / (options.y_max - options.y_min) * ph }}{% endif %}{% endmacro %}
+
+<defs>
+  <clipPath id="{{ uid }}-plot">
+    <rect x="{{ left - r }}" y="{{ top - r }}" width="{{ pw + 2 * r }}" height="{{ ph + 2 * r }}"/>
+  </clipPath>
+</defs>
+
+{#- Gridlines and tick labels. -#}
+{% set nx = ((options.x_max - options.x_min) / options.step) | int %}
+{% for i in range(nx + 1) %}
+  {% set v = options.x_min + i * options.step %}
+  <line x1="{{ sx(v) }}" x2="{{ sx(v) }}" y1="{{ top }}" y2="{{ top + ph }}" stroke="{{ grid }}"/>
+  <text x="{{ sx(v) }}" y="{{ top + ph + 16 }}" text-anchor="middle" font-size="11" fill="{{ muted }}">{{ v | format(".0f") }}</text>
+{% endfor %}
+{% set ny = ((options.y_max - options.y_min) / options.step) | int %}
+{% for i in range(ny + 1) %}
+  {% set v = options.y_min + i * options.step %}
+  <line x1="{{ left }}" x2="{{ left + pw }}" y1="{{ sy(v) }}" y2="{{ sy(v) }}" stroke="{{ grid }}"/>
+  <text x="{{ left - 8 }}" y="{{ sy(v) }}" dy="0.35em" text-anchor="end" font-size="11" fill="{{ muted }}">{{ v | format(".0f") }}</text>
+{% endfor %}
+<text x="{{ left + pw / 2 }}" y="{{ height - 6 }}" text-anchor="middle" font-size="11" fill="{{ muted }}">{{ options.x_label }}</text>
+<text transform="translate(12 {{ top + ph / 2 }}) rotate(-90)" text-anchor="middle" font-size="11" fill="{{ muted }}">{{ options.y_label }}</text>
+
+{#- The points. -#}
+<g clip-path="url(#{{ uid }}-plot)">
+{% for row in rows %}
+  {% set px = row[channels.x] %}
+  {% set py = row[channels.y] %}
+  {% if px is not none and py is not none %}
+    {% set paint = color_for(row[channels.color], channels.color) %}
+    {% set pr = (row[options.radius_column] or r) if options.radius_column else r %}
+    <g id="{{ uid }}-crest-{{ row[options.team_id] }}" class="crest">
+      <title>{{ row[options.team_name] }}</title>
+      <circle cx="{{ sx(px) }}" cy="{{ sy(py) }}" r="{{ pr + 1.5 }}" fill="#ffffff" fill-opacity="0.9"/>
+      <circle cx="{{ sx(px) }}" cy="{{ sy(py) }}" r="{{ pr }}" fill="{{ paint }}"/>
+    </g>
+  {% endif %}
+{% endfor %}
+</g>
+
+{#- Legend, one swatch per group, in the order the groups first appear last
+    to first, which puts the groups drawn on top at the top. -#}
+{% set ns = namespace(seen=[]) %}
+{% for row in rows | reverse %}
+  {% if row[channels.color] not in ns.seen %}{% set ns.seen = ns.seen + [row[channels.color]] %}{% endif %}
+{% endfor %}
+<text x="{{ width - right + 22 }}" y="{{ top + 10 }}" font-size="11" font-weight="600" fill="{{ ink }}">{{ channels.color | replace("_", " ") | capitalize }}</text>
+{% for group in ns.seen %}
+  {% set gy = top + 30 + loop.index0 * 20 %}
+  <circle cx="{{ width - right + 28 }}" cy="{{ gy }}" r="6" fill="{{ color_for(group, channels.color) }}"/>
+  <text x="{{ width - right + 40 }}" y="{{ gy }}" dy="0.35em" font-size="11" fill="{{ ink }}">{{ group }}</text>
+{% endfor %}

@@ -53,11 +53,19 @@ reader learns it once:
 
 | Kind of number | Colour | Examples |
 | --- | --- | --- |
-| A rating: how good a team is | Blue | Leaderboards of efficiency margin, Elo lines, margin columns |
-| A chance, from the model or the simulated brackets | Orange | Title odds, seed value, the survival grid, win probability columns |
+| Which team, and nothing else | The team's own colours | Bars in a top-N list (Home, Season, title odds), both teams in a matchup |
+| A rating: how good a team is | Blue | Elo lines, margin columns |
+| A chance, from the model or the simulated brackets | Orange | Seed value, the survival grid, win probability columns |
 | Signed around a baseline (zero, the median) | Blue for the good side, red for the bad side, grey for the middle | Conference depth, a team's strengths by thirds, game margins |
-| Ordered groups | One blue ramp, darkest first | The ranking tiers |
+| Ordered groups | One blue ramp, darkest first | The ranking tiers, which also draw larger the higher they are |
 | Context, not a contender | Grey | "The rest", the model that saw its own season |
+
+A team's own colours come from the marts: `team_color` from the source and
+`team_secondary_color` read from its logo (`scripts/derive_team_colors.py`,
+into a dbt seed). When two teams are drawn together, `mart_matchup_odds`
+gives each side a display colour, switching one to its secondary where the
+two primaries are alike, so BYU and Michigan, both navy, are blue and maize.
+A primary too light to see as a bar gives way to the secondary.
 
 Table cell ramps stop at mid-tone, because dbt Charts writes cell text in the
 same dark ink whatever the fill: every step clears APCA Lc 55 against it. The
@@ -77,6 +85,8 @@ dbt Charts looks for them:
 | `team_leaderboard.svg.j2` | Home, Rankings, Season, Tournament | Rank, crest, name with a line of detail, and a bar |
 | `team_hero.svg.j2` | Scorecard | One team's name plate and national rank |
 | `matchup_scoreboard.svg.j2` | Matchup | Both teams, each one's chance, and the split between them |
+| `team_pair_bars.svg.j2` | Matchup | Two teams measure by measure, each in its own colour |
+| `team_scatter.svg.j2` | Rankings, Season | Every team as its logo, ringed in its tier's or conference's colour, with the team's name on hover |
 
 `dct describe templates/` prints each one's channels and options.
 
@@ -86,15 +96,27 @@ and lines take the board palette, because a school picks its colours for
 itself, not so two bars can be told apart.
 
 dbt Charts will not put an `<image>` in a custom chart, so logos are added in
-the browser. `scripts/render-charts.sh` adds a small script to each page that
-looks for every crest (`<g class="crest" id="...-crest-<team_id>">`), probes
-`/evidence/logos/<team_id>.png`, and only once that file has loaded swaps the
-code for the logo on a white disc ringed in the team colour. This is the same
-rule the Evidence `TeamCrest` component follows, against the same mirrored
-files, so a team without a logo keeps its code and nothing breaks. Today no
-logos are mirrored: the published warehouse has no `team_logo_url` yet, and
-`dashboard/static/logos/README.md` says how to fill it. When those files land,
-the boards pick them up with no change here.
+the browser, by a script `scripts/render-charts.sh` puts in each page (its
+source is `scripts/charts-head.html`). It reads the logos the Evidence
+dashboard serves at `/evidence/logos/`, and a logo only appears once its file
+has loaded, so a team without one shows no broken image. It puts them in two
+kinds of place:
+
+- **Crests** drawn by the templates (`<g class="crest"
+  id="...-crest-<team_id>">`): the code gives way to the logo on a white disc,
+  and the disc's colour stays as a ring. On the scatters that ring is the
+  tier or conference colour, so the grouping still reads.
+- **Team names** anywhere else on a board: any text that is exactly a team's
+  name in the logos' `manifest.json` gets the logo in front of it. That covers
+  table cells (the text moves over for it) and bar axis labels (the logo goes
+  in the card's margin). Legend entries and headline-sized KPI values are
+  left alone, because their space is sized to the words. Text the templates
+  draw beside their own crests is marked `class="named"` so it is not done
+  twice.
+
+Every Division I team has a logo today (`dashboard/static/logos/README.md`
+says from where); a team added later shows its code until that folder gains
+its file.
 
 The same script loads Oswald from Google Fonts. Every font stack that names it
 falls back to a narrow system face, so a blocked request changes letterforms

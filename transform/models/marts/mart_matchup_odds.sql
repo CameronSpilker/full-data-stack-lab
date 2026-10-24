@@ -29,6 +29,17 @@ pairs as (
         opponent.team_name as opponent_name,
         opponent.conference_name as opponent_conference,
 
+        -- Each side's colour for drawing the two together, primaries where
+        -- they differ and a secondary where they do not (macros/team_colors).
+        {{ pair_color(
+            'a', 'team.team_color', 'team.team_secondary_color',
+            'opponent.team_color', 'opponent.team_secondary_color'
+        ) }} as team_display_color,
+        {{ pair_color(
+            'b', 'team.team_color', 'team.team_secondary_color',
+            'opponent.team_color', 'opponent.team_secondary_color'
+        ) }} as opponent_display_color,
+
         {{ predicted_margin('team', 'opponent', 0) }} as neutral_margin,
         {{ predicted_margin(
             'team', 'opponent', var('home_court_advantage_points')
@@ -63,6 +74,8 @@ final as (
         opponent_team_id,
         opponent_name,
         opponent_conference,
+        team_display_color,
+        opponent_display_color,
 
         neutral_margin as predicted_margin_neutral,
         home_margin as predicted_margin_at_home,

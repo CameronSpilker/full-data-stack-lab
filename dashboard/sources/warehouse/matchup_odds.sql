@@ -15,6 +15,10 @@ select
     opponent_team_id,
     opponent_name,
     opponent_conference,
+    -- Each side's colour for drawing the pair together: primaries, or a
+    -- secondary where the two are alike (transform/macros/team_colors.sql).
+    team_display_color,
+    opponent_display_color,
     predicted_margin_neutral,
     predicted_margin_at_home,
     predicted_margin_efficiency_only,

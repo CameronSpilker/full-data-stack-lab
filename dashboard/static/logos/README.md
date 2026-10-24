@@ -18,6 +18,28 @@ and costs the build nothing, which is what lets the mirror be partial.
 Nothing reads it at build time. It is there so a logo that changes upstream is
 a visible diff rather than a silent one.
 
+## Where they come from
+
+Every Division I team in the warehouse has one, from three sources recorded
+per file in `manifest.json`:
+
+- `scripts/import_npm_logos.mjs` draws the forty programs the
+  [`ncaa-team-logos`](https://www.npmjs.com/package/ncaa-team-logos) npm
+  package carries (version 1.8.0) from vector art.
+- `scripts/import_archive_logos.py` fills in every other team from
+  [`sports-assets-archive-polymarket-team-logos-2`](https://www.npmjs.com/package/sports-assets-archive-polymarket-team-logos-2),
+  a snapshot of the images Polymarket serves for its college basketball
+  markets. Teams are matched by name, with the ones that disagree listed in
+  the script and checked by eye; a team whose image is the archive's shared
+  placeholder is skipped.
+- `scripts/fetch_logos.py`, below, mirrors every team the warehouse has a
+  `team_logo_url` for. The published warehouse has none yet.
+
+Each script skips a team that already has a file, so they can run in any
+order without overwriting each other. `--force` on any of them replaces what
+is there with that source's image. A new team (a school moving up to
+Division I) shows its code until one of them is run again.
+
 ## Refreshing them
 
 ```bash

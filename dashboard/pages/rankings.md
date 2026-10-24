@@ -132,7 +132,7 @@ Each row opens that team's page.
 
 ## Offence against defence
 
-<ScatterPlot
+<LogoScatter
     data={field}
     x=adjusted_offensive_efficiency
     y=adjusted_defensive_efficiency

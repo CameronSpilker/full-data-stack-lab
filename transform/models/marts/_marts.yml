@@ -36,9 +36,17 @@ models:
       - name: team_color
         description: >
           The team's primary colour, six hex digits with no leading "#".
-          Nullable on the same terms as the logo. Used to tint a team's own
-          card, never to carry meaning in a chart, which is what the validated
-          categorical palette is for.
+          Nullable on the same terms as the logo. A team's own colour marks
+          the team itself (its crest, its bar in a list, its side of a
+          matchup); a chart where colour carries a scale or a group uses the
+          validated palette instead.
+      - name: team_secondary_color
+        description: >
+          The team's second colour, read from its logo (seed
+          `team_secondary_colors`), in the same form as `team_color`. Null
+          where the logo has no second colour distinct from the first.
+          Used where a team's primary colour would not read, such as
+          against an opponent wearing the same one.
 
   - name: mart_game_results
     description: >
@@ -101,6 +109,16 @@ models:
     columns:
       - name: matchup_id
         data_tests: [not_null, unique]
+      - name: team_display_color
+        description: >
+          The colour to draw `team_id` in when it is shown beside its
+          opponent: its primary colour, or its secondary where that is what
+          tells the two apart (macros/team_colors.sql). Null where the team
+          has no colour.
+      - name: opponent_display_color
+        description: >
+          The opponent's colour on the same terms. When the two primaries
+          are too alike, this side is the one that switches first.
       - name: win_probability_neutral
         data_tests:
           - not_null

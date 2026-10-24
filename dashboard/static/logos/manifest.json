@@ -1,0 +1,2557 @@
+{
+  "1": {
+    "team_name": "Abilene Christian Wildcats",
+    "path": "/logos/1.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182110.aeb8a3d4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_abchr_60000296.png)",
+    "bytes": 5953,
+    "sha256": "3a261a7bd0ba47439ff45edcc5ec19bf3cf0a509b8d7278204d5d1f362bdf944"
+  },
+  "2": {
+    "team_name": "Air Force Falcons",
+    "path": "/logos/2.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182035.e4cd0170.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_airf_60000221.png)",
+    "bytes": 2351,
+    "sha256": "23c56f4c4f205bb6cd54ce8b92dc6861a46ea839c428aacc3e0af42427ceb7f9"
+  },
+  "3": {
+    "team_name": "Akron Zips",
+    "path": "/logos/3.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181991.881e7612.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_akron_60000177.png)",
+    "bytes": 2984,
+    "sha256": "542aa2c07eac13ecfda7be3e4dab00f9ac2f5a906f36f17849ec4b23856d836b"
+  },
+  "4": {
+    "team_name": "Alabama A&M Bulldogs",
+    "path": "/logos/4.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182123.dc0c0c9c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_alaam_60000309.png)",
+    "bytes": 4341,
+    "sha256": "c44e558f1bde71410c8ecf55856fda8773f64b741082981b196dd3794f2672d7"
+  },
+  "5": {
+    "team_name": "Alabama Crimson Tide",
+    "path": "/logos/5.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/alabama.js",
+    "bytes": 28745,
+    "sha256": "8dab8180b7a158540549784987281008eef164d98fb5a4b72239e9b8d30f3035"
+  },
+  "6": {
+    "team_name": "Alabama State Hornets",
+    "path": "/logos/6.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182125.b06f955a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_alast_60000311.png)",
+    "bytes": 6034,
+    "sha256": "d102782c31e208b17d427893b617641817b8d0d0ab0f478fdfd745baaafe331e"
+  },
+  "7": {
+    "team_name": "Alcorn State Braves",
+    "path": "/logos/7.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182121.6be35127.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_alcst_60000307.png)",
+    "bytes": 4464,
+    "sha256": "0b1962e4f897edec63dc5c567b06cdda38d61dc23278d956c073209feb041d41"
+  },
+  "8": {
+    "team_name": "American University Eagles",
+    "path": "/logos/8.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182079.02489b69.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_amercn_60000265.png)",
+    "bytes": 8030,
+    "sha256": "2fd509deb8fb84a0e012fa55409bbd1400c9c668f22350a62b8f6dc394393c7a"
+  },
+  "9": {
+    "team_name": "App State Mountaineers",
+    "path": "/logos/9.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182145.856ffbba.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_applst_60000331.png)",
+    "bytes": 4976,
+    "sha256": "28db697049a91bd37f48f00302f558de75496f40450b7471b4259488dfee8b1e"
+  },
+  "10": {
+    "team_name": "Arizona State Sun Devils",
+    "path": "/logos/10.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182069.d232197a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_arzst_60000255.png)",
+    "bytes": 4376,
+    "sha256": "31f462da690bcff939df8dce203997777f411837d94ddbff5d2a331e29cfcdc3"
+  },
+  "11": {
+    "team_name": "Arizona Wildcats",
+    "path": "/logos/11.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182061.87e324a3.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_arz_60000247.png)",
+    "bytes": 3816,
+    "sha256": "ebe2c5da0d84f5f6ccace208be91b8f951281e286e5760ee250ecb4c8bb1afc8"
+  },
+  "12": {
+    "team_name": "Arkansas Razorbacks",
+    "path": "/logos/12.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182090.1aa949f0.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ark_60000276.png)",
+    "bytes": 5549,
+    "sha256": "40aca13f8d263cba350f02be4fbd1a1a05ca5924bc2bf8c6c4951d813248a231"
+  },
+  "13": {
+    "team_name": "Arkansas State Red Wolves",
+    "path": "/logos/13.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182141.9eb7cd3c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_arkst_60000327.png)",
+    "bytes": 7927,
+    "sha256": "6f73760d4309e5715fc20f1fd57f8dbe6793716889ff3266dbbb7d44e56b8abf"
+  },
+  "14": {
+    "team_name": "Arkansas-Pine Bluff Golden Lions",
+    "path": "/logos/14.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182124.e52dccb7.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_arpb_60000310.png)",
+    "bytes": 8875,
+    "sha256": "9c0e5bd64ef25e119910a5f25c26cb388bd8b169de680efafee9b3c5d5b62789"
+  },
+  "15": {
+    "team_name": "Army Black Knights",
+    "path": "/logos/15.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182077.5597ee26.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_army_60000263.png)",
+    "bytes": 7222,
+    "sha256": "7537771ec479e5b34063f2074b3afe7663c36c829afe882f9a2cee334a376dec"
+  },
+  "16": {
+    "team_name": "Auburn Tigers",
+    "path": "/logos/16.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/auburn.js",
+    "bytes": 10379,
+    "sha256": "196443fd8a16ee5665ad114042b83a04fb5369528cdfb45e141ef6864fae0c2a"
+  },
+  "17": {
+    "team_name": "Austin Peay Governors",
+    "path": "/logos/17.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182056.42689e29.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ausp_60000242.png)",
+    "bytes": 7065,
+    "sha256": "b774ace4904b8d223a9b136146e12e9234dcf9602f4b97113f2ca77264123340"
+  },
+  "18": {
+    "team_name": "BYU Cougars",
+    "path": "/logos/18.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182150.1bcd261f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_byu_60000336.png)",
+    "bytes": 3746,
+    "sha256": "fbae1af432aeb7eecb9035710096f55f5f000866d141550247b6c18eac4e4557"
+  },
+  "19": {
+    "team_name": "Ball State Cardinals",
+    "path": "/logos/19.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181998.02e06e30.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ballst_60000184.png)",
+    "bytes": 6166,
+    "sha256": "482e3a79171677a3295b2382b14708a4c893092381ebf653f8157bd9a3c5df8b"
+  },
+  "20": {
+    "team_name": "Baylor Bears",
+    "path": "/logos/20.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/baylor.js",
+    "bytes": 4085,
+    "sha256": "477783b71d6d49c4a746cc48a2d3340ed1b97de94fd75f59ec0737ac41ff7b53"
+  },
+  "21": {
+    "team_name": "Bellarmine Knights",
+    "path": "/logos/21.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182696.f860fa39.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_bella_60001025.png)",
+    "bytes": 7055,
+    "sha256": "83363f12ea73d240ad82519d832641bac37f0e570165366290c33d963f5002fa"
+  },
+  "22": {
+    "team_name": "Belmont Bruins",
+    "path": "/logos/22.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182047.898b8449.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_belm_60000233.png)",
+    "bytes": 10172,
+    "sha256": "1676101621bad6c6e4e27b6f55f1da73cfabb9d03b92cf332422edf087cdfd34"
+  },
+  "23": {
+    "team_name": "Bethune-Cookman Wildcats",
+    "path": "/logos/23.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182006.39891600.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_bcook_60000192.png)",
+    "bytes": 3318,
+    "sha256": "afb6c16fb322479b9e7f56ba55013f808ec91cd7a3ab91ab8ac29fa0ee52e55e"
+  },
+  "24": {
+    "team_name": "Binghamton Bearcats",
+    "path": "/logos/24.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181834.301ade80.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_bing_60000020.png)",
+    "bytes": 10601,
+    "sha256": "4199cedec2185041f977b65d961696f1e071f291d41c7e106506914d6773744f"
+  },
+  "25": {
+    "team_name": "Boise State Broncos",
+    "path": "/logos/25.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/boisestate.js",
+    "bytes": 21462,
+    "sha256": "029290eb2818d1ce9ab52674ed476a39a1f524520d226ab767fdec81401d8893"
+  },
+  "26": {
+    "team_name": "Boston College Eagles",
+    "path": "/logos/26.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181849.b3aac521.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_boscol_60000035.png)",
+    "bytes": 7498,
+    "sha256": "eae94effd643286c4b0816f30b3ca587ed87e432ee885207fc5373e3fabd6881"
+  },
+  "27": {
+    "team_name": "Boston University Terriers",
+    "path": "/logos/27.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182073.11c8c6a8.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_bostu_60000259.png)",
+    "bytes": 5547,
+    "sha256": "c35d931e618da928fc5f8bb1b31a68d2b6cfbec96e633d7e709ccf281e4141c6"
+  },
+  "28": {
+    "team_name": "Bowling Green Falcons",
+    "path": "/logos/28.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181995.5fd93087.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_bowlgr_60000181.png)",
+    "bytes": 5637,
+    "sha256": "0f213595b0a428caf97ad55b4d7790eb2eab4ae957e74390f731c8ca70b323c2"
+  },
+  "29": {
+    "team_name": "Bradley Braves",
+    "path": "/logos/29.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182024.33173f16.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_bradly_60000210.png)",
+    "bytes": 4226,
+    "sha256": "fb9d3d087bdcb9d908b96f4216d43afc21a3bcbb69ccab4589813ab3861df06d"
+  },
+  "30": {
+    "team_name": "Brown Bears",
+    "path": "/logos/30.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181977.b174ce0e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_brown_60000163.png)",
+    "bytes": 7639,
+    "sha256": "507bfe3ccda1b9fe06b9d1e1216d65f18eace167b75894e6afeec1bd39349949"
+  },
+  "31": {
+    "team_name": "Bryant Bulldogs",
+    "path": "/logos/31.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182045.c3703046.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_bryant_60000231.png)",
+    "bytes": 11259,
+    "sha256": "47bdece004d4f0ca108eab3c85249ab78c20206c9f26c9e5f7c8fef6a7cdfafa"
+  },
+  "32": {
+    "team_name": "Bucknell Bison",
+    "path": "/logos/32.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182071.4c86c3ba.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_buck_60000257.png)",
+    "bytes": 10323,
+    "sha256": "9227034b192644e5cf2fc08e8d013fa5bd487ce8bb50df6b9813b3316dbb97eb"
+  },
+  "33": {
+    "team_name": "Buffalo Bulls",
+    "path": "/logos/33.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181993.2e8c247c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/Buffalo Bulls-35f0ea6fa7.png)",
+    "bytes": 4602,
+    "sha256": "9c8cce57daef5b31ff6081d0800e0c65c97f9da8b396bf9508e97a27bffc7dbc"
+  },
+  "34": {
+    "team_name": "Butler Bulldogs",
+    "path": "/logos/34.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181878.d0cc09b4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_butl_60000064.png)",
+    "bytes": 11054,
+    "sha256": "d77fb870663dfd3e0a5f64179c2c62bad729c3392cfcee4928553bbb6653fbf0"
+  },
+  "35": {
+    "team_name": "Cal Poly Mustangs",
+    "path": "/logos/35.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181936.9343c0b8.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_calpol_60000122.png)",
+    "bytes": 4931,
+    "sha256": "a2c75ba29ccab96c25ea91c29784c374a5894aa048df08325246a5005a396ed6"
+  },
+  "36": {
+    "team_name": "Cal State Bakersfield Roadrunners",
+    "path": "/logos/36.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182160.be1cf448.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_csu_60000346.png)",
+    "bytes": 6722,
+    "sha256": "045f3c749da57a04c7fe29734a7abf1f9526309481c04c3fb6db7711d47e0a4c"
+  },
+  "37": {
+    "team_name": "Cal State Fullerton Titans",
+    "path": "/logos/37.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181937.0d920e86.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_csufl_60000123.png)",
+    "bytes": 2599,
+    "sha256": "7e247d7dd4182dd42a611edd23bdf964aad3d4e3a670355f5400b30492683fff"
+  },
+  "38": {
+    "team_name": "Cal State Northridge Matadors",
+    "path": "/logos/38.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181935.0f136fca.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_csunr_60000121.png)",
+    "bytes": 8188,
+    "sha256": "8d683e3ff5252657de5bd21c2e463b7e2673e31afb71ed205edfa26b74f47111"
+  },
+  "39": {
+    "team_name": "California Baptist Lancers",
+    "path": "/logos/39.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182176.2d6a9d31.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_cabap_60000394.png)",
+    "bytes": 5233,
+    "sha256": "0a553f30eca6ac05d043a35bff529a7308d6b6f959996b27c73073d9ce74591d"
+  },
+  "40": {
+    "team_name": "California Golden Bears",
+    "path": "/logos/40.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182065.94d8fe44.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_cah_60000251.png)",
+    "bytes": 4036,
+    "sha256": "69ed0ac845c165967485b941d5af75c59b64d4dd499d1e00372be5dd082f0e1c"
+  },
+  "41": {
+    "team_name": "Campbell Fighting Camels",
+    "path": "/logos/41.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181904.cb61204b.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_camp_60000090.png)",
+    "bytes": 6602,
+    "sha256": "214776a1fd6895e51e572b10f44c77050de225690a834449c14104312fce9f73"
+  },
+  "42": {
+    "team_name": "Canisius Golden Griffins",
+    "path": "/logos/42.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181986.e8b235da.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_cans_60000172.png)",
+    "bytes": 12148,
+    "sha256": "5ae62dca729f915f37ae9e21e43321fe87d49cebfa8555aff1ce0dbc335e4af5"
+  },
+  "43": {
+    "team_name": "Central Arkansas Bears",
+    "path": "/logos/43.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182112.0eb45bff.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_cark_60000298.png)",
+    "bytes": 9107,
+    "sha256": "982a1c3fe5faa0ec81b17de8fe43c5a4d3e4a3c9db5a1ccd630dbb14caaf475b"
+  },
+  "44": {
+    "team_name": "Central Connecticut Blue Devils",
+    "path": "/logos/44.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182046.4788a403.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_cencon_60000232.png)",
+    "bytes": 7238,
+    "sha256": "b36fa09d38aec3dd88aeb97375bfdc357ab6d3759ab758fd2e64d28cdeffe499"
+  },
+  "45": {
+    "team_name": "Central Michigan Chippewas",
+    "path": "/logos/45.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181999.99ad4351.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_cmich_60000185.png)",
+    "bytes": 3214,
+    "sha256": "95368d1b2f244fe84a29375116d87869e1a73e99539e4f46dae21d87ff0466b3"
+  },
+  "46": {
+    "team_name": "Charleston Cougars",
+    "path": "/logos/46.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181943.c306cf61.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_char_60000129.png)",
+    "bytes": 3721,
+    "sha256": "d0de50b8ba76c830182e64c40975798ab4f0a16da891f254d069a30a3725f40f"
+  },
+  "47": {
+    "team_name": "Charleston Southern Buccaneers",
+    "path": "/logos/47.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181902.70554b43.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_chsou_60000088.png)",
+    "bytes": 4967,
+    "sha256": "a28259a5054827067876c016e4390581951b060bda89455ced669e68bf32578f"
+  },
+  "48": {
+    "team_name": "Charlotte 49ers",
+    "path": "/logos/48.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181956.3d2e91a2.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_charlt_60000142.png)",
+    "bytes": 3145,
+    "sha256": "1b364b5ab0287fcfe13aed761c0d3c0a30bf1842732876587b912f044561b767"
+  },
+  "49": {
+    "team_name": "Chattanooga Mocs",
+    "path": "/logos/49.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182095.b0c98e11.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_chat_60000281.png)",
+    "bytes": 3839,
+    "sha256": "f21887766c3e6f50fa1645e012b06f1d650dfba181dcb1d796e772b9faba335d"
+  },
+  "50": {
+    "team_name": "Chicago State Cougars",
+    "path": "/logos/50.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182164.0c70a3f7.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_chist_60000351.png)",
+    "bytes": 4787,
+    "sha256": "29b7a807fa64ceab22af62605954c3191a9677b6edec6639499ef6a4d442e491"
+  },
+  "51": {
+    "team_name": "Cincinnati Bearcats",
+    "path": "/logos/51.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181818.bcdc4796.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_cin_60000004.png)",
+    "bytes": 2625,
+    "sha256": "917499f4b7697f541f5c667df06824cb378c9ed9c5bab5271668d944b18bda6a"
+  },
+  "52": {
+    "team_name": "Clemson Tigers",
+    "path": "/logos/52.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/clemson.js",
+    "bytes": 13503,
+    "sha256": "6c2ab0c343b3e75e52866f323466d24d5afccca83a14c9787b770f0a2a54693c"
+  },
+  "53": {
+    "team_name": "Cleveland State Vikings",
+    "path": "/logos/53.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181970.6984d5e5.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_clvst_60000156.png)",
+    "bytes": 11227,
+    "sha256": "d751f7a882194a22e10fd0204aa9364ab19b1febbd3c9914373563c7c0acf8c4"
+  },
+  "54": {
+    "team_name": "Coastal Carolina Chanticleers",
+    "path": "/logos/54.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181895.9f7fbb84.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_coast_60000081.png)",
+    "bytes": 9391,
+    "sha256": "06b02f2f15246c1954535ae6eea6e9f993bc07bac3eff989caee81f2ffc3a7b2"
+  },
+  "55": {
+    "team_name": "Colgate Raiders",
+    "path": "/logos/55.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182075.b3470cfa.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_colg_60000261.png)",
+    "bytes": 4842,
+    "sha256": "0003aea40c4d2963729647c62ef4f7f5b588887e8bc3fbc0d113afab2bc42f99"
+  },
+  "56": {
+    "team_name": "Colorado Buffaloes",
+    "path": "/logos/56.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/colorado.js",
+    "bytes": 11729,
+    "sha256": "b07d5da9492de1db8d47430dd6ceafb20956c63a72bead922ecc16ec9641cc4b"
+  },
+  "57": {
+    "team_name": "Colorado State Rams",
+    "path": "/logos/57.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182031.9abb113a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_colst_60000217.png)",
+    "bytes": 9847,
+    "sha256": "077ed6b30e1940e01bd1a2e28c03fecac299efb5cdec82d38936122d4cd37132"
+  },
+  "58": {
+    "team_name": "Columbia Lions",
+    "path": "/logos/58.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181973.cdc5e7ab.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_colmb_60000159.png)",
+    "bytes": 8845,
+    "sha256": "25fa72be803ae0b61756a523585c50e3842207f66a1549b8aa983ee9feb1ff5a"
+  },
+  "59": {
+    "team_name": "Coppin State Eagles",
+    "path": "/logos/59.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182014.fc659c54.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_coppst_60000200.png)",
+    "bytes": 7008,
+    "sha256": "ff248f0e9213c98e5c23d45a0a50f3e1e0ba2d114703d724e59b025d33aa2bde"
+  },
+  "60": {
+    "team_name": "Cornell Big Red",
+    "path": "/logos/60.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181976.b45155a8.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_cornel_60000162.png)",
+    "bytes": 8323,
+    "sha256": "c53abcc8f51454f4a847c372c6bdfcd05377f899a04cdc9b4525b374d77e7bbd"
+  },
+  "61": {
+    "team_name": "Creighton Bluejays",
+    "path": "/logos/61.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/creighton.js",
+    "bytes": 22130,
+    "sha256": "231455cd1e2d2ef593d475c10442ecae7a7e8c8da53bebaec757cd85ad2e0fae"
+  },
+  "62": {
+    "team_name": "Dartmouth Big Green",
+    "path": "/logos/62.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181979.d15d4578.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_dart_60000165.png)",
+    "bytes": 2286,
+    "sha256": "f7cf2ed3943cdbe97a0a05b78a72be3583b318d7d55bf19fd8a0f407c43b2e39"
+  },
+  "63": {
+    "team_name": "Davidson Wildcats",
+    "path": "/logos/63.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181863.295509fb.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_david_60000049.png)",
+    "bytes": 7019,
+    "sha256": "4c957110bfc9c008854183c725b52f7ffe26ee1c4b9e7609616b7212d1bb3c5e"
+  },
+  "64": {
+    "team_name": "Dayton Flyers",
+    "path": "/logos/64.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181858.bfd8a607.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_day_60000044.png)",
+    "bytes": 3051,
+    "sha256": "f10fae8b56e679bc36289c8cef261afc129a4c4aefa53ceb7aebf143c059f517"
+  },
+  "65": {
+    "team_name": "DePaul Blue Demons",
+    "path": "/logos/65.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181880.6ac7bf8b.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_depaul_60000066.png)",
+    "bytes": 8693,
+    "sha256": "78b664fce932c63b668d22601b46ad39ce611fcd1f445c4c842000ecdfc188bd"
+  },
+  "66": {
+    "team_name": "Delaware Blue Hens",
+    "path": "/logos/66.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181947.c35264cc.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_del_60000133.png)",
+    "bytes": 7792,
+    "sha256": "a9864377cb90d36cc908688a883c18164eb93b120121ae876b62a575639c69b3"
+  },
+  "67": {
+    "team_name": "Delaware State Hornets",
+    "path": "/logos/67.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182015.91af23aa.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_delst_60000201.png)",
+    "bytes": 8207,
+    "sha256": "4fdb21d2152561ac97cb248096afdcdf7ad15259573272ece1b6acf3e31e7526"
+  },
+  "68": {
+    "team_name": "Denver Pioneers",
+    "path": "/logos/68.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182133.4a3aba74.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_den_60000319.png)",
+    "bytes": 2895,
+    "sha256": "ae825b25826b17a82ab99aa8c7426c6db9ce54becc5441543d472c5a503ea9dc"
+  },
+  "69": {
+    "team_name": "Detroit Mercy Titans",
+    "path": "/logos/69.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181967.d5463514.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_det_60000153.png)",
+    "bytes": 10643,
+    "sha256": "13ba2339e078dcecfd740ef37e13a976750608cbc304b6b0143d4d085e8c9c32"
+  },
+  "70": {
+    "team_name": "Drake Bulldogs",
+    "path": "/logos/70.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182025.9033813a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_drake_60000211.png)",
+    "bytes": 8788,
+    "sha256": "41d4df33b028c00cd5b75fcf5fd0c792e609a495273e60b15f9b6ba5c2e8e1c7"
+  },
+  "71": {
+    "team_name": "Drexel Dragons",
+    "path": "/logos/71.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181946.f59f26a5.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_drexel_60000132.png)",
+    "bytes": 8610,
+    "sha256": "5af4ec7fc6b86ad6f71e8dbddce62c5948c2817fa7b0a9c42783e5c467a03033"
+  },
+  "72": {
+    "team_name": "Duke Blue Devils",
+    "path": "/logos/72.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/duke.js",
+    "bytes": 4198,
+    "sha256": "3da03438bcf19ac25609507ab74c3ae80a9c622a31bbf414f6d1f6c119838cd8"
+  },
+  "73": {
+    "team_name": "Duquesne Dukes",
+    "path": "/logos/73.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181865.8b463c5a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_duq_60000051.png)",
+    "bytes": 2076,
+    "sha256": "282da011ff3656136cd81ebb65bb87549b0b50ff8ddd5c47ecbcd10e5ec93740"
+  },
+  "74": {
+    "team_name": "East Carolina Pirates",
+    "path": "/logos/74.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181823.fcbff182.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ecar_60000009.png)",
+    "bytes": 10904,
+    "sha256": "31069d908206183146ca12452b92a441cfc92abb57f31b5f0edc35ae103eafbe"
+  },
+  "75": {
+    "team_name": "East Tennessee State Buccaneers",
+    "path": "/logos/75.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182096.e8ac2467.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_etnst_60000282.png)",
+    "bytes": 3870,
+    "sha256": "e72208ba3d85aef40c21a6558e78ca4daa7a212a5e00284e7bf63e710778f353"
+  },
+  "76": {
+    "team_name": "East Texas A&M Lions",
+    "path": "/logos/76.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182174.6d0a23ea.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_txamc_60000392.png)",
+    "bytes": 6552,
+    "sha256": "8096424ec5480606d6ea93e1653b4286817fa3cf2134ea2496fc63cc64daf72c"
+  },
+  "77": {
+    "team_name": "Eastern Illinois Panthers",
+    "path": "/logos/77.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182053.8de918fe.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_eill_60000239.png)",
+    "bytes": 7882,
+    "sha256": "e90e98806bc13f05b69896a8e26f6c3a1469f51e7aa2130f2d22e81e055b44f2"
+  },
+  "78": {
+    "team_name": "Eastern Kentucky Colonels",
+    "path": "/logos/78.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182051.d98bcb59.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ekent_60000237.png)",
+    "bytes": 2435,
+    "sha256": "57032c624dc34665cd6b542610ff648937f8d10803577329167becb3d587a11c"
+  },
+  "79": {
+    "team_name": "Eastern Michigan Eagles",
+    "path": "/logos/79.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182001.52eadd3e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_emich_60000187.png)",
+    "bytes": 1553,
+    "sha256": "1aa900616a379da0b7dea86f39987ac859aab07cb85702578cb5c8c5660fc185"
+  },
+  "80": {
+    "team_name": "Eastern Washington Eagles",
+    "path": "/logos/80.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181884.b6624b04.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ewash_60000070.png)",
+    "bytes": 4742,
+    "sha256": "5a14e693e973e3d22417019dd95ce175a42b3f15565e821ad6c588a6ba40f0a1"
+  },
+  "81": {
+    "team_name": "Elon Phoenix",
+    "path": "/logos/81.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181944.0c960ad7.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_elon_60000130.png)",
+    "bytes": 2749,
+    "sha256": "21eda3a182b5f7725c6cfe2a6ec99781ea02f889c69674d0134e14c290163428"
+  },
+  "82": {
+    "team_name": "Evansville Purple Aces",
+    "path": "/logos/82.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182017.ebe3ecee.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_evans_60000203.png)",
+    "bytes": 3902,
+    "sha256": "a9c94d6e815e40620039ac332f3355fec6c2fff64be0cdc56a8e50cc883c8539"
+  },
+  "83": {
+    "team_name": "Fairfield Stags",
+    "path": "/logos/83.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181984.1e8f465e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_fair_60000170.png)",
+    "bytes": 3256,
+    "sha256": "24c77098dda3cac92a0cf32e16e60b62d7520372a41afd6c8ceda8aee797da3d"
+  },
+  "84": {
+    "team_name": "Fairleigh Dickinson Knights",
+    "path": "/logos/84.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182038.3973eb49.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_fairdk_60000224.png)",
+    "bytes": 7422,
+    "sha256": "9dafa5258ef6594d7258dccee89044e02eb5f1ce0daa98db9b4a2719fca0278a"
+  },
+  "85": {
+    "team_name": "Florida A&M Rattlers",
+    "path": "/logos/85.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182012.9f63af70.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_flam_60000198.png)",
+    "bytes": 11885,
+    "sha256": "b471ff8c153d32c994cda28c15b0aaa6dcf4e67329275f77d22cf9da466bdf84"
+  },
+  "86": {
+    "team_name": "Florida Atlantic Owls",
+    "path": "/logos/86.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181959.5f96f79d.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_flatl_60000145.png)",
+    "bytes": 6124,
+    "sha256": "eaf6b2e7683891b212425c4713bf39000cb1594f5bfb558cc7e362d420be3a8d"
+  },
+  "87": {
+    "team_name": "Florida Gators",
+    "path": "/logos/87.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/florida.js",
+    "bytes": 27300,
+    "sha256": "d7e0fb89a1840b7425f9948b2128bea0530446da66de1933af62cf17590726f7"
+  },
+  "88": {
+    "team_name": "Florida Gulf Coast Eagles",
+    "path": "/logos/88.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181852.f87aee50.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_flgc_60000038.png)",
+    "bytes": 7699,
+    "sha256": "8d6dd92c339647fd4e97396cc284c343fb4eaaacfc4d0b9ce0f7ee26bcf5c71e"
+  },
+  "89": {
+    "team_name": "Florida International Panthers",
+    "path": "/logos/89.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181954.8d1eb191.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_flint_60000140.png)",
+    "bytes": 2377,
+    "sha256": "f79077e37646edfd762eb26d30be3eac213edb49743359aac296e02a280d3499"
+  },
+  "90": {
+    "team_name": "Florida State Seminoles",
+    "path": "/logos/90.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/fsu.js",
+    "bytes": 36167,
+    "sha256": "e4d8d9f19d491b02abcb9a9b1cd001f447c513f11de43697207b8b0d41788bb2"
+  },
+  "91": {
+    "team_name": "Fordham Rams",
+    "path": "/logos/91.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181867.5ec822ed.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_fordm_60000053.png)",
+    "bytes": 7445,
+    "sha256": "aedb916163074c7de9b5489845d54a06448f95cabf166753dc63af14ca97c41c"
+  },
+  "92": {
+    "team_name": "Fresno State Bulldogs",
+    "path": "/logos/92.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182027.d039261c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_frest_60000213.png)",
+    "bytes": 11050,
+    "sha256": "3f1d2a59b07e1fa05ff47c8c2fa8611d5888f6f32cc55fd2d99027edf691ff20"
+  },
+  "93": {
+    "team_name": "Furman Paladins",
+    "path": "/logos/93.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182097.7be78f05.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_furman_60000283.png)",
+    "bytes": 4483,
+    "sha256": "1f296665bec3151e138472bcbc6985bef16f7931cdafda694a3a5a77e24af536"
+  },
+  "94": {
+    "team_name": "Gardner-Webb Runnin' Bulldogs",
+    "path": "/logos/94.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181897.3cabad44.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/Gardner-Webb Runnin' Bulldogs-64c5f2c228.png)",
+    "bytes": 9650,
+    "sha256": "20c9299799a38311ca0cef900e01113ca75fd8a68f33ebe65b476cbcc300c424"
+  },
+  "95": {
+    "team_name": "George Mason Patriots",
+    "path": "/logos/95.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181870.41c38ef3.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_gmsn_60000056.png)",
+    "bytes": 10078,
+    "sha256": "192d547ef2cababeb10565d604670c81ab50c69d0c6d66da87064a48638f54d3"
+  },
+  "96": {
+    "team_name": "George Washington Revolutionaries",
+    "path": "/logos/96.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181862.447b8e3c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_geows_60000048.png)",
+    "bytes": 6334,
+    "sha256": "c410320fbfebf212e5493fc8a3649bbb29c3753519e86f092c74917130c2d727"
+  },
+  "97": {
+    "team_name": "Georgetown Hoyas",
+    "path": "/logos/97.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181876.156ac297.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_george_60000062.png)",
+    "bytes": 5710,
+    "sha256": "76ced55b831c26a201f9cb8a4a79b73ebdb6dec21554e9cbe63ec7ae45dc36f7"
+  },
+  "98": {
+    "team_name": "Georgia Bulldogs",
+    "path": "/logos/98.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/georgia.js",
+    "bytes": 12185,
+    "sha256": "b5f2d6b5aeefa9f6f226bcdf4fdd771e4dea7de97243858444f84a8ded757bae"
+  },
+  "99": {
+    "team_name": "Georgia Southern Eagles",
+    "path": "/logos/99.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182143.c48e9638.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_gas_60000329.png)",
+    "bytes": 7523,
+    "sha256": "a03fa3ed170c31a0f742aea274af5a2fb337afa54eb64288b5dcac2445d14387"
+  },
+  "100": {
+    "team_name": "Georgia State Panthers",
+    "path": "/logos/100.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182142.fc2773e0.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_gast_60000328.png)",
+    "bytes": 6303,
+    "sha256": "766e34a997b51929571b8aa65d9eaa0108fbd5ce9254bb1b3ad559b12a4dd987"
+  },
+  "101": {
+    "team_name": "Georgia Tech Yellow Jackets",
+    "path": "/logos/101.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181846.7d7ff916.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_gtech_60000032.png)",
+    "bytes": 3748,
+    "sha256": "d6e626368e2b64196d9751fc6904fa66dfb550848e4b77725bf6e672c103afdd"
+  },
+  "102": {
+    "team_name": "Gonzaga Bulldogs",
+    "path": "/logos/102.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/gonzaga.js",
+    "bytes": 28230,
+    "sha256": "62550748f72e74cefb62b3d125fa9c9ec5adfadfa2f5a12d6fe31791c8893211"
+  },
+  "103": {
+    "team_name": "Grambling Tigers",
+    "path": "/logos/103.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182126.c349da70.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_grmbst_60000312.png)",
+    "bytes": 5184,
+    "sha256": "1cd222cbc42d192152d537bf857358f29fc224bd067ba4d51878e34c095975bc"
+  },
+  "104": {
+    "team_name": "Grand Canyon Lopes",
+    "path": "/logos/104.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182159.c4572e75.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_gcan_60000345.png)",
+    "bytes": 3978,
+    "sha256": "a25631f8c905fa8b220e8ebd86842279981b82b7bcdda1de42bc74a827f63467"
+  },
+  "105": {
+    "team_name": "Green Bay Phoenix",
+    "path": "/logos/105.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181966.fb2e1f3e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_gb_60000152.png)",
+    "bytes": 2470,
+    "sha256": "8bffe7516b010153bd45818bc83308644d3667fbb0ab833b9835180035e6d98a"
+  },
+  "106": {
+    "team_name": "Hampton Pirates",
+    "path": "/logos/106.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182003.0ec0bf9e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_hamp_60000189.png)",
+    "bytes": 6114,
+    "sha256": "5b243d527369f1fc0734c4e3aeb3c342ed36e95a58c7ec14900287ae3323e8e4"
+  },
+  "107": {
+    "team_name": "Harvard Crimson",
+    "path": "/logos/107.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181978.fc97258d.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_harvrd_60000164.png)",
+    "bytes": 3693,
+    "sha256": "8d3d6ec5d8b190e891df2800a40f9a1d5e11ac255f0f9d3ae4996a495ff3b056"
+  },
+  "108": {
+    "team_name": "Hawai'i Rainbow Warriors",
+    "path": "/logos/108.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181929.527848e9.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_hawaii_60000115.png)",
+    "bytes": 6822,
+    "sha256": "2abc73c655200ae47b4767cc063a5a95c7bd3b87e101bacddb14e190677e938e"
+  },
+  "109": {
+    "team_name": "High Point Panthers",
+    "path": "/logos/109.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181899.ec751052.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_hpnt_60000085.png)",
+    "bytes": 5844,
+    "sha256": "a0c6d691b3fd5b40ce796d23af016202e7573986ebecaba5cb817334124cc7ca"
+  },
+  "110": {
+    "team_name": "Hofstra Pride",
+    "path": "/logos/110.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181942.d3ba73de.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_hofst_60000128.png)",
+    "bytes": 4595,
+    "sha256": "3856684ac52a5b65004fc349904eaf5ec1cb24104c69471e978866f5b3c12bb5"
+  },
+  "111": {
+    "team_name": "Holy Cross Crusaders",
+    "path": "/logos/111.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182078.adfddc41.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_holy_60000264.png)",
+    "bytes": 7229,
+    "sha256": "20762111e8f23db51cdcd05870764c797307096fca21e0592cadc2ebd6fdfc4e"
+  },
+  "112": {
+    "team_name": "Houston Christian Huskies",
+    "path": "/logos/112.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182107.8695834b.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_houbap_60000293.png)",
+    "bytes": 9466,
+    "sha256": "a097a0ff0752a5e1df8040cce884f7c91419e2f7d35a7adb2770c51d9eb7d2eb"
+  },
+  "113": {
+    "team_name": "Houston Cougars",
+    "path": "/logos/113.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181820.ad7ff780.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_hou_60000006.png)",
+    "bytes": 2721,
+    "sha256": "60c9c990dc659c145908724edd4affdd4b7d5fd8cb65cc73571084ef471e7fe6"
+  },
+  "114": {
+    "team_name": "Howard Bison",
+    "path": "/logos/114.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182009.c1cdd182.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_howrd_60000195.png)",
+    "bytes": 4745,
+    "sha256": "ad6987029dda585ac5db83914a97584798b3c216ec3542dec0b233e216d77a06"
+  },
+  "115": {
+    "team_name": "IU Indianapolis Jaguars",
+    "path": "/logos/115.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182131.fb2ace62.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_iupui_60000317.png)",
+    "bytes": 16670,
+    "sha256": "701fe7fbc0f95215be447bd8d6087ddecb686a6207814bc931bdf568902bc424"
+  },
+  "116": {
+    "team_name": "Idaho State Bengals",
+    "path": "/logos/116.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181886.08f82e04.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_idhst_60000072.png)",
+    "bytes": 9487,
+    "sha256": "1f2f06f3f8d6e6c5d377e68cd55141a29f7ca75b8f1289f3c36216f267693cbf"
+  },
+  "117": {
+    "team_name": "Idaho Vandals",
+    "path": "/logos/117.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181887.18dc6212.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_idaho_60000073.png)",
+    "bytes": 7746,
+    "sha256": "95184e32c4220e27eb4f3aca23daf96060ddf95ea6362281fb3319a3cbae9ee0"
+  },
+  "118": {
+    "team_name": "Illinois Fighting Illini",
+    "path": "/logos/118.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181916.9cba0f90.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ill_60000102.png)",
+    "bytes": 1599,
+    "sha256": "fc56f1b5d075b328e91e97168559d961fc0774adce6ce539121200b13dbfa542"
+  },
+  "119": {
+    "team_name": "Illinois State Redbirds",
+    "path": "/logos/119.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182018.b86d992d.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_illst_60000204.png)",
+    "bytes": 8151,
+    "sha256": "aec6f169e6d6f472b50224eb1be7e69321d05a449711574ffe1940c145573aa9"
+  },
+  "120": {
+    "team_name": "Incarnate Word Cardinals",
+    "path": "/logos/120.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182108.6a2ec232.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_incar_60000294.png)",
+    "bytes": 4394,
+    "sha256": "b4ab07620adb6b5da877543919ce8a1e96030e1588d87fd0d61748897691f7f1"
+  },
+  "121": {
+    "team_name": "Indiana Hoosiers",
+    "path": "/logos/121.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181907.aaee2ff9.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ind_60000093.png)",
+    "bytes": 1706,
+    "sha256": "8a9f04b6ea55efc73074900ce9d81da9feea524cafc20b22a5bae4b605a734ca"
+  },
+  "122": {
+    "team_name": "Indiana State Sycamores",
+    "path": "/logos/122.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182021.8d10bbb9.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_indst_60000207.png)",
+    "bytes": 5153,
+    "sha256": "4b44264ec2b86909d7373d1ceaf80b8d763b0e3c739dc53f9889fbb463b027c3"
+  },
+  "123": {
+    "team_name": "Iona Gaels",
+    "path": "/logos/123.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181981.8bd205c8.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_iona_60000167.png)",
+    "bytes": 7109,
+    "sha256": "8aa847a1454214df4eb2e4e9005c8b3f4b6901cbce5698e92ea149b1bb7810ae"
+  },
+  "124": {
+    "team_name": "Iowa Hawkeyes",
+    "path": "/logos/124.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181905.ded2c747.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_iowa_60000091.png)",
+    "bytes": 2874,
+    "sha256": "c091975ed566b9b5e8d4ec5060aaff7cc68ad6c054059876480e8b560b16355c"
+  },
+  "125": {
+    "team_name": "Iowa State Cyclones",
+    "path": "/logos/125.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/iowastate.js",
+    "bytes": 18689,
+    "sha256": "1bf760d1709960d79585db212acd245e4a903a5c3b86acf49187f5647deca920"
+  },
+  "126": {
+    "team_name": "Jackson State Tigers",
+    "path": "/logos/126.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182120.91b59ce1.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_jackst_60000306.png)",
+    "bytes": 4033,
+    "sha256": "ab311cab0a1068a3f7c0a7dbd30b742d74ad60396b2fb73a46ded3847a047c72"
+  },
+  "127": {
+    "team_name": "Jacksonville Dolphins",
+    "path": "/logos/127.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181851.0b71dfa4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_jax_60000037.png)",
+    "bytes": 5399,
+    "sha256": "6511a41669fe60c5fd8b3a7adae1cf1ad094b4316fd50b0f7831b0e06eeb5774"
+  },
+  "128": {
+    "team_name": "Jacksonville State Gamecocks",
+    "path": "/logos/128.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182052.364f0e96.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_jaxst_60000238.png)",
+    "bytes": 4483,
+    "sha256": "eab58bbf71c4507acf8fe7dea21a6d0241739c83986f4a45f4ff25759fb877c1"
+  },
+  "129": {
+    "team_name": "James Madison Dukes",
+    "path": "/logos/129.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181940.5f8c2e24.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_jmad_60000126.png)",
+    "bytes": 3301,
+    "sha256": "e12dcfa64b205cd9ff06e02edfa82ea7ac43721a42d5d774837b197d5662ead2"
+  },
+  "130": {
+    "team_name": "Kansas City Roos",
+    "path": "/logos/130.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182172.c2feb34e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_umkc_60000362.png)",
+    "bytes": 7971,
+    "sha256": "435ab83f58ba02a88c054513f40e2a85fd52f3de919671a983e3b8afbd907816"
+  },
+  "131": {
+    "team_name": "Kansas Jayhawks",
+    "path": "/logos/131.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/kansas.js",
+    "bytes": 31602,
+    "sha256": "55cf8539e64c91dd8af78c2a910f274903c224d5887232f7d4f6e19a313febd7"
+  },
+  "132": {
+    "team_name": "Kansas State Wildcats",
+    "path": "/logos/132.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/kansasstate.js",
+    "bytes": 9171,
+    "sha256": "57f1cb5e85a8f1ed37b52333e591ee37994f45637b3164a0ef5f5e278de66f4d"
+  },
+  "133": {
+    "team_name": "Kennesaw State Owls",
+    "path": "/logos/133.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181856.71a3f7d5.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_kenest_60000042.png)",
+    "bytes": 6779,
+    "sha256": "cdf34b4047f42e2dc70f9d9af5b2698b5fae56aac3c6f8bdeae474196817860a"
+  },
+  "134": {
+    "team_name": "Kent State Golden Flashes",
+    "path": "/logos/134.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181992.7f6c8175.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_kentst_60000178.png)",
+    "bytes": 9044,
+    "sha256": "79eb78191f106d3fa9248bc8561bffccd1a9332b947a0cf10edd0308f13ebda0"
+  },
+  "135": {
+    "team_name": "Kentucky Wildcats",
+    "path": "/logos/135.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182082.95c5fd09.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_uk_60000268.png)",
+    "bytes": 2902,
+    "sha256": "640a9028857d8be2054009a044fcc54880aa22801b1e9bb87cd63d2aa9c61d0d"
+  },
+  "136": {
+    "team_name": "LSU Tigers",
+    "path": "/logos/136.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/lsu.js",
+    "bytes": 3634,
+    "sha256": "0a9239a6a76770d48db7010d9b2ddb347ae1f80b6c0304e8b5a19737f07e3e41"
+  },
+  "137": {
+    "team_name": "La Salle Explorers",
+    "path": "/logos/137.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181871.ba6b6fbd.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_lasal_60000057.png)",
+    "bytes": 7887,
+    "sha256": "f4133bd66c0910bf38ac8377945434301e6910cee7ce43497dc1637368e37c50"
+  },
+  "138": {
+    "team_name": "Lafayette Leopards",
+    "path": "/logos/138.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182080.3ff7b806.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_lafay_60000266.png)",
+    "bytes": 9841,
+    "sha256": "ef8d3002b829fc4942f60aa3821a988272d96e77c830393ddb2ad28f61bd06d2"
+  },
+  "139": {
+    "team_name": "Lamar Cardinals",
+    "path": "/logos/139.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182117.47fa8cd1.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_lamar_60000303.png)",
+    "bytes": 3248,
+    "sha256": "6f5b07f69f01209ea10bbfd9b8a75810b0e128c480316a8891bdfde752329954"
+  },
+  "140": {
+    "team_name": "Le Moyne Dolphins",
+    "path": "/logos/140.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182208.ba3a6ac2.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_lemyn_60000427.png)",
+    "bytes": 9670,
+    "sha256": "d0eb1ac15db32f6fd2b342026b193009c78f888eb87cd8465d7a220b89ac0452"
+  },
+  "141": {
+    "team_name": "Lehigh Mountain Hawks",
+    "path": "/logos/141.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182074.da2ed9bf.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_lehi_60000260.png)",
+    "bytes": 5738,
+    "sha256": "f95644fe4f5e1f407cddcce5f12ce759eb1973c4079b779e9bcbef3549e8c600"
+  },
+  "142": {
+    "team_name": "Liberty Flames",
+    "path": "/logos/142.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181898.f8fbcdc4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_librty_60000084.png)",
+    "bytes": 7996,
+    "sha256": "cdcaeffa27f620f722c38662a4ccb1b64861cdedbdbf85c2d42daf9a325af2d1"
+  },
+  "143": {
+    "team_name": "Lipscomb Bisons",
+    "path": "/logos/143.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181854.c56753bd.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_lipsc_60000040.png)",
+    "bytes": 2352,
+    "sha256": "3dd2b5514f40ad0517ddcb1fdc9e38c93097b5ecc1355fc04efa51f7485ba8ed"
+  },
+  "144": {
+    "team_name": "Little Rock Trojans",
+    "path": "/logos/144.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182137.6ef2cc22.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_arlr_60000323.png)",
+    "bytes": 7899,
+    "sha256": "57219f4eb90bc27baa160c93a34f3ed1a0f1a6cff2a360e52d9005e029f7905b"
+  },
+  "145": {
+    "team_name": "Long Beach State Beach",
+    "path": "/logos/145.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181931.46ad0b37.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_lbst_60000117.png)",
+    "bytes": 5675,
+    "sha256": "a2da140f74cd22bc4c3b036c50a8bf7172b9a7c8af1a29d5183b8e081e53b63a"
+  },
+  "146": {
+    "team_name": "Long Island University Sharks",
+    "path": "/logos/146.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182043.a6fc9e4c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_liub_60000229.png)",
+    "bytes": 6040,
+    "sha256": "f4dcf6d113da6db89d97f812ca9435f81fdcbb4365d6246916ac3cdc0cacde54"
+  },
+  "147": {
+    "team_name": "Longwood Lancers",
+    "path": "/logos/147.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181901.abc577df.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_longwd_60000087.png)",
+    "bytes": 4071,
+    "sha256": "460c0cb3cbf5fd11377515bc3fa6ea3adb28cbf2a227c5f5f63500b84fa743d2"
+  },
+  "148": {
+    "team_name": "Louisiana Ragin' Cajuns",
+    "path": "/logos/148.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182138.aa69407e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_loulaf_60000324.png)",
+    "bytes": 6008,
+    "sha256": "b9b931fbfb55ca2b1e78877ed707aad49be5f9568aa5b343971b563a725a3ec2"
+  },
+  "149": {
+    "team_name": "Louisiana Tech Bulldogs",
+    "path": "/logos/149.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181951.d9812aff.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_loutch_60000137.png)",
+    "bytes": 4074,
+    "sha256": "42ee9fa1568f404b52639e24e3e58ac78a0663399d86200b5b514eeb30bd0bfa"
+  },
+  "150": {
+    "team_name": "Louisville Cardinals",
+    "path": "/logos/150.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181838.cc0882e4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_lou_60000024.png)",
+    "bytes": 6757,
+    "sha256": "fbcbc837215068efe0c7d438147a867e1f5692a1b2e1324c497bcf6a3b0741ed"
+  },
+  "151": {
+    "team_name": "Loyola Chicago Ramblers",
+    "path": "/logos/151.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182023.2ee95faf.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_loych_60000209.png)",
+    "bytes": 6555,
+    "sha256": "1c0d7470c03ef1e27b188e9fb8bf9f704c1430c79feb9c29ff37d579d28c2812"
+  },
+  "152": {
+    "team_name": "Loyola Maryland Greyhounds",
+    "path": "/logos/152.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182076.098fd7e2.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_loymd_60000262.png)",
+    "bytes": 2457,
+    "sha256": "6b69f0864745281584d7628806eb9685c053a2472ff5aeda4480836010dee80b"
+  },
+  "153": {
+    "team_name": "Loyola Marymount Lions",
+    "path": "/logos/153.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182157.401cd0d5.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_loymry_60000343.png)",
+    "bytes": 3888,
+    "sha256": "5f00842356767bf815f42874c7ad0caacfbd82b76574825c24f420f2cc6452e0"
+  },
+  "154": {
+    "team_name": "Maine Black Bears",
+    "path": "/logos/154.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181831.6f737bff.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_maine_60000017.png)",
+    "bytes": 9766,
+    "sha256": "6ee796458538cdd7cdecc81e793421210a9d91838ab8c69bb098c68e3650cbc6"
+  },
+  "155": {
+    "team_name": "Manhattan Jaspers",
+    "path": "/logos/155.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181985.f7954cc5.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_manh_60000171.png)",
+    "bytes": 6208,
+    "sha256": "1dfada547b2fa3002664387e1c9d65d1102c26cd5594ae39bb754fc04f1b09bb"
+  },
+  "156": {
+    "team_name": "Marist Red Foxes",
+    "path": "/logos/156.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181990.343d7cbb.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_marist_60000176.png)",
+    "bytes": 8295,
+    "sha256": "e9818ff95e3f9f8b4016f64abbb213125266d4c8ad5d75370c42ae2a9d46d0fc"
+  },
+  "157": {
+    "team_name": "Marquette Golden Eagles",
+    "path": "/logos/157.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/marquette.js",
+    "bytes": 17577,
+    "sha256": "0c5653376fccc7aa2269ac25984440db6297af84f0f930dd85e0d8ddb85c5002"
+  },
+  "158": {
+    "team_name": "Marshall Thundering Herd",
+    "path": "/logos/158.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181950.adcaa00c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_marsh_60000136.png)",
+    "bytes": 5058,
+    "sha256": "1a4bcf16a8c0ac3ebedd73f5f21e65208dea64186d957a2f301cff737cf2957c"
+  },
+  "159": {
+    "team_name": "Maryland Eastern Shore Hawks",
+    "path": "/logos/159.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182007.d0400e83.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_mdes_60000193.png)",
+    "bytes": 7182,
+    "sha256": "3490f84449845bb9605dfbed76435770780a62033b9274214e74408237831914"
+  },
+  "160": {
+    "team_name": "Maryland Terrapins",
+    "path": "/logos/160.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181906.2f9106a4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_mary_60000092.png)",
+    "bytes": 5279,
+    "sha256": "caecb98ccf3f1b6d49513a6c1c704a02ae0cb1174c12bacb4497da3e3d66a7b1"
+  },
+  "161": {
+    "team_name": "Massachusetts Minutemen",
+    "path": "/logos/161.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181869.a8a9c5e9.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_umass_60000055.png)",
+    "bytes": 6895,
+    "sha256": "736abc1ab550dbf23bb742837950168b5c01825eb72064dc0ccbbe68189e23be"
+  },
+  "162": {
+    "team_name": "McNeese Cowboys",
+    "path": "/logos/162.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182113.dfb89db1.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_mcnst_60000299.png)",
+    "bytes": 7735,
+    "sha256": "7b3d1f83e4996508b1116a8dab4e9525e9c22c7ed36a034d84922666addc2ca9"
+  },
+  "163": {
+    "team_name": "Memphis Tigers",
+    "path": "/logos/163.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/memphis.js",
+    "bytes": 25796,
+    "sha256": "ab10b052a7e15e373cc7b2253cccbb7568fedb366dcd0d29896b251e62a2b6c1"
+  },
+  "164": {
+    "team_name": "Mercer Bears",
+    "path": "/logos/164.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182098.7789de1a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_merc_60000284.png)",
+    "bytes": 7051,
+    "sha256": "8a47ff8741322359d2bf48500a93430a0468498418e07d93e141bfd5d3ace118"
+  },
+  "165": {
+    "team_name": "Mercyhurst Lakers",
+    "path": "/logos/165.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182731.961861ff.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_mrcy_60001062.png)",
+    "bytes": 4956,
+    "sha256": "750b670c6651659aefb372f464031bee96aaa0aa3e091422c7f356b2a888af10"
+  },
+  "166": {
+    "team_name": "Merrimack Warriors",
+    "path": "/logos/166.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182506.78d48a6f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_merri_60000817.png)",
+    "bytes": 6975,
+    "sha256": "0be186a8f459aae35b0d27f005b41ba589747e8a62d436a646a055542cd17329"
+  },
+  "167": {
+    "team_name": "Miami (OH) RedHawks",
+    "path": "/logos/167.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181996.3dce1916.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_miaoh_60000182.png)",
+    "bytes": 3946,
+    "sha256": "d8ab411a3c41085061d8ba8690089ac797b224f370beb5b18728d9fc2668f533"
+  },
+  "168": {
+    "team_name": "Miami Hurricanes",
+    "path": "/logos/168.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/miami.js",
+    "bytes": 4981,
+    "sha256": "8f7d850c0ae1af2e22e4ae5f6f8f3da48347356dcae2423510ae4bfbecbd47ff"
+  },
+  "169": {
+    "team_name": "Michigan State Spartans",
+    "path": "/logos/169.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181911.a5d6f849.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_mst_60000097.png)",
+    "bytes": 3708,
+    "sha256": "a1e159295238c06676307ff2113a0fb9e4d3186e534a5904236c750f2dd30f17"
+  },
+  "170": {
+    "team_name": "Michigan Wolverines",
+    "path": "/logos/170.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/michigan.js",
+    "bytes": 5712,
+    "sha256": "c4b69e88cc34685a5a5897b6a503fe5a564e578eb33c0a0b1c0a17319860de90"
+  },
+  "171": {
+    "team_name": "Middle Tennessee Blue Raiders",
+    "path": "/logos/171.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181949.fcfec7d8.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_mtnst_60000135.png)",
+    "bytes": 3774,
+    "sha256": "e39a30846ec709141ef83f69d5d3558ae45e9664411cb302f831750a6c0103d2"
+  },
+  "172": {
+    "team_name": "Milwaukee Panthers",
+    "path": "/logos/172.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181965.6e7997a1.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wbd_60000151.png)",
+    "bytes": 7153,
+    "sha256": "a625689ca934f0d36ed78803a24b3cc7bfb95ba5c1779fff714fabe7d9f82bc3"
+  },
+  "173": {
+    "team_name": "Minnesota Golden Gophers",
+    "path": "/logos/173.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181918.46428d57.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_minnst_60000104.png)",
+    "bytes": 3719,
+    "sha256": "2d6ef720336161d68bb2999d4de9663c67bd60ddd96f0b396e570fa7e26fca13"
+  },
+  "174": {
+    "team_name": "Mississippi State Bulldogs",
+    "path": "/logos/174.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182092.98be8e0f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_mspst_60000278.png)",
+    "bytes": 6242,
+    "sha256": "b248c19265783abe80c3743d92a7ee2d5d0d8e06bdf8609fa625b4a79de59396"
+  },
+  "175": {
+    "team_name": "Mississippi Valley State Delta Devils",
+    "path": "/logos/175.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182122.43e016fe.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_msvlst_60000308.png)",
+    "bytes": 15116,
+    "sha256": "3e8e088759af87513b2e52885eaa599839f6b41f74d1e88fc06565302b920ded"
+  },
+  "176": {
+    "team_name": "Missouri State Bears",
+    "path": "/logos/176.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182022.e9e12799.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_msrst_60000208.png)",
+    "bytes": 9027,
+    "sha256": "3c5228924732bda02490f025da19250b60496f6474b94cc8b6f6bd104f841a34"
+  },
+  "177": {
+    "team_name": "Missouri Tigers",
+    "path": "/logos/177.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182094.667b198f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_missr_60000280.png)",
+    "bytes": 7475,
+    "sha256": "acdc17b0ba380164821ddee8638916fe1a37f04a961e5f183d98c6d9ec350c86"
+  },
+  "178": {
+    "team_name": "Monmouth Hawks",
+    "path": "/logos/178.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181980.c72384ac.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_monm_60000166.png)",
+    "bytes": 7325,
+    "sha256": "af182c14c161ee3fa4cd7c18c0bd6b7cabfe07fad5a0dbadd639482cb3ce4de2"
+  },
+  "179": {
+    "team_name": "Montana Grizzlies",
+    "path": "/logos/179.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181882.8f7b83b5.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_mont_60000068.png)",
+    "bytes": 4899,
+    "sha256": "51c4d3699df4b7358ab07f563d2587a1f338b0801d39039c2dda0fde5f11a5d3"
+  },
+  "180": {
+    "team_name": "Montana State Bobcats",
+    "path": "/logos/180.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181888.af47b445.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_monst_60000074.png)",
+    "bytes": 5959,
+    "sha256": "01a1a1392651d636747dd0d76f7faab4b4463bf61f9e29fa19a7e66f7583cc41"
+  },
+  "181": {
+    "team_name": "Morehead State Eagles",
+    "path": "/logos/181.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182050.6a72d653.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_mhst_60000236.png)",
+    "bytes": 7582,
+    "sha256": "ef34e7476a87d3b05f2a3b7f3360d18eacbfe275692063896094521fa87691d4"
+  },
+  "182": {
+    "team_name": "Morgan State Bears",
+    "path": "/logos/182.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182013.8c941c0f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_morgst_60000199.png)",
+    "bytes": 6723,
+    "sha256": "abbd00c473a4d289d63cd09d6a284b11770861ba21a8e39b4225ab213da43d2d"
+  },
+  "183": {
+    "team_name": "Mount St. Mary's Mountaineers",
+    "path": "/logos/183.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182040.95ba5167.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_mstm_60000226.png)",
+    "bytes": 5724,
+    "sha256": "6a85a5961ba03507cfbaedbdbb07d7044c7f2e326db6b50a16a0720bbff4c4d3"
+  },
+  "184": {
+    "team_name": "Murray State Racers",
+    "path": "/logos/184.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182054.a2853c70.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_murst_60000240.png)",
+    "bytes": 8689,
+    "sha256": "cf5d6a9c804bdbe491192a9986288b337a08a4ba30fdc7dd62aeff41a1f22086"
+  },
+  "185": {
+    "team_name": "NC State Wolfpack",
+    "path": "/logos/185.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181847.60ac97e2.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ncst_60000033.png)",
+    "bytes": 10310,
+    "sha256": "fcccc16ef5ba213692a1f96d1fb5a0d3f1a4e8f4a51fa671895c1ecf90e3bf0e"
+  },
+  "186": {
+    "team_name": "NJIT Highlanders",
+    "path": "/logos/186.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181853.5c62a307.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_njit_60000039.png)",
+    "bytes": 10120,
+    "sha256": "395bedda74643aacfd289995e611a7ad3a7026273c86ceae52841c19e3bb4f20"
+  },
+  "187": {
+    "team_name": "Navy Midshipmen",
+    "path": "/logos/187.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182072.553cf2fa.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_navy_60000258.png)",
+    "bytes": 2276,
+    "sha256": "573b217898f88258868c7a4a4b9332e25dede583342a825ce45005d8f3a3ba72"
+  },
+  "188": {
+    "team_name": "Nebraska Cornhuskers",
+    "path": "/logos/188.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181913.2ce0350f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nebr_60000099.png)",
+    "bytes": 2902,
+    "sha256": "cb54f8672d337ebff14073f163dea2acbd2054f616c467971842982487f5c8a8"
+  },
+  "189": {
+    "team_name": "Nevada Wolf Pack",
+    "path": "/logos/189.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182030.c8308a21.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nevada_60000216.png)",
+    "bytes": 2970,
+    "sha256": "86a6115c5370b869e6e88ea4425f06ff7482520d198a84f3bedb710863535bf2"
+  },
+  "190": {
+    "team_name": "New Hampshire Wildcats",
+    "path": "/logos/190.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181828.7fc1030e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nhamp_60000014.png)",
+    "bytes": 8375,
+    "sha256": "e1172e72474908139e0be1329f8e6d073199a4ff2b8d771bbcdb22a730c3c474"
+  },
+  "191": {
+    "team_name": "New Mexico Lobos",
+    "path": "/logos/191.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182028.486c2d9f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nmx_60000214.png)",
+    "bytes": 9645,
+    "sha256": "5add7da15fce26534565388fa2333b8c03216320c42d791126ab52e7aba9da90"
+  },
+  "192": {
+    "team_name": "New Mexico State Aggies",
+    "path": "/logos/192.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182158.63650a79.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nmxst_60000344.png)",
+    "bytes": 9295,
+    "sha256": "c51d0b3711513658be182f901bcb0b7468b549c946db74cd917940036a343134"
+  },
+  "193": {
+    "team_name": "New Orleans Privateers",
+    "path": "/logos/193.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182111.41248b4e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_no_60000297.png)",
+    "bytes": 8112,
+    "sha256": "ffdef3847ebd5911478d569013570a02a241bd09e5dca10d15c54d3cbafdb269"
+  },
+  "194": {
+    "team_name": "Niagara Purple Eagles",
+    "path": "/logos/194.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181989.6ba14be7.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_niagra_60000175.png)",
+    "bytes": 5728,
+    "sha256": "8132fed0b9d435f6f2888d44e048d5fa7d1d570ec35d88a831e63acbd1a6f734"
+  },
+  "195": {
+    "team_name": "Nicholls Colonels",
+    "path": "/logos/195.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182116.3a410498.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nichls_60000302.png)",
+    "bytes": 4033,
+    "sha256": "401ff4f325e4707bffee607717fa8bbd23a69a8f8b50e2d12146bee50362bd34"
+  },
+  "196": {
+    "team_name": "Norfolk State Spartans",
+    "path": "/logos/196.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182005.ad26e964.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_norfst_60000191.png)",
+    "bytes": 9211,
+    "sha256": "19a51f2a3d4c80776b8729d927d139cf0ceef3562692190cacbe154ea75db2a9"
+  },
+  "197": {
+    "team_name": "North Alabama Lions",
+    "path": "/logos/197.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182177.3b69fcb4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nal_60000396.png)",
+    "bytes": 5442,
+    "sha256": "f30d4889c37893161f4082cee3085f233db3d182dc09bc57b75b9193117f4e57"
+  },
+  "198": {
+    "team_name": "North Carolina A&T Aggies",
+    "path": "/logos/198.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182010.d572f755.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ncat_60000196.png)",
+    "bytes": 4962,
+    "sha256": "4ef52bab876a5849536161c570ad2911dcd5aefbdd41acc8bbf4403039af891e"
+  },
+  "199": {
+    "team_name": "North Carolina Central Eagles",
+    "path": "/logos/199.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182011.e3e8e965.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ncc_60000197.png)",
+    "bytes": 6022,
+    "sha256": "4e3a400ecf1bf461ead0ca662493c1aca6aef9b991a432a7043d14b827375547"
+  },
+  "200": {
+    "team_name": "North Carolina Tar Heels",
+    "path": "/logos/200.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/unc.js",
+    "bytes": 15336,
+    "sha256": "65658fe784629b096d63d82cc795bc985c4653a688764a06e807012b423a179c"
+  },
+  "201": {
+    "team_name": "North Dakota Fighting Hawks",
+    "path": "/logos/201.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181885.36f1a303.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ndak_60000071.png)",
+    "bytes": 3353,
+    "sha256": "89551a2ac033419101609510dc692cd87822899e3a489e6750b45c7c989bf8ad"
+  },
+  "202": {
+    "team_name": "North Dakota State Bison",
+    "path": "/logos/202.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/ndsu.js",
+    "bytes": 16282,
+    "sha256": "f8d9daef811900d83926fe23bfec067429c7fa424e495ac01b09ca058b3cc1b3"
+  },
+  "203": {
+    "team_name": "North Florida Ospreys",
+    "path": "/logos/203.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181850.22d7d14a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nfl_60000036.png)",
+    "bytes": 7064,
+    "sha256": "6703cb96a232e39a5d957a876271fd97a022fb15432ef37c23ccb11eb368f573"
+  },
+  "204": {
+    "team_name": "North Texas Mean Green",
+    "path": "/logos/204.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181955.d935c440.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ntx_60000141.png)",
+    "bytes": 4623,
+    "sha256": "4b07a2c6b2f53ce95aa135917c8c4d333a1ee8ee562d80b2c476486fd3560206"
+  },
+  "205": {
+    "team_name": "Northeastern Huskies",
+    "path": "/logos/205.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181945.3d3cfc98.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_neast_60000131.png)",
+    "bytes": 6134,
+    "sha256": "ba56e5ab60265f17ba5127a2125d25bb4cdf09e0684f46660a7e25e1ba687d20"
+  },
+  "206": {
+    "team_name": "Northern Arizona Lumberjacks",
+    "path": "/logos/206.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181893.6a7da04a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_narz_60000079.png)",
+    "bytes": 3599,
+    "sha256": "8f52af8c2cbd62709801a71be7dc7632528abb194feb7698f7ddd00cfa95b9e8"
+  },
+  "207": {
+    "team_name": "Northern Colorado Bears",
+    "path": "/logos/207.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181889.2551ad19.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ncol_60000075.png)",
+    "bytes": 9119,
+    "sha256": "b74371561597a5f0b83d1865bdd29e5aba8c5f23da84c6cb31fd13046eaa219c"
+  },
+  "208": {
+    "team_name": "Northern Illinois Huskies",
+    "path": "/logos/208.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182000.d0574edf.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nill_60000186.png)",
+    "bytes": 6495,
+    "sha256": "430d27f019a712eff363c5b41a30994481598f6f92a6aa0711ae478629446d03"
+  },
+  "209": {
+    "team_name": "Northern Iowa Panthers",
+    "path": "/logos/209.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182020.22823974.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_niowa_60000206.png)",
+    "bytes": 6725,
+    "sha256": "732ed05bfcb2bc92f699fbec2b3709de51a4ee96226a5ecd7086a74159376d1e"
+  },
+  "210": {
+    "team_name": "Northern Kentucky Norse",
+    "path": "/logos/210.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181968.7f0c545c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nkent_60000154.png)",
+    "bytes": 7778,
+    "sha256": "82159a777cf292071b31d0e489cc0c8dcc5ac98d2edeff601a83db0e8a378dd3"
+  },
+  "211": {
+    "team_name": "Northwestern State Demons",
+    "path": "/logos/211.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182115.828f11f4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nwst_60000301.png)",
+    "bytes": 7845,
+    "sha256": "4ec5eb0add8abe8db259f4007d9b6984d609a3500941d68dbb9136dbd6862e63"
+  },
+  "212": {
+    "team_name": "Northwestern Wildcats",
+    "path": "/logos/212.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181914.26a38aeb.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_nw_60000100.png)",
+    "bytes": 3231,
+    "sha256": "1588eb3ef9eda3e2ecf1586ae8e290a926ffb563d60624e57f17cb4988e0e6d7"
+  },
+  "213": {
+    "team_name": "Notre Dame Fighting Irish",
+    "path": "/logos/213.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/notredame.js",
+    "bytes": 5927,
+    "sha256": "2b9a10e44c7b7029191360f24b0e21b3a3635d1410b05e15fc742f01fd0e2e30"
+  },
+  "214": {
+    "team_name": "Oakland Golden Grizzlies",
+    "path": "/logos/214.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181963.91fd30b1.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_oak_60000149.png)",
+    "bytes": 10065,
+    "sha256": "98e10f803d9976a4b2a153190e040faeba54544a1050266b79f6293e4a16afef"
+  },
+  "215": {
+    "team_name": "Ohio Bobcats",
+    "path": "/logos/215.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181994.ac79a5ae.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ohio_60000180.png)",
+    "bytes": 8531,
+    "sha256": "7403542ad65f33bb9944f25448e063092144368091f087a0105a8332d4289337"
+  },
+  "216": {
+    "team_name": "Ohio State Buckeyes",
+    "path": "/logos/216.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/ohiostate.js",
+    "bytes": 17099,
+    "sha256": "ca4514857305e05845bb7efc05fd2a2df4210b7ab39d0d5c3be15c2f2eb6b959"
+  },
+  "217": {
+    "team_name": "Oklahoma Sooners",
+    "path": "/logos/217.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/oklahoma.js",
+    "bytes": 6118,
+    "sha256": "b3934b1fa0078bd710a1fca0789be0f7a5b616a9106b5750d0a2150e177c9c78"
+  },
+  "218": {
+    "team_name": "Oklahoma State Cowboys",
+    "path": "/logos/218.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181927.03d133fc.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_okst_60000113.png)",
+    "bytes": 3512,
+    "sha256": "13c61ed57cf4284bd34170a171509dc6098b7dab8da707af23d7c9db3791226a"
+  },
+  "219": {
+    "team_name": "Old Dominion Monarchs",
+    "path": "/logos/219.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181952.c70708a4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_old_60000138.png)",
+    "bytes": 8292,
+    "sha256": "142721c7567d615f33917a6f86ed8c3c45b76a5db855af34c9fad3d5c5c68f3b"
+  },
+  "220": {
+    "team_name": "Ole Miss Rebels",
+    "path": "/logos/220.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182088.8b898886.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_miss_60000274.png)",
+    "bytes": 6204,
+    "sha256": "c3374d727d60453f08f8dd7fbe3e7aaf8c35d0a5fbcc629822692b1b39b28280"
+  },
+  "221": {
+    "team_name": "Omaha Mavericks",
+    "path": "/logos/221.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182130.cad4125a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_neom_60000316.png)",
+    "bytes": 6799,
+    "sha256": "222b164c7bcbdaa51b6966e9f4e4d556302a648a1609bf49858da7d545347ed0"
+  },
+  "222": {
+    "team_name": "Oral Roberts Golden Eagles",
+    "path": "/logos/222.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182134.c0b5b601.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_oral_60000320.png)",
+    "bytes": 5175,
+    "sha256": "4f2968cb63a981f5c9fe2a7ed551586fcfee1d20f1f64531b6b1ef326eacb7f1"
+  },
+  "223": {
+    "team_name": "Oregon Ducks",
+    "path": "/logos/223.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/oregon.js",
+    "bytes": 6288,
+    "sha256": "11e51d0a06322c440048aa284b694f1167fa4b25413f3423c1a766a239db70de"
+  },
+  "224": {
+    "team_name": "Oregon State Beavers",
+    "path": "/logos/224.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/oregonstate.js",
+    "bytes": 10187,
+    "sha256": "d720c4b817520a968beff96f7e3b1b499a92ab5d68026992fad5fc60aa4c57f1"
+  },
+  "225": {
+    "team_name": "Pacific Tigers",
+    "path": "/logos/225.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182153.f0d0e25d.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_pacfc_60000339.png)",
+    "bytes": 4785,
+    "sha256": "e23a1d93d2adba92c839c4a3735836da860eed6d7bc38bc10b05f472a2186085"
+  },
+  "226": {
+    "team_name": "Penn State Nittany Lions",
+    "path": "/logos/226.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/pennstate.js",
+    "bytes": 13802,
+    "sha256": "d6bd1d0025a5de3ea54dd7846b9ae1df7aa075835e4a841812ecbe9c2c30e553"
+  },
+  "227": {
+    "team_name": "Pennsylvania Quakers",
+    "path": "/logos/227.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181975.a9fec371.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_penn_60000161.png)",
+    "bytes": 5238,
+    "sha256": "b6b22a7b2c51dad560144bbaafb6a0f0e36d135d0b7b7c8e4eb0e74fee6626c9"
+  },
+  "228": {
+    "team_name": "Pepperdine Waves",
+    "path": "/logos/228.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182151.70ef3055.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_pepp_60000337.png)",
+    "bytes": 3713,
+    "sha256": "3150f8469fb3d8360e2e1d64f0c1b8d35548864be818acfe421bab2302790145"
+  },
+  "229": {
+    "team_name": "Pittsburgh Panthers",
+    "path": "/logos/229.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181842.a3226970.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_pitt_60000028.png)",
+    "bytes": 5573,
+    "sha256": "949b5a8315d371a904024cc2944590b9a0628a1e7fa9f7c28afb6f02d3bb92b8"
+  },
+  "230": {
+    "team_name": "Portland Pilots",
+    "path": "/logos/230.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182154.2995b0af.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_port_60000340.png)",
+    "bytes": 3595,
+    "sha256": "858129dfbf0f4866ff9e0f54719cfa2cf07cbd1efdfec686366c127c67446a1e"
+  },
+  "231": {
+    "team_name": "Portland State Vikings",
+    "path": "/logos/231.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181890.3ab1713a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_portst_60000076.png)",
+    "bytes": 3462,
+    "sha256": "5a87e21629f49084f0257bfd405f80c744830508dd681327804015f40041c68e"
+  },
+  "232": {
+    "team_name": "Prairie View A&M Panthers",
+    "path": "/logos/232.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182127.211efb40.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_pvam_60000313.png)",
+    "bytes": 8423,
+    "sha256": "1da722e084d7f66b85f68c93e17d82244fe67d6edc505a6a52ec5612a8c680c3"
+  },
+  "233": {
+    "team_name": "Presbyterian Blue Hose",
+    "path": "/logos/233.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181903.07a02189.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_presb_60000089.png)",
+    "bytes": 3628,
+    "sha256": "c4f0152f04cc67d51d80598ba06587b3c284b8287302b1e4255a246b7cfa963b"
+  },
+  "234": {
+    "team_name": "Princeton Tigers",
+    "path": "/logos/234.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181974.7c34a79c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_prnce_60000160.png)",
+    "bytes": 5730,
+    "sha256": "3992ce5d4447d4af0d5b411d3c44acb7d0a261f409e034e7d0bbb130c7477e00"
+  },
+  "235": {
+    "team_name": "Providence Friars",
+    "path": "/logos/235.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181877.ad78f5e3.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_prov_60000063.png)",
+    "bytes": 5273,
+    "sha256": "8596b3e4329a7b0c1f5be08255c2ae44e85260d808b448f4d4a76117263aa115"
+  },
+  "236": {
+    "team_name": "Purdue Boilermakers",
+    "path": "/logos/236.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181908.e9437fd9.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_pur_60000094.png)",
+    "bytes": 3073,
+    "sha256": "d2f1c0b9ac87ab7c95c64bd09ec09ea5963fa64473bc2daea589416ff05ee75b"
+  },
+  "237": {
+    "team_name": "Purdue Fort Wayne Mastodons",
+    "path": "/logos/237.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182129.90c01066.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ipfw_60000315.png)",
+    "bytes": 13067,
+    "sha256": "676065bfae697e1653c02682404a6c7345afc3541bf155b6918a835781b2413c"
+  },
+  "238": {
+    "team_name": "Quinnipiac Bobcats",
+    "path": "/logos/238.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181988.2234c74b.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_quin_60000174.png)",
+    "bytes": 10082,
+    "sha256": "fc074f8aaa9febebbdfe29fe17847b8c2f91ce029fccccf87179a6a185bfe509"
+  },
+  "239": {
+    "team_name": "Radford Highlanders",
+    "path": "/logos/239.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181900.c195ed45.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_radf_60000086.png)",
+    "bytes": 6882,
+    "sha256": "f9e0fed8139781558179aeeb405aae5b55f5caa379427ea0ed87048dccc655ce"
+  },
+  "240": {
+    "team_name": "Rhode Island Rams",
+    "path": "/logos/240.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181864.b254da16.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ri_60000050.png)",
+    "bytes": 3724,
+    "sha256": "664edb1df669760603f08dad2a04572687a5a3e875f328af532d5c531d79ea6a"
+  },
+  "241": {
+    "team_name": "Rice Owls",
+    "path": "/logos/241.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181960.302827f8.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_rice_60000146.png)",
+    "bytes": 4030,
+    "sha256": "a935ab4674ca9516d0f74d690ecb76b6dc09414329443f38c942a51079733a86"
+  },
+  "242": {
+    "team_name": "Richmond Spiders",
+    "path": "/logos/242.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181866.32c1af3f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_rich_60000052.png)",
+    "bytes": 4091,
+    "sha256": "28b4290c1963e9fd3604b9efdd107dc5c9f4eb169e806c8b5bbb8c7a3e2a22a3"
+  },
+  "243": {
+    "team_name": "Rider Broncs",
+    "path": "/logos/243.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181987.8793491d.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_rider_60000173.png)",
+    "bytes": 8936,
+    "sha256": "6062cc3005a9eaff4ea345c0ff94ed8211d1c231545aab75939639d4f9e44265"
+  },
+  "244": {
+    "team_name": "Robert Morris Colonials",
+    "path": "/logos/244.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182044.e9075963.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_robms_60000230.png)",
+    "bytes": 6309,
+    "sha256": "0f0cf1d8ae81ce83e78cfe55f05ada4cd705e3d9c9aa921e058ca31a1636293f"
+  },
+  "245": {
+    "team_name": "Rutgers Scarlet Knights",
+    "path": "/logos/245.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181917.952a3126.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_rutger_60000103.png)",
+    "bytes": 2915,
+    "sha256": "8183c4da12dc5ecc8bdcb0a135dd6a1d8bac0f8ec70412d9363d3c39e4936b8e"
+  },
+  "246": {
+    "team_name": "SE Louisiana Lions",
+    "path": "/logos/246.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182114.80e64e9e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_selou_60000300.png)",
+    "bytes": 6520,
+    "sha256": "5d5f2b1a5326e7a19865721a82bc5619be8eea017927be2ebbd78429cda0aad9"
+  },
+  "247": {
+    "team_name": "SIU Edwardsville Cougars",
+    "path": "/logos/247.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182058.79f989b2.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_siue_60000244.png)",
+    "bytes": 6579,
+    "sha256": "fefb1c861f84b8599a84705af8d8553043f13a3399b886b87b75472a63fae423"
+  },
+  "248": {
+    "team_name": "SMU Mustangs",
+    "path": "/logos/248.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181815.0bd0ccfd.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_smu_60000001.png)",
+    "bytes": 2548,
+    "sha256": "5402c578a3519feba5bf2e64243aba944ab2a1f03b6603d9054ba36a72a8d388"
+  },
+  "249": {
+    "team_name": "Sacramento State Hornets",
+    "path": "/logos/249.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181891.ce6746e2.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sacst_60000077.png)",
+    "bytes": 6306,
+    "sha256": "a872f27c05b85e988c8ca8bdcb0087cba0a723f8179b652d0d74fb15a853cab8"
+  },
+  "250": {
+    "team_name": "Sacred Heart Pioneers",
+    "path": "/logos/250.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182041.11d960df.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sacred_60000227.png)",
+    "bytes": 4618,
+    "sha256": "0721587aa72628a0df3247f33aa9e225964cddd9582f7f3b49829df500865d54"
+  },
+  "251": {
+    "team_name": "Saint Joseph's Hawks",
+    "path": "/logos/251.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181860.32248854.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_stjoe_60000046.png)",
+    "bytes": 7475,
+    "sha256": "69b4ef558a6e78d51ad8cb58ddf32fc574954ec3a3e6ca6b3d958f147668d8a9"
+  },
+  "252": {
+    "team_name": "Saint Louis Billikens",
+    "path": "/logos/252.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181868.9703f1fd.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_stlou_60000054.png)",
+    "bytes": 8130,
+    "sha256": "61515544e91ce6fe7af7ed5ef570f3d642d69493a90f43539cedc0c4eb0b7db4"
+  },
+  "253": {
+    "team_name": "Saint Mary's Gaels",
+    "path": "/logos/253.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182149.327fee3f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_stmry_60000335.png)",
+    "bytes": 6480,
+    "sha256": "d87b913be33fae5f444036233c4ff76960f353b62a776490eab1d0d5f6184cdc"
+  },
+  "254": {
+    "team_name": "Saint Peter's Peacocks",
+    "path": "/logos/254.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181983.6d6a13f5.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_stpete_60000169.png)",
+    "bytes": 14099,
+    "sha256": "26231a8193b877d747b2fb6eba79e6a0c7c8faf474a28870fa5477f224c45e9a"
+  },
+  "255": {
+    "team_name": "Sam Houston Bearkats",
+    "path": "/logos/255.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182109.b65915fa.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_smho_60000295.png)",
+    "bytes": 3345,
+    "sha256": "5273d37d7f235012275491a238037d0b067bc36fb3bb8d0964647f9a1aaf228d"
+  },
+  "256": {
+    "team_name": "Samford Bulldogs",
+    "path": "/logos/256.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182103.efe454fe.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_samf_60000289.png)",
+    "bytes": 8511,
+    "sha256": "bfa99bc000e60713526391095a6ed22182e6c3b0c4df1b7311addb50d00a86b0"
+  },
+  "257": {
+    "team_name": "San Diego State Aztecs",
+    "path": "/logos/257.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182026.b0086cb7.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sdst_60000212.png)",
+    "bytes": 3341,
+    "sha256": "555e2f557b759b1841c14cf18f586acda1ca9326e9163c70e0e39e63d1a399dc"
+  },
+  "258": {
+    "team_name": "San Diego Toreros",
+    "path": "/logos/258.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182156.f4953ad9.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sd_60000342.png)",
+    "bytes": 5260,
+    "sha256": "a78a5dc53266c8c9ef22d7bb022351f3aca9ff9634d28d21e84d1b578aba75af"
+  },
+  "259": {
+    "team_name": "San Francisco Dons",
+    "path": "/logos/259.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182152.2c3cbb3a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sf_60000338.png)",
+    "bytes": 4118,
+    "sha256": "0df41cbd459803bf8e11ff1517255b1f97ebbed7e510fa9943ef9de2ae698828"
+  },
+  "260": {
+    "team_name": "San Jos\u00e9 State Spartans",
+    "path": "/logos/260.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182036.68a31fd2.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sjst_60000222.png)",
+    "bytes": 7947,
+    "sha256": "ad6d9040efededa0858939b272b7b7d2d972825c5d2f842458f3e75418d03148"
+  },
+  "261": {
+    "team_name": "Santa Clara Broncos",
+    "path": "/logos/261.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182155.fc867710.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sanclr_60000341.png)",
+    "bytes": 2980,
+    "sha256": "306713dc78cb9288d9ad00dcc6889ef81f1954d1e86cb6ff5f1e9fb4e86c6652"
+  },
+  "262": {
+    "team_name": "Seattle U Redhawks",
+    "path": "/logos/262.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182161.6966342e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sea_60000347.png)",
+    "bytes": 3881,
+    "sha256": "916b9284f607fc23328d8e30a59e545f31f70d10e5606b37359cd88d4d1ec6b6"
+  },
+  "263": {
+    "team_name": "Seton Hall Pirates",
+    "path": "/logos/263.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181874.d6258382.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/Seton Hall Pirates-f05e8f6e22.png)",
+    "bytes": 6442,
+    "sha256": "6a32bb30cd38f5c2b7c3e1f054cb25ec9002faff3c79b413e63925a4488bfc25"
+  },
+  "264": {
+    "team_name": "Siena Saints",
+    "path": "/logos/264.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181982.651a8735.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_siena_60000168.png)",
+    "bytes": 8496,
+    "sha256": "9a3512684591923487c0c34285574a554e43468b55ad59f61d9463c9d5783df9"
+  },
+  "265": {
+    "team_name": "South Alabama Jaguars",
+    "path": "/logos/265.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182144.064abf42.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sala_60000330.png)",
+    "bytes": 6587,
+    "sha256": "0e46e257633c326335f2c03a4cc45df52e2a58cfb6b1c9af44899b81ebc02db7"
+  },
+  "266": {
+    "team_name": "South Carolina Gamecocks",
+    "path": "/logos/266.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182081.00ad7833.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sc_60000267.png)",
+    "bytes": 11758,
+    "sha256": "d1acd3b3b54961334e135788dcea2e34bbc4b1f4bd6b56a84d9b82fc56095c9e"
+  },
+  "267": {
+    "team_name": "South Carolina State Bulldogs",
+    "path": "/logos/267.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182004.f2cc9c86.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_scarst_60000190.png)",
+    "bytes": 9419,
+    "sha256": "80487e70255030f136524940def3768eb5ca9a27e7386d747f794370bea6418b"
+  },
+  "268": {
+    "team_name": "South Carolina Upstate Spartans",
+    "path": "/logos/268.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181857.f937a915.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_scup_60000043.png)",
+    "bytes": 5545,
+    "sha256": "9e29136a16c8ef3da46620a4c88adac657f4ec0684df0b45a98f54a58f375bfa"
+  },
+  "269": {
+    "team_name": "South Dakota Coyotes",
+    "path": "/logos/269.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182135.510cb2d1.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sdak_60000321.png)",
+    "bytes": 6939,
+    "sha256": "15f6408b96b68a59723cf5cca61e510af8785aa500f2acc49e5fd0c86d356ca8"
+  },
+  "270": {
+    "team_name": "South Dakota State Jackrabbits",
+    "path": "/logos/270.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182128.55b13e4d.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sdkst_60000314.png)",
+    "bytes": 8865,
+    "sha256": "a65b28d736a33adb2a038c1ae53687fb12c16591e1642be759139e4c4b0e6fe0"
+  },
+  "271": {
+    "team_name": "South Florida Bulls",
+    "path": "/logos/271.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181825.b22bdc34.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sfl_60000011.png)",
+    "bytes": 5292,
+    "sha256": "f89ec0e487c4e051e62da714bd813cf91cdfeeef7c06234752a4d1e25ad144fc"
+  },
+  "272": {
+    "team_name": "Southeast Missouri State Redhawks",
+    "path": "/logos/272.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182057.e33d94c1.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_semst_60000243.png)",
+    "bytes": 6165,
+    "sha256": "39fae33af4503cfbbb774f87bd5f63b59f2fd8ba609192ccd860bca2d267f9ce"
+  },
+  "273": {
+    "team_name": "Southern Illinois Salukis",
+    "path": "/logos/273.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182019.fee78d1d.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sill_60000205.png)",
+    "bytes": 5727,
+    "sha256": "fdb8effca44e893b47408201c04d54bb05a478375e5b36c22870a9c22f7b963b"
+  },
+  "274": {
+    "team_name": "Southern Jaguars",
+    "path": "/logos/274.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182119.16655a1c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_south_60000305.png)",
+    "bytes": 5007,
+    "sha256": "d430b1c0fcb134bbdb13c4cf2c7d91c751d9da9edf57c43a41fa8dff5b330b56"
+  },
+  "275": {
+    "team_name": "Southern Miss Golden Eagles",
+    "path": "/logos/275.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181957.f0666c6c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_soumis_60000143.png)",
+    "bytes": 5283,
+    "sha256": "81c2ac4b0a4ddee659a212bb08a4a23e1db8ffb0fb16b3fe9079afca3c8a8d3a"
+  },
+  "276": {
+    "team_name": "Southern Utah Thunderbirds",
+    "path": "/logos/276.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181892.2d62165d.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sutah_60000078.png)",
+    "bytes": 5345,
+    "sha256": "80ace0d574b345098a5e837b247ab75c1bb15de8fee1c6ca82b68bfebd05ec4d"
+  },
+  "277": {
+    "team_name": "St. Bonaventure Bonnies",
+    "path": "/logos/277.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181861.1d697afe.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_stbon_60000047.png)",
+    "bytes": 6141,
+    "sha256": "159ef888573a3210db687c865fcfd51e048ac92437ccd2c3667d2eac4b87f681"
+  },
+  "278": {
+    "team_name": "St. Francis (PA) Red Flash",
+    "path": "/logos/278.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182039.df5b306c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_stfpa_60000225.png)",
+    "bytes": 5475,
+    "sha256": "ad08eeb364fa406126868c5bb9253690c08765ed050e70448d732636a550ee92"
+  },
+  "279": {
+    "team_name": "St. John's Red Storm",
+    "path": "/logos/279.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/stjohns.js",
+    "bytes": 11018,
+    "sha256": "4950f6734dc6809eb901ad85404e74c2958eceeb5d3cdff5cdbaebc6ba6c924c"
+  },
+  "280": {
+    "team_name": "St. Thomas-Minnesota Tommies",
+    "path": "/logos/280.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182777.d34f5262.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_stmn_60001112.png)",
+    "bytes": 5258,
+    "sha256": "22160c08b87619e339a14bd319b39ff3d83e23b088f3b2c08fa7ec42a9d4824b"
+  },
+  "281": {
+    "team_name": "Stanford Cardinal",
+    "path": "/logos/281.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182068.d6d8abed.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_stan_60000254.png)",
+    "bytes": 4258,
+    "sha256": "82af50d3115f48d221d7f6757dc783fdf79cfa55c43448fb3e6cc115a28d427f"
+  },
+  "282": {
+    "team_name": "Stephen F. Austin Lumberjacks",
+    "path": "/logos/282.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182105.91fdba0e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_sfaus_60000291.png)",
+    "bytes": 6313,
+    "sha256": "c4a2686c9a77e72f74937c36a6022b98a43ba79745ef4b1b9a6262a14f1a35f4"
+  },
+  "283": {
+    "team_name": "Stetson Hatters",
+    "path": "/logos/283.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181855.8ac86160.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_stetsn_60000041.png)",
+    "bytes": 5221,
+    "sha256": "03b20612541f7c93dd21241232383649329b587230b507d2034b175b920da2e3"
+  },
+  "284": {
+    "team_name": "Stonehill Skyhawks",
+    "path": "/logos/284.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182872.eb0f19c1.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/Stonehill Skyhawks-0a024270c0.png)",
+    "bytes": 6147,
+    "sha256": "8ec0c8e70a4237a849f9c9383bef154b2d2b2e0406487583952f11c2fc1b4f6a"
+  },
+  "285": {
+    "team_name": "Stony Brook Seawolves",
+    "path": "/logos/285.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181826.98c4bec0.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_stbr_60000012.png)",
+    "bytes": 6967,
+    "sha256": "f91bb39d9734e5527bebb00dc5ab239c391162bc97589db977a6531e8677b580"
+  },
+  "286": {
+    "team_name": "Syracuse Orange",
+    "path": "/logos/286.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181844.2e99e37c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_syra_60000030.png)",
+    "bytes": 2324,
+    "sha256": "2ae5d20ab45c0aff2da52802abff02029a984f78f36c8971b571611620d007a4"
+  },
+  "287": {
+    "team_name": "TCU Horned Frogs",
+    "path": "/logos/287.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/tcu.js",
+    "bytes": 6178,
+    "sha256": "9fc40a9178010ea9ea75e8f9695fee6ca737f489f632c5c9dc5cf7534808b09c"
+  },
+  "288": {
+    "team_name": "Tarleton State Texans",
+    "path": "/logos/288.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182695.322ba7f2.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_tarl_60001024.png)",
+    "bytes": 4034,
+    "sha256": "d99c82e30565def9ae442af384b0af87a6a4b78ae639bcf0791449e9b94061b5"
+  },
+  "289": {
+    "team_name": "Temple Owls",
+    "path": "/logos/289.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181816.5cd79b46.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_templ_60000002.png)",
+    "bytes": 1646,
+    "sha256": "078975bf646136a7c779551fa6bd29871bc338ff53e0d016c6cee6a71d283486"
+  },
+  "290": {
+    "team_name": "Tennessee State Tigers",
+    "path": "/logos/290.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182049.c6de52cb.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_tenst_60000235.png)",
+    "bytes": 9834,
+    "sha256": "51d5bf5be4c398dc9afe7fc76c27f431035f06b1dc63aa9ee7a1388c5e62d8a8"
+  },
+  "291": {
+    "team_name": "Tennessee Tech Golden Eagles",
+    "path": "/logos/291.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182048.9a093401.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_tentch_60000234.png)",
+    "bytes": 10713,
+    "sha256": "cbe2719e1440d1a4dd6245fc49cb040a3ea3bbfdb6ffaecb3b06bef208e831b6"
+  },
+  "292": {
+    "team_name": "Tennessee Volunteers",
+    "path": "/logos/292.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182091.d4c3c01a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_tenn_60000277.png)",
+    "bytes": 2237,
+    "sha256": "ab2f67ba335674029d3f559cc38eea6fa25b67047671e6dcc3912241535447d5"
+  },
+  "293": {
+    "team_name": "Texas A&M Aggies",
+    "path": "/logos/293.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/texasam.js",
+    "bytes": 4569,
+    "sha256": "248816b326631e12930b4ec30ae79385d55f21b3a8cf314ad586645a2a71c5ff"
+  },
+  "294": {
+    "team_name": "Texas A&M-Corpus Christi Islanders",
+    "path": "/logos/294.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182106.b6beccbe.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_tamu_60000292.png)",
+    "bytes": 5056,
+    "sha256": "56b5055da7dd22fb480ce291993a1ef32c161135ea7daa17a0d37c2628b1d90e"
+  },
+  "295": {
+    "team_name": "Texas Longhorns",
+    "path": "/logos/295.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/texas.js",
+    "bytes": 4590,
+    "sha256": "bb738dacc619f7308c4daf68a33c353c4462e55ecb95a87d047a916492b0c194"
+  },
+  "296": {
+    "team_name": "Texas Southern Tigers",
+    "path": "/logos/296.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182118.71562cce.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_txs_60000304.png)",
+    "bytes": 6846,
+    "sha256": "6c53a52e35999d308bccecf8998d353a877bd38e7d62d9506cdf71a226e8cea7"
+  },
+  "297": {
+    "team_name": "Texas State Bobcats",
+    "path": "/logos/297.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182146.18802319.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_txst_60000332.png)",
+    "bytes": 5585,
+    "sha256": "3405ca16e3317bc30d10c4c2f001537a210b41d883bc6192dc5afe60e89d47e0"
+  },
+  "298": {
+    "team_name": "Texas Tech Red Raiders",
+    "path": "/logos/298.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/texastech.js",
+    "bytes": 4948,
+    "sha256": "52387aea8b7f1bcfbdd61f71c316e012e2097edb1c800ef3066bc85f309baa83"
+  },
+  "299": {
+    "team_name": "The Citadel Bulldogs",
+    "path": "/logos/299.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182102.40db513f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_cita_60000288.png)",
+    "bytes": 2785,
+    "sha256": "2add7f2952f7c4b45da6d6eeccff02fe676f2e52446d62af9d943f814c74db9d"
+  },
+  "300": {
+    "team_name": "Toledo Rockets",
+    "path": "/logos/300.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181997.b5f7b9a4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_toledo_60000183.png)",
+    "bytes": 5114,
+    "sha256": "62194e66d93c968caeffde8bbfab8dab7e6a0d3787a0dd8aa86f93d3c15fbd24"
+  },
+  "301": {
+    "team_name": "Towson Tigers",
+    "path": "/logos/301.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181941.75800db4.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_tows_60000127.png)",
+    "bytes": 7008,
+    "sha256": "e21e5927500c40f95bd90be905b3f4d6fe44b57bad5cff925c7f958302e1a264"
+  },
+  "302": {
+    "team_name": "Troy Trojans",
+    "path": "/logos/302.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182147.4bd7e5f8.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_troy_60000333.png)",
+    "bytes": 3919,
+    "sha256": "7b31d7633afda09785119325501808c2d886dedb3135c78cb8cec1645d83a29d"
+  },
+  "303": {
+    "team_name": "Tulane Green Wave",
+    "path": "/logos/303.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/tulane.js",
+    "bytes": 24181,
+    "sha256": "bf8a3a35da9c6938e7cfe4b20cbf28ce7192a79740797530f2c29e0bf0d8d9ad"
+  },
+  "304": {
+    "team_name": "Tulsa Golden Hurricane",
+    "path": "/logos/304.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181819.da2917c5.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_tulsa_60000005.png)",
+    "bytes": 2931,
+    "sha256": "d1f971f52823bba5fa6baa728c082602f8e52143a7dfa69ad0738c7e35a5e063"
+  },
+  "305": {
+    "team_name": "UAB Blazers",
+    "path": "/logos/305.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181948.c9611852.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_uab_60000134.png)",
+    "bytes": 6082,
+    "sha256": "26a9f16a5bf72f59e20c63c75a9c69748e9de5e3f600eb61410dbefd451a3e76"
+  },
+  "306": {
+    "team_name": "UAlbany Great Danes",
+    "path": "/logos/306.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181827.478d667b.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_albny_60000013.png)",
+    "bytes": 7662,
+    "sha256": "2f6a224245a308b130930e277dc62fd3bf6781b4b7b69bb7638db5991117a6d3"
+  },
+  "307": {
+    "team_name": "UC Davis Aggies",
+    "path": "/logos/307.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181932.4ceea4b3.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ucdv_60000118.png)",
+    "bytes": 2646,
+    "sha256": "2919d602fa872c9f3c2f8ae797fc6c2bccdc1368c18431227aad52c0ed0bad96"
+  },
+  "308": {
+    "team_name": "UC Irvine Anteaters",
+    "path": "/logos/308.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181930.b19c95fb.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ucirv_60000116.png)",
+    "bytes": 5577,
+    "sha256": "a943b94703720c7b29ac3a339c24ff6175f14c5016efbea917144d03b5ac5701"
+  },
+  "309": {
+    "team_name": "UC Riverside Highlanders",
+    "path": "/logos/309.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181934.34f9ee5a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ucrvs_60000120.png)",
+    "bytes": 8964,
+    "sha256": "e27fcb316f01fbbc1f9cead137dd850a92229b6ee930e03aa9b3a224f2130f9a"
+  },
+  "310": {
+    "team_name": "UC San Diego Tritons",
+    "path": "/logos/310.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182681.dda731fc.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ucsd_60001007.png)",
+    "bytes": 5660,
+    "sha256": "03f137e1e2b74f0ecdf3a6d4e10d5649e0b49b0ce79fc8115d89b7450deb3d79"
+  },
+  "311": {
+    "team_name": "UC Santa Barbara Gauchos",
+    "path": "/logos/311.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181933.d39c9e74.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_uscb_60000119.png)",
+    "bytes": 9113,
+    "sha256": "37a384dbc39616ec81ede6215e128dda6f9c2bef192427a5a96296008ccf006d"
+  },
+  "312": {
+    "team_name": "UCF Knights",
+    "path": "/logos/312.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/ucf.js",
+    "bytes": 12764,
+    "sha256": "c7209226233e233d7d38a011ab3ed08ac2d60b6c6da41e7c2a6a8d2aa81122a8"
+  },
+  "313": {
+    "team_name": "UCLA Bruins",
+    "path": "/logos/313.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/ucla.js",
+    "bytes": 25047,
+    "sha256": "a72960f2a8fc36c0a732e02ff409d72bb4bdb7baf9650d7b8bd5ee5fd6902803"
+  },
+  "314": {
+    "team_name": "UConn Huskies",
+    "path": "/logos/314.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/uccon.js",
+    "bytes": 21970,
+    "sha256": "c6b0d521d2d0a62a275a3dfa0bc0ac2c26022c6a61fe9b929d4a13414be86f3d"
+  },
+  "315": {
+    "team_name": "UIC Flames",
+    "path": "/logos/315.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181971.c38d5391.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_illchi_60000157.png)",
+    "bytes": 4707,
+    "sha256": "12dd4f550d325daa0139f20dc06359b01231f68f6ccccdbd027462e7d3ec915a"
+  },
+  "316": {
+    "team_name": "UL Monroe Warhawks",
+    "path": "/logos/316.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182140.261d363c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_lamon_60000326.png)",
+    "bytes": 5609,
+    "sha256": "1c5d6b2f0cfd4b5d19469a33bdde85bc9c151f58e112593eda30b2c8af3e0376"
+  },
+  "317": {
+    "team_name": "UMBC Retrievers",
+    "path": "/logos/317.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181833.b3e043da.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_umbc_60000019.png)",
+    "bytes": 8561,
+    "sha256": "c15cbaf4a2fb3aead8c3da26ded664ba34bd980cd0fe2898deac0e35201d3f55"
+  },
+  "318": {
+    "team_name": "UMass Lowell River Hawks",
+    "path": "/logos/318.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181830.25cebec8.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_maslow_60000016.png)",
+    "bytes": 6636,
+    "sha256": "157c4de0baa6dd2bfadbf8034d93e36b89eb6c410e6e45dbcd586d08593ff794"
+  },
+  "319": {
+    "team_name": "UNC Asheville Bulldogs",
+    "path": "/logos/319.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181894.34d3525e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ncashe_60000080.png)",
+    "bytes": 6607,
+    "sha256": "e3ae5c1776f1c61c8f4efa09b121ef67332f47ec60f675cb2fae781cff8272fa"
+  },
+  "320": {
+    "team_name": "UNC Greensboro Spartans",
+    "path": "/logos/320.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182100.ca2c408e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ncg_60000286.png)",
+    "bytes": 7224,
+    "sha256": "ab2b9ba2bb4c2a6a3108907f6cc35f660b8919a5383867f9bcf6f3a78a0450b6"
+  },
+  "321": {
+    "team_name": "UNC Wilmington Seahawks",
+    "path": "/logos/321.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181938.1fe907bb.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_ncw_60000124.png)",
+    "bytes": 5168,
+    "sha256": "1d8dd2d7f0184bb4c21f63634ae1a8e284801cef35fca98552313be80f46e7d2"
+  },
+  "322": {
+    "team_name": "UNLV Rebels",
+    "path": "/logos/322.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182032.71aaef51.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_unlv_60000218.png)",
+    "bytes": 4474,
+    "sha256": "32dcfc8a8e603a7dae5207b267f39433a5d3983d97d99824718ea1745d066239"
+  },
+  "323": {
+    "team_name": "USC Trojans",
+    "path": "/logos/323.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/usc.js",
+    "bytes": 3941,
+    "sha256": "b585964758d708ccfca046521ccf7c4d2fd4053505f35f2719c1b4cc636ec803"
+  },
+  "324": {
+    "team_name": "UT Arlington Mavericks",
+    "path": "/logos/324.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182139.0c2e7658.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_txa_60000325.png)",
+    "bytes": 5986,
+    "sha256": "1aab4b37cd213d6a8224ca186301a0015a7f7fdf45c5ed3613e55bf654e69839"
+  },
+  "325": {
+    "team_name": "UT Martin Skyhawks",
+    "path": "/logos/325.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182055.44934b83.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_tmrt_60000241.png)",
+    "bytes": 5728,
+    "sha256": "8c08ecd866063461ee52e900e6cc7709a9d973caabd9167a5c1c2d5c51ac15d8"
+  },
+  "326": {
+    "team_name": "UT Rio Grande Valley Vaqueros",
+    "path": "/logos/326.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182163.3e2c1907.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_utrgv_60000350.png)",
+    "bytes": 4491,
+    "sha256": "973b984c033c4ba7bfef255c2c275b2cd11cee8717b595d772b9d1dbe8c10e3d"
+  },
+  "327": {
+    "team_name": "UTEP Miners",
+    "path": "/logos/327.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181953.ad61eab7.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_utep_60000139.png)",
+    "bytes": 7701,
+    "sha256": "e8821ab41b081f4d5f8badd52caf241445c11399013f49c9ede82c706d098569"
+  },
+  "328": {
+    "team_name": "UTSA Roadrunners",
+    "path": "/logos/328.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181961.1525206c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_utsa_60000147.png)",
+    "bytes": 4815,
+    "sha256": "6de1f7045accf2635830996af9d67fd76c78816b3ef8dfeb05d80606234aaaa1"
+  },
+  "329": {
+    "team_name": "Utah State Aggies",
+    "path": "/logos/329.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182034.a1b7f0ee.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_utahst_60000220.png)",
+    "bytes": 4999,
+    "sha256": "fa6e14b15f56493fb16a2dde2cf0fd796913861f51185ae8a61516ad2c85c3fa"
+  },
+  "330": {
+    "team_name": "Utah Tech Trailblazers",
+    "path": "/logos/330.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182445.14c66630.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_dxst_60000750.png)",
+    "bytes": 2464,
+    "sha256": "8dfa241d0bd5710c5825429b7670e086d499f0d6ef3463bcb1865ad8c2363d21"
+  },
+  "331": {
+    "team_name": "Utah Utes",
+    "path": "/logos/331.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182062.55817e04.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_utah_60000248.png)",
+    "bytes": 1905,
+    "sha256": "4df2623e67687293d29d04eb1471dd0059ccd162246855c0c22ec4c219f76273"
+  },
+  "332": {
+    "team_name": "Utah Valley Wolverines",
+    "path": "/logos/332.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182162.dc0d6f66.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_utahv_60000348.png)",
+    "bytes": 7551,
+    "sha256": "a22be38eba4b600d96358b85ca347a6028d1ad8f17f35e46c4884afbdf91a993"
+  },
+  "333": {
+    "team_name": "VCU Rams",
+    "path": "/logos/333.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181859.1841855f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_vcu_60000045.png)",
+    "bytes": 4889,
+    "sha256": "3118dd64d783ab538ade357e7e68f191448b9e3a5febce4d134e59a6c2bbd661"
+  },
+  "334": {
+    "team_name": "VMI Keydets",
+    "path": "/logos/334.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182104.a138c94f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_vamil_60000290.png)",
+    "bytes": 3834,
+    "sha256": "5b4e7fcbd625a12a9e0918cd583fbb029163558667652433ddb5e69cd179f26b"
+  },
+  "335": {
+    "team_name": "Valparaiso Beacons",
+    "path": "/logos/335.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181962.c00e3cbf.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_valp_60000148.png)",
+    "bytes": 7648,
+    "sha256": "cb9feddbe61be8b3702cad5183b424b760ec569e9d65d475dbb4b566edf6ca96"
+  },
+  "336": {
+    "team_name": "Vanderbilt Commodores",
+    "path": "/logos/336.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182087.9cd240d9.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_vand_60000273.png)",
+    "bytes": 3867,
+    "sha256": "6aa3f26b2afe687d52f555f1573638ebca90ea495d65915cca43dabe9a9d94c3"
+  },
+  "337": {
+    "team_name": "Vermont Catamounts",
+    "path": "/logos/337.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181829.6f358bff.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_verm_60000015.png)",
+    "bytes": 9012,
+    "sha256": "d3c52fac319e9fb05bb9bc95c0b2916f003e40cfbd0e09295ae20e1f688ff159"
+  },
+  "338": {
+    "team_name": "Villanova Wildcats",
+    "path": "/logos/338.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/villanova.js",
+    "bytes": 14927,
+    "sha256": "adb398b8552ae04281ca9f1a4299181af1e1d9701fa471639fc1e2358e70997a"
+  },
+  "339": {
+    "team_name": "Virginia Cavaliers",
+    "path": "/logos/339.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181836.28c3578b.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_vir_60000022.png)",
+    "bytes": 3746,
+    "sha256": "8382e728f8eec001ff7f9d2fae9363f108c0c33855b19984325a05cb8cf0e9ef"
+  },
+  "340": {
+    "team_name": "Virginia Tech Hokies",
+    "path": "/logos/340.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181845.f78e60cb.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_vtech_60000031.png)",
+    "bytes": 3099,
+    "sha256": "0d4ff3e96ceedf60bbb01c5f19f8662311231b962691ba80f514d6bcf61b7178"
+  },
+  "341": {
+    "team_name": "Wagner Seahawks",
+    "path": "/logos/341.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182037.77f9fa4c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wag_60000223.png)",
+    "bytes": 4507,
+    "sha256": "ad1d984dac0dc7e24f82cf86fa18a54c159cf7458a7202b133d25b6c991f0b96"
+  },
+  "342": {
+    "team_name": "Wake Forest Demon Deacons",
+    "path": "/logos/342.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181848.7bbd172f.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wake_60000034.png)",
+    "bytes": 4630,
+    "sha256": "cef59a680526112fbaf6bcd773b3c75602f40f6b90193c2c86b3ef405bae0203"
+  },
+  "343": {
+    "team_name": "Washington Huskies",
+    "path": "/logos/343.png",
+    "source": "npm:ncaa-team-logos@1.8.0/dist/logos/washington.js",
+    "bytes": 10564,
+    "sha256": "bb956d7cff5954e8ee3770d55b4976f4292c53a05080aa4713ae0f2475d47831"
+  },
+  "344": {
+    "team_name": "Washington State Cougars",
+    "path": "/logos/344.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182070.4b9992ef.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_washst_60000256.png)",
+    "bytes": 4735,
+    "sha256": "4ee30102798d4b933c9aa37b3d5e4eb92fd17736300d98b6fd904cbe81a29e0e"
+  },
+  "345": {
+    "team_name": "Weber State Wildcats",
+    "path": "/logos/345.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181883.64a3ace0.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_webst_60000069.png)",
+    "bytes": 10083,
+    "sha256": "6a58ea85e53fbae554dbe37829b77bb611ad23136407e832d55682f608b08c0b"
+  },
+  "346": {
+    "team_name": "West Georgia Wolves",
+    "path": "/logos/346.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/183043.8d3233c2.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/West Georgia Wolves-bcd99fd0d8.png)",
+    "bytes": 6183,
+    "sha256": "db50e32fcebc3f951a9cd1f305bbbceb226e661d4ecf9d3c35d16395200c3200"
+  },
+  "347": {
+    "team_name": "West Virginia Mountaineers",
+    "path": "/logos/347.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181921.8f57439d.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wvir_60000107.png)",
+    "bytes": 2849,
+    "sha256": "55336ba5ead041377086f159b55b4ecf8e040f8b1266754eb9404367dfade7ce"
+  },
+  "348": {
+    "team_name": "Western Carolina Catamounts",
+    "path": "/logos/348.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182101.7ee4c036.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wcar_60000287.png)",
+    "bytes": 8535,
+    "sha256": "cc3f08687cd7b5e4af5b0f9a378c474e70b4f697a91db6f3580d28a67b701940"
+  },
+  "349": {
+    "team_name": "Western Illinois Leathernecks",
+    "path": "/logos/349.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182136.21a3e21a.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_will_60000322.png)",
+    "bytes": 9615,
+    "sha256": "3f9400fac1fb539987dcd7c4d6a12a9621831a434aaf0b5841f88e4464cbe44e"
+  },
+  "350": {
+    "team_name": "Western Kentucky Hilltoppers",
+    "path": "/logos/350.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181958.3138ad97.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wkent_60000144.png)",
+    "bytes": 7841,
+    "sha256": "ea0bb078e7dee39dc4aa9ef636ece5fad69e4bbb126de0c99ed3ad6141c3bdb3"
+  },
+  "351": {
+    "team_name": "Western Michigan Broncos",
+    "path": "/logos/351.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182002.65ced545.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wmich_60000188.png)",
+    "bytes": 4688,
+    "sha256": "d3fa233020f1071813d8c7482558e7aeb709eb019e0eb70866bffe26af90c7ff"
+  },
+  "352": {
+    "team_name": "Wichita State Shockers",
+    "path": "/logos/352.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182016.780dbc62.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wichst_60000202.png)",
+    "bytes": 12627,
+    "sha256": "c6f969689292566387a1e6dd227f61283b358775d36652a8e9906947470b7e35"
+  },
+  "353": {
+    "team_name": "William & Mary Tribe",
+    "path": "/logos/353.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181939.f606ecb9.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wm_60000125.png)",
+    "bytes": 5499,
+    "sha256": "9bb4c2ada2def08f198cc9268543df23454d558f8b7d124ae91a8901561cbf4f"
+  },
+  "354": {
+    "team_name": "Winthrop Eagles",
+    "path": "/logos/354.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181896.6dedb79c.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_winth_60000082.png)",
+    "bytes": 5115,
+    "sha256": "b134445b1c2a10e5e2c7e688355c4994f0c9d5718034ab2308366e69e6eedd77"
+  },
+  "355": {
+    "team_name": "Wisconsin Badgers",
+    "path": "/logos/355.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181910.b20d632e.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wisc_60000096.png)",
+    "bytes": 5654,
+    "sha256": "82514d5d86cd88959e88bee5dd34f0859941b77e2f23464fbfa3906381983c39"
+  },
+  "356": {
+    "team_name": "Wofford Terriers",
+    "path": "/logos/356.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182099.4f3fb092.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_woff_60000285.png)",
+    "bytes": 5632,
+    "sha256": "4dfbfe71d048747fa044a3854652ab9034154c69b2a32716b5d3ec96314bf102"
+  },
+  "357": {
+    "team_name": "Wright State Raiders",
+    "path": "/logos/357.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181964.8ecb1227.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wrght_60000150.png)",
+    "bytes": 9770,
+    "sha256": "30716c3782317db8ab6c9f579f5db985b69903c6a7caac5cc253938321584c93"
+  },
+  "358": {
+    "team_name": "Wyoming Cowboys",
+    "path": "/logos/358.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182033.0bd52e72.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_wyom_60000219.png)",
+    "bytes": 6061,
+    "sha256": "35c90675178e03510d7a589e106922c11c5189fb6a4a7516e700a3133f984b3d"
+  },
+  "359": {
+    "team_name": "Xavier Musketeers",
+    "path": "/logos/359.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181873.738642b7.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_xav_60000059.png)",
+    "bytes": 3903,
+    "sha256": "998ebc0914beebac39a24adb1f97d7585571ce7dbaeb5ff5bb90755528d360b5"
+  },
+  "360": {
+    "team_name": "Yale Bulldogs",
+    "path": "/logos/360.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181972.47ce9812.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_yale_60000158.png)",
+    "bytes": 2922,
+    "sha256": "702b9002594242ddc672783b0b10b8c7ad55dcb4a6b4d652aab2a752bea91c3e"
+  },
+  "361": {
+    "team_name": "Youngstown State Penguins",
+    "path": "/logos/361.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/181969.04331226.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_yngst_60000155.png)",
+    "bytes": 2449,
+    "sha256": "6a46c8ac2e0da8fe6824b98b3019fb371d1967e3a00a688b292be13f9ad7e4cc"
+  },
+  "362": {
+    "team_name": "Queens University Royals",
+    "path": "/logos/362.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182643.11a28a99.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_queen_60000962.png)",
+    "bytes": 10173,
+    "sha256": "95a0dec4eb9e8df1b189de3da911364fbf2dfb8d752bc78fd15fb290cceabce6"
+  },
+  "365": {
+    "team_name": "Southern Indiana Screaming Eagles",
+    "path": "/logos/365.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182871.ed3d2cb2.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_usi_60001212.png)",
+    "bytes": 7110,
+    "sha256": "ea3782a6b01a03e411132903dbb4a115cf641295496ee8f63d12ae08607c57e5"
+  },
+  "366": {
+    "team_name": "Lindenwood Lions",
+    "path": "/logos/366.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/182436.c2cece71.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/team_logos/football/cbb/_jac_60000741.png)",
+    "bytes": 7639,
+    "sha256": "9e8de5a09abd4a9b43dd1d938840a46ece1b442db7584760076a324634d519b6"
+  },
+  "1507": {
+    "team_name": "New Haven Chargers",
+    "path": "/logos/1507.png",
+    "source": "npm:sports-assets-archive-polymarket-team-logos-2@0.1.0/archive/polymarket/team-logos/183104.3b73e879.webp (https://polymarket-upload.s3.us-east-2.amazonaws.com/New Haven Chargers-7092973d94.png)",
+    "bytes": 12466,
+    "sha256": "b5db794a57c65d0e25bec85f7e5698be8bab1d1d4a046faee1ae2d08614bddf1"
+  }
+}

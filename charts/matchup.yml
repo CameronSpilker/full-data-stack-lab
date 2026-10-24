@@ -34,7 +34,9 @@ queries:
               predicted_margin_neutral AS margin,
               win_probability_neutral AS win_probability,
               win_probability_efficiency_only AS efficiency_probability,
-              win_probability_elo_only AS elo_probability
+              win_probability_elo_only AS elo_probability,
+              team_display_color AS side_paint,
+              opponent_display_color AS other_paint
           FROM marts.mart_matchup_odds
           UNION ALL
           SELECT
@@ -43,7 +45,9 @@ queries:
               -predicted_margin_neutral,
               1 - win_probability_neutral,
               1 - win_probability_efficiency_only,
-              1 - win_probability_elo_only
+              1 - win_probability_elo_only,
+              opponent_display_color,
+              team_display_color
           FROM marts.mart_matchup_odds
       ),
       focus AS (
@@ -69,6 +73,8 @@ queries:
       )
       SELECT
           oriented.side_id,
+          oriented.side_paint,
+          oriented.other_paint,
           oriented.side_name,
           side.team_abbreviation AS side_abbreviation,
           side.team_color AS side_color,
@@ -147,10 +153,25 @@ queries:
             AND team_id IN (
                 (SELECT team_id FROM focus), (SELECT team_id FROM best_other)
             )
+      ),
+      -- Each team's colour for this pair, from the matchup row: primaries,
+      -- or a secondary where the two are alike (BYU and Michigan are both
+      -- navy). The mart stores the pair once, in team_id order.
+      paint AS (
+          SELECT team_id, team_display_color AS paint
+          FROM marts.mart_matchup_odds
+          WHERE team_id IN (SELECT team_id FROM pair)
+            AND opponent_team_id IN (SELECT team_id FROM pair)
+          UNION ALL
+          SELECT opponent_team_id, opponent_display_color
+          FROM marts.mart_matchup_odds
+          WHERE team_id IN (SELECT team_id FROM pair)
+            AND opponent_team_id IN (SELECT team_id FROM pair)
       )
-      SELECT team_name, measure, value FROM (
+      SELECT team_name, measure, value, paint FROM (
           SELECT
-              team_name,
+              pair.team_name,
+              paint.paint,
               adjusted_efficiency_margin AS "Efficiency margin",
               adjusted_offensive_efficiency - 100 AS "Offence above 100",
               -- Flipped so that a longer bar is a better defence on a chart
@@ -158,6 +179,9 @@ queries:
               100 - adjusted_defensive_efficiency AS "Defence below 100",
               adjusted_tempo - 60 AS "Tempo above 60"
           FROM pair
+          LEFT JOIN paint ON pair.team_id = paint.team_id
+          -- The focus team first, so it is the first bar in every group.
+          ORDER BY pair.team_id = (SELECT team_id FROM focus) DESC
       ) AS wide
       UNPIVOT (value FOR measure IN (
           "Efficiency margin", "Offence above 100",
@@ -249,6 +273,8 @@ charts:
       right_color: other_color
       right_detail: other_detail
       left_probability: win_probability
+      left_paint: side_paint
+      right_paint: other_paint
       headline: headline
       kicker: Neutral site · projected margin
     style:
@@ -315,22 +341,23 @@ charts:
         font:
           case: none
 
+  # Each team in its own colour (templates/team_pair_bars), because the
+  # colour here says which team, not how much.
   comparison_bars:
     query: comparison
-    type: bar
+    type: custom
+    template: team_pair_bars
     title: The two teams, measure by measure
     subtitle: Each measure is shifted so that a longer bar is always the better number
     x: measure
     y: value
     color: team_name
-    y_label: Points per 100 possessions, except tempo
-    height: 420
+    options:
+      paint: paint
+      axis_label: Points per 100 possessions, except tempo
     style:
-      orientation: horizontal
-      stack: none
-      axis_y:
-        labels:
-          format: "+.1f"
+      min_height: 420
+      max_height: 420
 
   gauntlet_bars:
     query: gauntlet

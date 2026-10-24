@@ -33,6 +33,12 @@ teams as (
 
 ),
 
+secondary_colors as (
+
+    select * from {{ ref('team_secondary_colors') }}
+
+),
+
 final_elo as (
 
     -- The rating after a team's most recent game is its current rating.
@@ -67,6 +73,7 @@ final as (
         -- draw a team without joining back to the dimension itself.
         teams.team_logo_url,
         teams.team_color,
+        secondary_colors.team_secondary_color,
 
         form.games_played,
         form.wins,
@@ -121,6 +128,9 @@ final as (
 
     left join final_elo as elo
         on form.season = elo.season and form.team_id = elo.team_id
+
+    left join secondary_colors
+        on form.team_id = secondary_colors.team_id
 
 )
 

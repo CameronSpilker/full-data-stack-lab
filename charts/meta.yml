@@ -70,6 +70,11 @@ style:
     #                                            #dfebfb #a2c3f0 #83afea
     #   Chances, from the model or the   orange  #eb6834, and the table ramp
     #   20,000 simulated brackets                #ffe9e2 #fcbea7 #f9a78a
+    #   Which team, where colour says    the team's own colours: each bar of
+    #   nothing else (a list of teams,   a top-N list, and both sides of a
+    #   two teams compared)              matchup, from mart_matchup_odds so a
+    #                                    pair that shares a colour gets one
+    #                                    side's secondary instead
     #   Signed, either side of a         red, grey, blue around the baseline:
     #   baseline (zero, the median)      #fbb2ab #f0efec #a2c3f0 in tables;
     #                                    on bars a `band` column pinned to
@@ -89,9 +94,8 @@ style:
     # here: three categorical hues that clear colour-vision separation, a grey
     # for the "other" bucket, and one sequential ramp built from the first hue.
     # A fourth category folds into the grey instead of taking a new hue.
-    # Team colours never enter it. They are on each team's crest and nowhere
-    # else, because a school picks its colours for itself, not for telling
-    # two bars apart.
+    # Team colours never enter it. Where colour carries a group or a scale
+    # the palette does the work; a team's own colours mark only the team.
     color:
       categorical:
         palette: ["#2a78d6", "#eb6834", "#1baf7a", "#898781"]

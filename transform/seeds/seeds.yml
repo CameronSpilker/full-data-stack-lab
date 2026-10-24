@@ -6,6 +6,21 @@ version: 2
 # same team id as everything else, so there is no longer a name to reconcile
 # and the seed was deleted rather than left to rot.
 #
-# This file stays as the place the next seed is documented.
-
-seeds: []
+seeds:
+  - name: team_secondary_colors
+    description: >
+      Each team's second colour, read from its logo by
+      `scripts/derive_team_colors.py`. The source gives one colour per team,
+      and one is not enough to tell two teams apart when they share it (BYU
+      and Michigan are both navy). A team whose logo has no second colour
+      distinct from its first has no row. Re-derive it when the logos change.
+    config:
+      column_types:
+        team_id: varchar
+        team_secondary_color: varchar
+    columns:
+      - name: team_id
+        data_tests: [unique, not_null]
+      - name: team_secondary_color
+        description: Six hex digits with no leading "#", like `team_color`.
+        data_tests: [not_null]

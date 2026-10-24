@@ -55,6 +55,7 @@ queries:
           team_name,
           team_abbreviation,
           team_color,
+          team_secondary_color,
           conference_name || ' · ' || record AS detail,
           adjusted_efficiency_margin
       FROM marts.mart_team_season
@@ -152,6 +153,8 @@ charts:
       rank: national_rank
       detail: detail
       value_format: "+.1f"
+      team_bars: true
+      secondary_color: team_secondary_color
     style:
       min_height: 470
       max_height: 470

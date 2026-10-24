@@ -64,6 +64,7 @@ queries:
           team_name,
           team_abbreviation,
           team_color,
+          team_secondary_color,
           conference_name || ' · ' || record AS detail,
           adjusted_efficiency_margin
       FROM marts.mart_team_season
@@ -78,6 +79,7 @@ queries:
     notes: Offensive against defensive efficiency, one point per team.
     sql: |
       SELECT
+          team_id,
           team_name,
           adjusted_offensive_efficiency,
           adjusted_defensive_efficiency,
@@ -88,6 +90,8 @@ queries:
           END AS conference
       FROM marts.mart_team_season
       WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      -- "Other" first, so the three named conferences are drawn on top.
+      ORDER BY conference = 'Other' DESC, national_rank DESC
 
   conferences:
     notes: Conference strength for every league that sent a team to the tournament.
@@ -187,36 +191,38 @@ charts:
       rank: national_rank
       detail: detail
       value_format: "+.1f"
+      team_bars: true
+      secondary_color: team_secondary_color
     style:
       min_height: 760
       max_height: 760
 
+  # Each team is its logo, ringed in its conference's colour.
   quadrant:
     query: offense_defense
-    type: scatter
     title: Offence against defence, every team in the country
-    subtitle: Up and to the right is good. The defensive axis runs downward, because points allowed is a number to minimise.
+    subtitle: Up and to the right is good. The defensive axis runs downward, because points allowed is a number to minimise. Hover a logo for the team.
+    type: custom
+    template: team_scatter
     x: adjusted_offensive_efficiency
     y: adjusted_defensive_efficiency
     color: conference
-    x_label: Points scored per 100 possessions
-    y_label: Points allowed per 100 possessions
-    height: 520
+    options:
+      team_id: team_id
+      team_name: team_name
+      # The window is the same on the season board's quadrant, so the two
+      # plots read against each other. Defence runs downward because points
+      # allowed is a number to minimise: up and to the right is good on both.
+      x_min: 80
+      x_max: 140
+      y_min: 80
+      y_max: 130
+      y_reverse: true
+      x_label: Points scored per 100 possessions
+      y_label: Points allowed per 100 possessions
     style:
-      axis_x:
-        scale:
-          continuous:
-            zero: false
-            domain: [84, 136]
-      axis_y:
-        scale:
-          continuous:
-            # Descending on purpose: defensive efficiency is points allowed,
-            # so putting the low numbers at the top makes "up and to the
-            # right" mean good on both axes.
-            domain: [128, 86]
-        labels:
-          format: ".0f"
+      min_height: 560
+      max_height: 560
 
   conference_bars:
     query: conference_margin
