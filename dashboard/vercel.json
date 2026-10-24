@@ -13,5 +13,11 @@
     { "source": "/model", "destination": "/evidence/model", "permanent": true },
     { "source": "/how-it-works", "destination": "/evidence/how-it-works", "permanent": true },
     { "source": "/teams/:path*", "destination": "/evidence/teams/:path*", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/charts/scorecard", "destination": "https://lab-charts-live.vercel.app/charts/scorecard/" },
+    { "source": "/charts/scorecard/", "destination": "https://lab-charts-live.vercel.app/charts/scorecard/" },
+    { "source": "/charts/matchup", "destination": "https://lab-charts-live.vercel.app/charts/matchup/" },
+    { "source": "/charts/matchup/", "destination": "https://lab-charts-live.vercel.app/charts/matchup/" }
   ]
 }
