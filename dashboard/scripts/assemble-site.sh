@@ -38,7 +38,12 @@ fi
 
 if [ -d .site/charts ]; then
     cp -R .site/charts build/charts
-    echo "  dbt Charts boards -> build/charts"
+    # The scorecard and matchup are served live, with their team pickers, by
+    # the lab-charts-live project (api/index.py at the repository root), and
+    # vercel.json rewrites their paths there. A file at the same path would
+    # win over the rewrite, so their static copies are left out.
+    rm -rf build/charts/scorecard build/charts/matchup
+    echo "  dbt Charts boards -> build/charts (scorecard and matchup served live)"
 else
     echo "  no dbt Charts boards fetched; /charts will 404"
 fi
