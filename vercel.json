@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "mkdir -p .vercel-static",
+  "buildCommand": "mkdir -p .vercel-static && printf 'User-agent: *\\nDisallow: /\\n' > .vercel-static/robots.txt",
   "outputDirectory": ".vercel-static",
   "functions": {
     "api/index.py": {
@@ -9,6 +9,9 @@
     }
   },
   "rewrites": [
-    { "source": "/:path*", "destination": "/api/index?__path=/:path*" }
+    {
+      "source": "/:path*",
+      "destination": "/api/index?__path=/:path*"
+    }
   ]
 }
