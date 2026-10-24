@@ -1,22 +1,28 @@
+_schema_version: "0.10.0"  # written automatically by dct migrate
 title: The rankings
 notes: >
   The whole Division I field in rating order, and the same field plotted
   offence against defence so the shape of a team is readable next to its
   place in the order.
 tags: [season, teams, rankings]
+extends: [./_header.yml]
 
 style:
   charts:
     category_colors:
       # The tier is the category here, so the slots are pinned to it rather
-      # than left to fall out alphabetically. The grey belongs to "The rest":
-      # it is the bucket every team that is not in the conversation lands in,
-      # and a bucket should not hold one of the three real hues.
+      # than left to fall out alphabetically. Tiers are ordered, so they are
+      # one blue ramp from the validated sequential steps, darkest at the top,
+      # rather than three unrelated hues: orange means a chance on every other
+      # board. The grey belongs to "The rest": it is the bucket every team not
+      # in the conversation lands in. Hex rather than `category[n]`, because
+      # those tokens resolve against dbt Charts' built-in theme, not the
+      # palette meta.yml sets.
       tier:
         values:
-          Title favourites: category[1]
-          Final four potential: category[2]
-          Hit or miss: category[3]
+          Title favourites: "#184f95"
+          Final four potential: "#3987e5"
+          Hit or miss: "#86b6ef"
           The rest: "#898781"
 
 queries:
@@ -52,24 +58,33 @@ queries:
       WHERE season = (SELECT max(season) FROM marts.mart_team_season)
       ORDER BY national_rank
 
-  top_40:
-    notes: The top of the order, at a length where one bar per team is still readable.
+  top_25:
+    notes: The top of the order, at a length where one row per team is still readable.
     sql: |
+      WITH tiered AS (
+          SELECT
+              *,
+              CASE
+                  WHEN national_rank <= 16 THEN 'Title favourites'
+                  WHEN national_rank <= 48 THEN 'Final four potential'
+                  WHEN national_rank <= 100 THEN 'Hit or miss'
+                  ELSE 'The rest'
+              END AS tier
+          FROM marts.mart_team_season
+          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      )
       SELECT
           national_rank,
+          team_id,
           team_name,
-          conference_name,
+          team_abbreviation,
+          team_color,
+          conference_name || ' · ' || record || ' · ' || tier AS detail,
           adjusted_efficiency_margin,
-          CASE
-              WHEN national_rank <= 16 THEN 'Title favourites'
-              WHEN national_rank <= 48 THEN 'Final four potential'
-              WHEN national_rank <= 100 THEN 'Hit or miss'
-              ELSE 'The rest'
-          END AS tier
-      FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          tier
+      FROM tiered
       ORDER BY national_rank
-      LIMIT 40
+      LIMIT 25
 
   tier_counts:
     notes: How many teams each tier holds, and how good the tier is on average.
@@ -109,6 +124,16 @@ queries:
       WHERE season = (SELECT max(season) FROM marts.mart_team_season)
 
 charts:
+  banner:
+    type: custom
+    template: court_banner
+    query: season_banner
+    style:
+      min_height: 132
+      max_height: 132
+    options:
+      current: Rankings
+
   kpi_teams:
     query: headline
     type: kpi
@@ -129,32 +154,36 @@ charts:
     support:
       value: favourites
       label: Teams in the top tier
-      format: integer
     style:
       value:
         format: "+.1f"
       label:
         font:
           case: none
+      support:
+        format: "integer"
 
-  order_bars:
-    query: top_40
-    type: bar
-    title: The top 40, in order
-    subtitle: Adjusted efficiency margin, which is points per 100 possessions better than an average team
-    # x is the category and y the measure on every bar chart, including a
-    # horizontal one: the orientation rotates the drawing, not the channels.
+  # The top of the field as a leaderboard: the crest says who, the bar how
+  # far ahead, and the bar's colour which tier the cut put the team in.
+  order_board:
+    query: top_25
+    type: custom
+    template: team_leaderboard
+    title: The top 25, in order
+    subtitle: Adjusted efficiency margin, which is points per 100 possessions better than an average team. Bars are coloured by tier, which is also named under each team.
     x: team_name
     y: adjusted_efficiency_margin
     color: tier
-    y_label: Adjusted efficiency margin
-    height: 900
-    sort:
-      by: adjusted_efficiency_margin
-      order: desc
+    options:
+      team_id: team_id
+      abbreviation: team_abbreviation
+      team_color: team_color
+      rank: national_rank
+      detail: detail
+      value_format: "+.1f"
     style:
-      orientation: horizontal
-      number_format: "+.1f"
+      min_height: 1100
+      max_height: 1100
 
   quadrant:
     query: field
@@ -169,7 +198,6 @@ charts:
     y_label: Points allowed per 100 possessions
     height: 560
     style:
-      number_format: ".0f"
       axis_y:
         scale:
           continuous:
@@ -182,6 +210,8 @@ charts:
             # against each other, and an auto-scaled axis would move under a
             # reader going between them.
             domain: [128, 86]
+        labels:
+          format: ".0f"
       axis_x:
         scale:
           continuous:
@@ -254,7 +284,7 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              palette: ["#dfebfb", "#a2c3f0", "#83afea"]
               domain: data
         adjusted_offensive_efficiency:
           label: Offence
@@ -284,60 +314,10 @@ charts:
           label: Made the field
 
 rows:
-  # The top bar: one strip of buttons, the same seven on every board in the
-  # same order. The button for the page you are on is filled in rather than
-  # linked. Links are drawn without an underline so each cell reads as a
-  # button. The boards are their own site, so nothing here leaves /charts.
-  # Each file writes the two button styles once and anchors the rest to them.
-  - style:
-      padding: 4
-      background: dbt-grays.surface-subtle
-      border:
-        width: 1
-        color: dbt-grays.border
-        radius: 10
-    cols:
-      - width: "14.28%"
-        text: "[Home](/charts/)"
-        style: &nav_button
-          padding: 7
-          font:
-            decoration: none
-            weight: 500
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "Rankings"
-        style: &nav_current
-          padding: 7
-          background: "category[1]"
-          font:
-            color: dbt-grays.canvas
-            weight: 600
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "[Scorecard](/charts/scorecard/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Matchup](/charts/matchup/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Model](/charts/model/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Season](/charts/season/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Tournament](/charts/tournament/)"
-        style: *nav_button
-  # What this page gets you, on its own line under the bar.
+  # The header: the court banner from _header.yml, with the bar of buttons
+  # in it. This board's button is the one named in charts.banner.
+  - banner
+  # What this page gets you, on its own line under the banner.
   - text: |
       Every Division I team the model rated this season in one order, cut into
       tiers, and the same field plotted offence against defence.
@@ -351,7 +331,7 @@ rows:
       tiers and the quadrant are all drawn from.
   - cols: [kpi_teams, kpi_best]
   - cols: [quadrant]
-  - cols: [order_bars, tier_table]
+  - cols: [order_board, tier_table]
   - title: The full field
     text: |
       Sortable, and wide enough to compare the two halves of a rating. A team

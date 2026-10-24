@@ -1,8 +1,10 @@
+_schema_version: "0.10.0"  # written automatically by dct migrate
 title: The tournament
 notes: >
   Twenty thousand simulated tournaments, read three ways: who wins it, how far
   a seed line usually gets, and where the bracket stops being predictable.
 tags: [tournament, bracket, simulation]
+extends: [./_header.yml]
 
 queries:
   headline:
@@ -22,13 +24,20 @@ queries:
     notes: The sixteen teams the simulation gives a real chance of winning it.
     sql: |
       SELECT
-          team_name,
-          won_championship,
-          seed,
-          region_name
-      FROM marts.mart_tournament_odds
-      WHERE season = (SELECT max(season) FROM marts.mart_tournament_odds)
-      ORDER BY won_championship DESC
+          odds.team_id,
+          odds.team_name,
+          team.team_abbreviation,
+          team.team_color,
+          odds.seed || ' seed · ' || odds.region_name || ' · ' || odds.record AS detail,
+          odds.won_championship,
+          odds.seed,
+          odds.region_name
+      FROM marts.mart_tournament_odds AS odds
+      LEFT JOIN marts.mart_team_season AS team
+          ON odds.team_id = team.team_id
+          AND odds.season = team.season
+      WHERE odds.season = (SELECT max(season) FROM marts.mart_tournament_odds)
+      ORDER BY odds.won_championship DESC
       LIMIT 16
 
   # The seed line is the bracket's own prior. Charting it against the
@@ -100,6 +109,16 @@ queries:
       LIMIT 20
 
 charts:
+  banner:
+    type: custom
+    template: court_banner
+    query: season_banner
+    style:
+      min_height: 132
+      max_height: 132
+    options:
+      current: Tournament
+
   kpi_favourite:
     query: headline
     type: kpi
@@ -108,11 +127,16 @@ charts:
     support:
       value: won_championship
       label: Title odds
-      format: percent_whole
     style:
+      # A team name rather than a number: smaller, so it fits its card.
+      value:
+        font:
+          size: 28
       label:
         font:
           case: none
+      support:
+        format: "percent_whole"
 
   kpi_final_four:
     query: headline
@@ -138,26 +162,24 @@ charts:
         font:
           case: none
 
-  odds_bars:
+  odds_board:
     query: title_odds
-    type: bar
+    type: custom
+    template: team_leaderboard
     title: Who wins it
     subtitle: Share of 20,000 simulated tournaments ending with this team holding the trophy
     x: team_name
     y: won_championship
-    sort: { by: won_championship, order: desc }
-    height: 520
+    options:
+      team_id: team_id
+      abbreviation: team_abbreviation
+      team_color: team_color
+      detail: detail
+      value_format: ".1%"
+      bar_color: "#eb6834"
     style:
-      orientation: horizontal
-      number_format: percent_whole
-      legend:
-        visible: false
-      marks:
-        bar:
-          labels:
-            visible: true
-            position: above
-            format: ".1%"
+      min_height: 640
+      max_height: 640
 
   seed_bars:
     query: seed_curve
@@ -171,9 +193,15 @@ charts:
     height: 420
     style:
       orientation: vertical
-      number_format: ".1f"
+      # Orange because it is simulation output: chances are orange on every
+      # board, ratings blue.
+      color:
+        static: "#eb6834"
       legend:
         visible: false
+      axis_y:
+        labels:
+          format: ".1f"
 
   survival_grid:
     query: survival
@@ -187,6 +215,10 @@ charts:
     y_label: Seed
     height: 620
     sort: { by: round_order, order: asc }
+    style:
+      color:
+        gradient:
+          palette: ["#ffe9e2", "#fcbea7", "#f9a78a", "#eb6834", "#bf4a17", "#832d05"]
 
   field_table:
     query: field
@@ -227,7 +259,7 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              palette: ["#ffe9e2", "#fcbea7", "#f9a78a"]
               domain: data
         expected_wins:
           label: Exp. wins
@@ -235,60 +267,10 @@ charts:
           align: right
 
 rows:
-  # The top bar: one strip of buttons, the same seven on every board in the
-  # same order. The button for the page you are on is filled in rather than
-  # linked. Links are drawn without an underline so each cell reads as a
-  # button. The boards are their own site, so nothing here leaves /charts.
-  # Each file writes the two button styles once and anchors the rest to them.
-  - style:
-      padding: 4
-      background: dbt-grays.surface-subtle
-      border:
-        width: 1
-        color: dbt-grays.border
-        radius: 10
-    cols:
-      - width: "14.28%"
-        text: "[Home](/charts/)"
-        style: &nav_button
-          padding: 7
-          font:
-            decoration: none
-            weight: 500
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "[Rankings](/charts/rankings/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Scorecard](/charts/scorecard/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Matchup](/charts/matchup/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Model](/charts/model/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Season](/charts/season/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "Tournament"
-        style: &nav_current
-          padding: 7
-          background: "category[1]"
-          font:
-            color: dbt-grays.canvas
-            weight: 600
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-  # What this page gets you, on its own line under the bar.
+  # The header: the court banner from _header.yml, with the bar of buttons
+  # in it. This board's button is the one named in charts.banner.
+  - banner
+  # What this page gets you, on its own line under the banner.
   - text: |
       Twenty thousand simulated brackets: title odds, what a seed line is
       really worth, and how fast the field thins.
@@ -297,7 +279,7 @@ rows:
       all twenty thousand, which is the only honest thing a model can say about
       a single-elimination field of 64.
   - cols: [kpi_favourite, kpi_final_four, kpi_sims]
-  - cols: [odds_bars, seed_bars]
+  - cols: [odds_board, seed_bars]
   - title: Survival
     text: |
       A one seed is not four times a four seed. Read across a row to see where

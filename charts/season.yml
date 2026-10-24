@@ -1,8 +1,10 @@
+_schema_version: "0.10.0"  # written automatically by dct migrate
 title: The season
 notes: >
   Who was good, which conferences carried them, and how the two halves of a
   rating trade off against each other.
 tags: [season, teams, conferences]
+extends: [./_header.yml]
 
 style:
   charts:
@@ -12,10 +14,16 @@ style:
       # "Other": it is the bucket, not a conference.
       conference:
         values:
-          Big Ten: category[1]
-          SEC: category[2]
-          Big 12: category[3]
+          Big Ten: "#2a78d6"
+          SEC: "#eb6834"
+          Big 12: "#1baf7a"
           Other: "#898781"
+      # Which side of the average team a conference sits on. The same words
+      # and colours as every other signed bar (see meta.yml).
+      band:
+        values:
+          Above average: "#2a78d6"
+          Below average: "#e34948"
 
 queries:
   season_kpis:
@@ -51,7 +59,12 @@ queries:
     notes: Efficiency margin for the top 20, so the gaps are visible rather than ranked away.
     sql: |
       SELECT
+          national_rank,
+          team_id,
           team_name,
+          team_abbreviation,
+          team_color,
+          conference_name || ' · ' || record AS detail,
           adjusted_efficiency_margin
       FROM marts.mart_team_season
       WHERE season = (SELECT max(season) FROM marts.mart_team_season)
@@ -97,13 +110,27 @@ queries:
     sql: |
       SELECT
           conference_name,
-          avg_efficiency_margin
+          avg_efficiency_margin,
+          CASE
+              WHEN avg_efficiency_margin >= 0 THEN 'Above average'
+              ELSE 'Below average'
+          END AS band
       FROM marts.mart_conference_strength
       WHERE season = (SELECT max(season) FROM marts.mart_conference_strength)
       ORDER BY conference_rank
       LIMIT 15
 
 charts:
+  banner:
+    type: custom
+    template: court_banner
+    query: season_banner
+    style:
+      min_height: 132
+      max_height: 132
+    options:
+      current: Season
+
   kpi_teams:
     query: season_kpis
     type: kpi
@@ -136,28 +163,33 @@ charts:
     support:
       value: season
       label: Season
-      format: year
     style:
       value:
         format: "+.1f"
       label:
         font:
           case: none
+      support:
+        format: "year"
 
-  margin_bars:
+  margin_board:
     query: top_20_margin
-    type: bar
+    type: custom
+    template: team_leaderboard
     title: The top 20, by scoring margin
     subtitle: Adjusted efficiency margin, points per 100 possessions
     x: team_name
     y: adjusted_efficiency_margin
-    sort: { by: adjusted_efficiency_margin, order: desc }
-    height: 560
+    options:
+      team_id: team_id
+      abbreviation: team_abbreviation
+      team_color: team_color
+      rank: national_rank
+      detail: detail
+      value_format: "+.1f"
     style:
-      orientation: horizontal
-      number_format: ".0f"
-      legend:
-        visible: false
+      min_height: 760
+      max_height: 760
 
   quadrant:
     query: offense_defense
@@ -171,7 +203,6 @@ charts:
     y_label: Points allowed per 100 possessions
     height: 520
     style:
-      number_format: ".0f"
       axis_x:
         scale:
           continuous:
@@ -184,6 +215,8 @@ charts:
             # so putting the low numbers at the top makes "up and to the
             # right" mean good on both axes.
             domain: [128, 86]
+        labels:
+          format: ".0f"
 
   conference_bars:
     query: conference_margin
@@ -192,13 +225,15 @@ charts:
     subtitle: Average efficiency margin across every team in the conference
     x: conference_name
     y: avg_efficiency_margin
+    # Signed around zero, the average team, so the side of zero is the colour.
+    color: band
     sort: { by: avg_efficiency_margin, order: desc }
     height: 460
     style:
       orientation: horizontal
-      number_format: "+.1f"
-      legend:
-        visible: false
+      axis_y:
+        labels:
+          format: "+.1f"
 
   conference_table:
     query: conferences
@@ -219,7 +254,9 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              palette: ["#fbb2ab", "#f0efec", "#a2c3f0"]
+              hinge: 0
+              arm_mode: symmetric
               domain: data
         teams_in_top_50:
           label: Top 50
@@ -261,7 +298,7 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#86b6ef", "#2a78d6", "#104281"]
+              palette: ["#dfebfb", "#a2c3f0", "#83afea"]
               domain: data
         adjusted_offensive_efficiency:
           label: Offence
@@ -281,60 +318,10 @@ charts:
           align: right
 
 rows:
-  # The top bar: one strip of buttons, the same seven on every board in the
-  # same order. The button for the page you are on is filled in rather than
-  # linked. Links are drawn without an underline so each cell reads as a
-  # button. The boards are their own site, so nothing here leaves /charts.
-  # Each file writes the two button styles once and anchors the rest to them.
-  - style:
-      padding: 4
-      background: dbt-grays.surface-subtle
-      border:
-        width: 1
-        color: dbt-grays.border
-        radius: 10
-    cols:
-      - width: "14.28%"
-        text: "[Home](/charts/)"
-        style: &nav_button
-          padding: 7
-          font:
-            decoration: none
-            weight: 500
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "[Rankings](/charts/rankings/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Scorecard](/charts/scorecard/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Matchup](/charts/matchup/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "[Model](/charts/model/)"
-        style: *nav_button
-      - width: "14.28%"
-        text: "Season"
-        style: &nav_current
-          padding: 7
-          background: "category[1]"
-          font:
-            color: dbt-grays.canvas
-            weight: 600
-          border:
-            width: 0
-            radius: 7
-          text:
-            align: center
-      - width: "14.28%"
-        text: "[Tournament](/charts/tournament/)"
-        style: *nav_button
-  # What this page gets you, on its own line under the bar.
+  # The header: the court banner from _header.yml, with the bar of buttons
+  # in it. This board's button is the one named in charts.banner.
+  - banner
+  # What this page gets you, on its own line under the banner.
   - text: |
       Who was good, which conferences were deep, and how the two halves of a
       rating trade off against each other.
@@ -343,7 +330,7 @@ rows:
       played cannot be rated, so the board waits for games rather than drawing
       an empty axis.
   - cols: [kpi_teams, kpi_games, kpi_best]
-  - cols: [margin_bars, quadrant]
+  - cols: [margin_board, quadrant]
   - cols: [top_20_table]
   - title: Conferences
     text: |

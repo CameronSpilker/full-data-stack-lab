@@ -1,0 +1,19 @@
+# Not a board. Every board extends this file for the header it opens with:
+# the court banner, which carries the season line and the bar of buttons.
+# Each board still declares `charts.banner` in full (type, template, query,
+# height and the button it is on), because dbt Charts checks that a chart is
+# complete before it merges in what a board extends. What lives here is the
+# query the banner reads, which is the part worth having once.
+queries:
+  season_banner:
+    notes: The season the boards report on, in the words the banner prints.
+    sql: |
+      SELECT
+          data_season_label AS season_label,
+          CASE phase
+              WHEN 'in_season' THEN 'in progress'
+              ELSE 'final'
+          END AS phase_label,
+          strftime(last_completed_game_date, '%b %-d, %Y') AS last_game
+      FROM marts.mart_season_status
+

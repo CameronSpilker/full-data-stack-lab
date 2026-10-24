@@ -2,6 +2,30 @@
 source: warehouse
 
 style:
+  # The look is a college basketball broadcast: a navy scoreboard banner on
+  # top (templates/court_banner.svg.j2), a pale maple floor under the cards,
+  # white cards on it, and condensed capitals for headings and numbers the
+  # way a scoreboard sets them. Body text stays a plain sans so a paragraph
+  # still reads as a paragraph.
+  #
+  # Oswald is loaded by scripts/render-charts.sh. Every stack falls back to a
+  # narrow face that ships with the reader's system, so a blocked font
+  # changes the letterforms and nothing else.
+  background: "#f6f0e6"
+  muted: "#5f6b7a"
+  font:
+    color: "#14213d"
+  fonts:
+    heading:
+      family: "'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif"
+      weight: 600
+      sizes: [30, 20, 16, 14, 12, 12]
+    numeral:
+      family: "'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif"
+      weight: 500
+    body:
+      family: "Inter, system-ui, sans-serif"
+
   title:
     font:
       # Titles are drawn exactly as authored. The default is Chicago title
@@ -10,13 +34,64 @@ style:
       # Model Beat the Market?" does not match the page it sits beside. This
       # cascades to chart titles too.
       case: none
+      color: "#0c2340"
 
   charts:
+    # A KPI reads like a scoreboard: the number big in the display face, its
+    # label small and quiet underneath.
+    kpi:
+      background: "#ffffff"
+      value:
+        font:
+          extends: numeral
+          size: 40
+          weight: 600
+          color: "#0c2340"
+      label:
+        font:
+          extends: body
+          size: 12
+          weight: 600
+
+    table:
+      background: "#ffffff"
+
+    # Each chart sits on its own white card, which is what lets the floor
+    # colour above read as a floor rather than as a tinted page.
+    background: "#ffffff"
+    border:
+      width: 1
+      color: "#e4d9c6"
+      radius: 12
+
+    # Colour by the job it does, the same way on every board:
+    #
+    #   Ratings, how good a team is      blue    #2a78d6, and the table ramp
+    #                                            #dfebfb #a2c3f0 #83afea
+    #   Chances, from the model or the   orange  #eb6834, and the table ramp
+    #   20,000 simulated brackets                #ffe9e2 #fcbea7 #f9a78a
+    #   Signed, either side of a         red, grey, blue around the baseline:
+    #   baseline (zero, the median)      #fbb2ab #f0efec #a2c3f0 in tables;
+    #                                    on bars a `band` column pinned to
+    #                                    blue #2a78d6 (good side), grey
+    #                                    #898781 (middle or context) and red
+    #                                    #e34948 (bad side), with its words
+    #                                    in the legend
+    #
+    # Table ramps stop at mid-tone on purpose. dbt Charts writes cell text in
+    # the ink colour whatever the fill, so the darkest step must still read
+    # with dark text: each one above clears APCA Lc 55 against #14213d. The
+    # survival heatmap has no text in its cells and takes the full orange
+    # ramp down to #832d05.
+    #
     # The palette is the one cameronspilker.com ships and the Evidence
     # dashboard already mirrors, ported stop for stop rather than picked again
     # here: three categorical hues that clear colour-vision separation, a grey
     # for the "other" bucket, and one sequential ramp built from the first hue.
     # A fourth category folds into the grey instead of taking a new hue.
+    # Team colours never enter it. They are on each team's crest and nowhere
+    # else, because a school picks its colours for itself, not for telling
+    # two bars apart.
     color:
       categorical:
         palette: ["#2a78d6", "#eb6834", "#1baf7a", "#898781"]

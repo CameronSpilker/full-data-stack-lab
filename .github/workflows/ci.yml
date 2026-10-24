@@ -139,8 +139,9 @@ jobs:
       # folder has since grown, so a new board was being rendered without ever
       # being validated: the render is the slower check and it reports a bad
       # key as a failed chart rather than as a line number. `meta.yml` is the
-      # folder's shared style rather than a board, and `dct validate` accepts
-      # it, so the glob needs no exception.
+      # folder's shared style rather than a board, and `_header.yml` is the
+      # query every board extends; `dct validate` accepts both, so the glob
+      # needs no exception.
       - name: Validate the board YAML
         run: dct validate charts/*.yml
 
@@ -175,6 +176,14 @@ jobs:
           cd transform
           dbt deps
           DUCKDB_PATH=../data/warehouse.duckdb dbt build --target ci
+
+      # The same rewrite the pipeline does before it publishes, for the same
+      # reason: dbt writes with whatever DuckDB pip resolves, and Evidence
+      # reads with the older one its lockfile pins. When DuckDB 2.0 arrived
+      # this job built a file Evidence could not open at all ("version number
+      # 999, but we can only read versions between 64 and 67").
+      - name: Normalise the warehouse storage format
+        run: bash scripts/normalise-warehouse.sh
 
       # Evidence resolves its SQL at build time, so a renamed mart column is a
       # broken dashboard rather than a failed dbt run. This closes that gap
