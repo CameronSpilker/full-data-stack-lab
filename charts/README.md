@@ -39,9 +39,8 @@ these pages render to static HTML and a picker would not survive the export.
 `meta.yml` is not a board. dbt Charts applies it to every file in this folder,
 and it carries what must not be decided per board: the look (a pale maple
 floor, white cards, navy ink, and Oswald for headings and numbers the way a
-scoreboard sets them), the palette, ported stop for stop from
-`dashboard/evidence.config.yaml` so a reader moving between the two
-presentation layers sees the same three category hues, and
+scoreboard sets them), the palette (one blue, its ramp, a grey, and a red for the
+bad side of a baseline), and
 `title.font.case: none`, because the default is Chicago title case and the
 rest of the site is sentence case. Files starting with an underscore, like
 `_header.yml`, are pieces boards extend and are never rendered as pages.
@@ -53,12 +52,15 @@ reader learns it once:
 
 | Kind of number | Colour | Examples |
 | --- | --- | --- |
-| Which team, and nothing else | The team's own colours | Bars in a top-N list (Home, Season, title odds), both teams in a matchup |
-| A rating: how good a team is | Blue | Elo lines, margin columns |
-| A chance, from the model or the simulated brackets | Orange | Seed value, the survival grid, win probability columns |
+| Which team, and nothing else | The team's own colours | Bars in a top-N list (Home, Season, title odds), both teams in a matchup, the rings on the season scatter |
+| Any other number: a rating, a chance, simulation output | Blue | Elo lines, margin columns, seed value, the survival grid, win probability columns |
+| Groups that need telling apart | One blue at three depths, darkest first | The ranking tiers (which also draw larger the higher they are), the three models |
 | Signed around a baseline (zero, the median) | Blue for the good side, red for the bad side, grey for the middle | Conference depth, a team's strengths by thirds, game margins |
-| Ordered groups | One blue ramp, darkest first | The ranking tiers, which also draw larger the higher they are |
-| Context, not a contender | Grey | "The rest", the model that saw its own season |
+| Context, not a contender | Grey | "The rest", the model that saw its own season, the calibration diagonal |
+
+There is one hue for data, so no reader has to ask what an orange bar means.
+Orange belongs to the banner and the scorecard's rank, which are the look of
+the page rather than data.
 
 A team's own colours come from the marts: `team_color` from the source and
 `team_secondary_color` read from its logo (`scripts/derive_team_colors.py`,
@@ -86,7 +88,7 @@ dbt Charts looks for them:
 | `team_hero.svg.j2` | Scorecard | One team's name plate and national rank |
 | `matchup_scoreboard.svg.j2` | Matchup | Both teams, each one's chance, and the split between them |
 | `team_pair_bars.svg.j2` | Matchup | Two teams measure by measure, each in its own colour |
-| `team_scatter.svg.j2` | Rankings, Season | Every team as its logo, ringed in its tier's or conference's colour, with the team's name on hover |
+| `team_scatter.svg.j2` | Rankings, Season | Every team as its logo, ringed in its tier's colour (Rankings) or its own colour (Season), with the team's name on hover |
 
 `dct describe templates/` prints each one's channels and options.
 
@@ -104,8 +106,9 @@ kinds of place:
 
 - **Crests** drawn by the templates (`<g class="crest"
   id="...-crest-<team_id>">`): the code gives way to the logo on a white disc,
-  and the disc's colour stays as a ring. On the scatters that ring is the
-  tier or conference colour, so the grouping still reads.
+  and the disc's colour stays as a ring. On the rankings scatter that ring
+  is the tier's colour, so the grouping still reads; on the season scatter
+  it is the team's own.
 - **Team names** anywhere else on a board: any text that is exactly a team's
   name in the logos' `manifest.json` gets the logo in front of it. That covers
   table cells (the text moves over for it) and bar axis labels (the logo goes

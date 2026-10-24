@@ -373,9 +373,9 @@ charts:
       order: desc
     style:
       orientation: horizontal
-      # A chance, so orange, the same as the Model column in the table below.
+      # Blue, the same as the Model column in the table below.
       color:
-        static: "#eb6834"
+        static: "#2a78d6"
       legend:
         visible: false
       axis_y:
@@ -420,7 +420,7 @@ charts:
           align: right
           scale:
             background:
-              palette: ["#ffe9e2", "#fcbea7", "#f9a78a"]
+              palette: ["#dfebfb", "#a2c3f0", "#83afea"]
               domain: data
         efficiency_probability:
           label: Efficiency only

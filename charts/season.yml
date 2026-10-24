@@ -9,15 +9,6 @@ extends: [./_header.yml]
 style:
   charts:
     category_colors:
-      # Without a pin the slots fall out alphabetically, which hands the grey
-      # to the SEC and a real hue to the catch-all. The grey belongs to
-      # "Other": it is the bucket, not a conference.
-      conference:
-        values:
-          Big Ten: "#2a78d6"
-          SEC: "#eb6834"
-          Big 12: "#1baf7a"
-          Other: "#898781"
       # Which side of the average team a conference sits on. The same words
       # and colours as every other signed bar (see meta.yml).
       band:
@@ -73,8 +64,6 @@ queries:
       LIMIT 20
 
   # Every team, so the shape of the league shows rather than just its top.
-  # Conferences past the first three fold into "Other", which is what the
-  # fourth palette slot is for.
   offense_defense:
     notes: Offensive against defensive efficiency, one point per team.
     sql: |
@@ -84,14 +73,12 @@ queries:
           adjusted_offensive_efficiency,
           adjusted_defensive_efficiency,
           adjusted_tempo,
-          CASE
-              WHEN conference_name IN ('Big Ten', 'SEC', 'Big 12') THEN conference_name
-              ELSE 'Other'
-          END AS conference
+          team_color,
+          team_secondary_color
       FROM marts.mart_team_season
       WHERE season = (SELECT max(season) FROM marts.mart_team_season)
-      -- "Other" first, so the three named conferences are drawn on top.
-      ORDER BY conference = 'Other' DESC, national_rank DESC
+      -- Weakest first, so the best teams are drawn on top.
+      ORDER BY national_rank DESC
 
   conferences:
     notes: Conference strength for every league that sent a team to the tournament.
@@ -197,7 +184,8 @@ charts:
       min_height: 760
       max_height: 760
 
-  # Each team is its logo, ringed in its conference's colour.
+  # Each team is its logo, ringed in its own colour: the point is which team,
+  # and the conference bars below are where conferences get compared.
   quadrant:
     query: offense_defense
     title: Offence against defence, every team in the country
@@ -206,10 +194,11 @@ charts:
     template: team_scatter
     x: adjusted_offensive_efficiency
     y: adjusted_defensive_efficiency
-    color: conference
     options:
       team_id: team_id
       team_name: team_name
+      team_color: team_color
+      secondary_color: team_secondary_color
       # The window is the same on the season board's quadrant, so the two
       # plots read against each other. Defence runs downward because points
       # allowed is a number to minimise: up and to the right is good on both.

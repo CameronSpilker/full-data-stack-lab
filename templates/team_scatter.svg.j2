@@ -2,22 +2,34 @@
 description: >
   Every team as a point, drawn as a crest so the page can put the team's logo
   there. Each point is a small disc in its group's colour (a tier, a
-  conference); once the logo loads (scripts/render-charts.sh) the disc turns
-  white with the logo inside and the group colour stays as its ring, so the
-  colour still reads. Hovering a point names the team. Rows are drawn in
-  query order, so order the query with the points that matter last.
+  conference), or in the team's own colour when there is no group; once the
+  logo loads (scripts/render-charts.sh) the disc turns white with the logo
+  inside and the colour stays as its ring. Hovering a point names the team.
+  Rows are drawn in query order, so order the query with the points that
+  matter last.
 channels:
   x:
     description: Horizontal measure.
   y:
     description: Vertical measure.
   color:
-    description: The group each point is coloured by, from the board's pins.
+    default: null
+    description: >
+      The group each point is coloured by, from the board's pins. Leave it
+      out to ring each team in its own colour (team_color) with no legend.
 options:
   team_id:
     type: column
   team_name:
     type: column
+  team_color:
+    type: column
+    default: null
+    description: The team's colour as six hex digits, used when there is no color channel.
+  secondary_color:
+    type: column
+    default: null
+    description: The team's second colour, for a primary too light to see as a ring.
   x_min: {type: number}
   x_max: {type: number}
   y_min: {type: number}
@@ -44,12 +56,15 @@ options:
 {% set muted = style.muted or "#6b7280" %}
 {% set grid = "#e7e2d8" %}
 {% set left = 44 %}
-{% set right = 150 %}
+{% set right = 150 if channels.color else 24 %}
 {% set top = 8 %}
 {% set bottom = 40 %}
 {% set pw = width - left - right %}
 {% set ph = height - top - bottom %}
 {% set r = options.radius %}
+{% set fallback = style.charts.color.categorical.palette[0] %}
+{% set hexdigits = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7,
+                    "8": 8, "9": 9, "a": 10, "b": 11, "c": 12, "d": 13, "e": 14, "f": 15} %}
 
 {% macro sx(v) %}{{ left + (v - options.x_min) / (options.x_max - options.x_min) * pw }}{% endmacro %}
 {% macro sy(v) %}{% if options.y_reverse %}{{ top + (v - options.y_min) / (options.y_max - options.y_min) * ph }}{% else %}{{ top + ph - (v - options.y_min) / (options.y_max - options.y_min) * ph }}{% endif %}{% endmacro %}
@@ -82,7 +97,26 @@ options:
   {% set px = row[channels.x] %}
   {% set py = row[channels.y] %}
   {% if px is not none and py is not none %}
-    {% set paint = color_for(row[channels.color], channels.color) %}
+    {% if channels.color %}
+      {% set paint = color_for(row[channels.color], channels.color) %}
+    {% else %}
+      {#- The team's own colour. A primary as light as the card would vanish
+          as a ring, so the second colour stands in, and the palette's blue
+          if there is none. -#}
+      {% set c = (row[options.team_color] or "") | lower if options.team_color else "" %}
+      {% set alt = (row[options.secondary_color] or "") | lower if options.secondary_color else "" %}
+      {% set paint = fallback %}
+      {% if c | length == 6 %}
+        {% set lum = 0.299 * (hexdigits[c[0]] * 16 + hexdigits[c[1]])
+                   + 0.587 * (hexdigits[c[2]] * 16 + hexdigits[c[3]])
+                   + 0.114 * (hexdigits[c[4]] * 16 + hexdigits[c[5]]) %}
+        {% if lum <= 215 %}
+          {% set paint = "#" ~ c %}
+        {% elif alt | length == 6 %}
+          {% set paint = "#" ~ alt %}
+        {% endif %}
+      {% endif %}
+    {% endif %}
     {% set pr = (row[options.radius_column] or r) if options.radius_column else r %}
     <g id="{{ uid }}-crest-{{ row[options.team_id] }}" class="crest">
       <title>{{ row[options.team_name] }}</title>
@@ -94,7 +128,9 @@ options:
 </g>
 
 {#- Legend, one swatch per group, in the order the groups first appear last
-    to first, which puts the groups drawn on top at the top. -#}
+    to first, which puts the groups drawn on top at the top. Team colours
+    need none: the logo inside each ring already says which team. -#}
+{% if channels.color %}
 {% set ns = namespace(seen=[]) %}
 {% for row in rows | reverse %}
   {% if row[channels.color] not in ns.seen %}{% set ns.seen = ns.seen + [row[channels.color]] %}{% endif %}
@@ -105,3 +141,4 @@ options:
   <circle cx="{{ width - right + 28 }}" cy="{{ gy }}" r="6" fill="{{ color_for(group, channels.color) }}"/>
   <text x="{{ width - right + 40 }}" y="{{ gy }}" dy="0.35em" font-size="11" fill="{{ ink }}">{{ group }}</text>
 {% endfor %}
+{% endif %}

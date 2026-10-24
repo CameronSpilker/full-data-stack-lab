@@ -66,15 +66,17 @@ style:
 
     # Colour by the job it does, the same way on every board:
     #
-    #   Ratings, how good a team is      blue    #2a78d6, and the table ramp
-    #                                            #dfebfb #a2c3f0 #83afea
-    #   Chances, from the model or the   orange  #eb6834, and the table ramp
-    #   20,000 simulated brackets                #ffe9e2 #fcbea7 #f9a78a
     #   Which team, where colour says    the team's own colours: each bar of
-    #   nothing else (a list of teams,   a top-N list, and both sides of a
-    #   two teams compared)              matchup, from mart_matchup_odds so a
+    #   nothing else (a list of teams,   a top-N list, both sides of a
+    #   two teams compared, the season   matchup, and the rings on the season
+    #   scatter)                         scatter, from mart_matchup_odds so a
     #                                    pair that shares a colour gets one
     #                                    side's secondary instead
+    #   Everything else: ratings,        blue #2a78d6, and the table ramp
+    #   chances, simulation output       #dfebfb #a2c3f0 #83afea. Groups that
+    #                                    need telling apart (tiers, models)
+    #                                    take the same blue at three depths,
+    #                                    #0d366b #2a78d6 #86b6ef
     #   Signed, either side of a         red, grey, blue around the baseline:
     #   baseline (zero, the median)      #fbb2ab #f0efec #a2c3f0 in tables;
     #                                    on bars a `band` column pinned to
@@ -86,19 +88,16 @@ style:
     # Table ramps stop at mid-tone on purpose. dbt Charts writes cell text in
     # the ink colour whatever the fill, so the darkest step must still read
     # with dark text: each one above clears APCA Lc 55 against #14213d. The
-    # survival heatmap has no text in its cells and takes the full orange
-    # ramp down to #832d05.
+    # survival heatmap has no text in its cells and takes the full blue ramp
+    # down to #0d366b.
     #
-    # The palette is the one cameronspilker.com ships and the Evidence
-    # dashboard already mirrors, ported stop for stop rather than picked again
-    # here: three categorical hues that clear colour-vision separation, a grey
-    # for the "other" bucket, and one sequential ramp built from the first hue.
-    # A fourth category folds into the grey instead of taking a new hue.
-    # Team colours never enter it. Where colour carries a group or a scale
-    # the palette does the work; a team's own colours mark only the team.
+    # There is one hue for data, blue, so a reader never has to ask what an
+    # orange bar means. Grey is the "other" bucket and context; red only ever
+    # marks the bad side of a baseline. Team colours never enter the palette:
+    # a team's own colours mark only the team.
     color:
       categorical:
-        palette: ["#2a78d6", "#eb6834", "#1baf7a", "#898781"]
+        palette: ["#2a78d6", "#0d366b", "#86b6ef", "#898781"]
         single_series_palette: ["#2a78d6"]
       gradient:
         palette: ["#86b6ef", "#5598e7", "#2a78d6", "#1c5cab", "#104281"]

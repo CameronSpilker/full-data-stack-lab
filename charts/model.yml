@@ -14,6 +14,14 @@ style:
         values:
           Honest forecast: "#2a78d6"
           Saw the season: "#898781"
+      # Three models drawn together: one blue at three depths, darkest for
+      # the blend, and grey for the diagonal they are all measured against.
+      model:
+        values:
+          Blended season ratings: "#0d366b"
+          Elo, pregame: "#2a78d6"
+          Market consensus: "#86b6ef"
+          Perfect calibration: "#898781"
 
 queries:
   # One CASE lives in each query rather than a shared view, because the
