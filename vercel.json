@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "mkdir -p .vercel-static",
+  "outputDirectory": ".vercel-static",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{dashboard/**,ingestion/**,transform/**,orchestration/**,data/**,dist/**,.github/**,**/tests/**}"
+    }
+  },
+  "rewrites": [
+    { "source": "/:path*", "destination": "/api/index?__path=/:path*" }
+  ]
+}
