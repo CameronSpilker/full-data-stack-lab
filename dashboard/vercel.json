@@ -17,9 +17,9 @@
     { "source": "/teams/:path*", "destination": "/evidence/teams/:path*", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/charts/scorecard", "destination": "https://lab-charts-live.vercel.app/charts/scorecard/" },
-    { "source": "/charts/scorecard/", "destination": "https://lab-charts-live.vercel.app/charts/scorecard/" },
-    { "source": "/charts/matchup", "destination": "https://lab-charts-live.vercel.app/charts/matchup/" },
-    { "source": "/charts/matchup/", "destination": "https://lab-charts-live.vercel.app/charts/matchup/" }
+    { "source": "/charts", "destination": "https://lab-charts-live.vercel.app/charts/" },
+    { "source": "/charts/", "destination": "https://lab-charts-live.vercel.app/charts/" },
+    { "source": "/charts/:board", "destination": "https://lab-charts-live.vercel.app/charts/:board/" },
+    { "source": "/charts/:board/", "destination": "https://lab-charts-live.vercel.app/charts/:board/" }
   ]
 }

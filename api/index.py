@@ -1,14 +1,13 @@
-"""The live scorecard and matchup boards, as a Vercel Function.
+"""The live dbt Charts boards, as a Vercel Function.
 
-The published boards under /charts are static HTML, and a static page cannot
-keep dbt Charts' team pickers. These two boards are the exception: this
-function runs dbt Charts' own server (what `dct serve` runs locally) so the
-pickers work, and the dashboard's vercel.json sends /charts/scorecard/ and
-/charts/matchup/ here.
+A static page cannot keep dbt Charts' pickers (the season on every board, and
+the teams on the scorecard and matchup), so every board is served live: this
+function runs dbt Charts' own server (what `dct serve` runs locally), and the
+dashboard's vercel.json sends every /charts path here.
 
-Only those two boards are answered. Everything else the server can do (the
-table inspector, the live-reload stream, the other boards, the template
-listing) is a local authoring tool, so it returns 404 here.
+Only the boards are answered. Everything else the server can do (the table
+inspector, the live-reload stream, the template listing) is a local
+authoring tool, so it returns 404 here.
 
 The warehouse is not in git. The function downloads the copy the nightly
 pipeline publishes on its first request, into /tmp (the only writable place
@@ -43,7 +42,7 @@ WAREHOUSE_MAX_AGE = 6 * 60 * 60
 # freshness and spares most visits a two-second render.
 CDN_CACHE = "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
 
-BOARDS = ("scorecard", "matchup")
+BOARDS = ("index", "rankings", "scorecard", "matchup", "model", "season", "tournament")
 # The same additions scripts/render-charts.sh makes to the static pages (the
 # scoreboard face and the team logos), plus one more: the server's own top bar
 # (breadcrumb, data and download menus) links to routes this function does not
@@ -114,6 +113,9 @@ def _board_of(path: str) -> str | None:
     # directly on this project's own URL as /<board>/.
     if parts[:1] == ["charts"]:
         parts = parts[1:]
+    # The home board is the folder itself: /charts/ rather than /charts/index/.
+    if not parts:
+        return "index"
     return parts[0] if len(parts) == 1 and parts[0] in BOARDS else None
 
 
@@ -144,10 +146,11 @@ async def app(scope, receive, send):
         return
 
     server = await _board_server()
+    route = "/" if board == "index" else f"/{board}/"
     inner = dict(
         scope,
-        path=f"/{board}/",
-        raw_path=f"/{board}/".encode(),
+        path=route,
+        raw_path=route.encode(),
         query_string=urllib.parse.urlencode(query).encode(),
     )
 
