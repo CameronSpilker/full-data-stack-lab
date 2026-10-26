@@ -15,7 +15,9 @@ seasons:
   - year: 2024
   - year: 2025
   - year: 2026
+  - year: 2027
 
-# Ratings and the bracket are only meaningful for the season in progress.
-# Everything else is history the predictor is backtested against.
-current_season: 2026
+# The season the nightly run refreshes, and the one the bracket and the
+# simulation move to once its ratings exist. Finished seasons keep the ratings
+# they ended on: the pipeline's ratings_backfill input fetches them.
+current_season: 2027

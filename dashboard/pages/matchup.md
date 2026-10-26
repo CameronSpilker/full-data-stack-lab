@@ -9,8 +9,8 @@ title: Matchup
 
 <ViewNav current="matchup" />
 
-Any two teams in the country, priced at a neutral site. It opens on BYU against
-the best team in the field.
+Any two teams, priced at a neutral site on the latest ratings. It opens on BYU
+against the top team.
 
 ```sql season_status
 select
@@ -24,11 +24,8 @@ from season_status
 
 <Alert status="warning">
 
-**The <Value data={season_status} column=schedule_season_label /> season has not
-tipped off.** Every price on this page is built from
-<Value data={season_status} column=data_season_label /> ratings, because a team
-that has not played a game cannot be rated. The numbers are real, and they are
-about last season's teams.
+The <Value data={season_status} column=schedule_season_label /> season has not
+tipped off, so these prices use <Value data={season_status} column=data_season_label /> ratings.
 
 </Alert>
 
@@ -287,13 +284,8 @@ Model win probability: <Value data={matchup} column=favourite_probability fmt='0
 
 ## What each half of the model says
 
-The prediction is a blend of two ratings that fail differently. Adjusted
-efficiency is opponent-adjusted and stable, but it describes a whole season and
-barely moves in March. Elo is noisier and not opponent-adjusted beyond who a
-team beat, but it is a time series, so it knows a team has won nine straight.
-
-When the two agree, the game is what it looks like. When they disagree, the
-blend sits between them and the game is less settled than one number suggests.
+The model blends adjusted efficiency (stable, season-long) with Elo (noisier,
+but it knows who is hot). When they disagree, the game is less settled.
 
 <Grid cols=3>
     <BigValue
@@ -316,7 +308,7 @@ blend sits between them and the game is less settled than one number suggests.
     />
 </Grid>
 
-Each is the chance the first team wins. The two halves are
+Each is the first team's chance. The two halves are
 <Value data={matchup} column=disagreement fmt='0.0%' /> apart.
 
 <Grid cols=2>
@@ -334,9 +326,7 @@ Each is the chance the first team wins. The two halves are
     />
 </Grid>
 
-Home court is worth 3.5 points in this model, applied to the host only. A
-neutral-site game passes zero, which is where the tournament is played and why
-that is the number the page leads with.
+Home court is worth 3.5 points.
 
 ## The two teams, side by side
 
@@ -417,7 +407,7 @@ unpivot (
     <Column id=rank_value title="National rank" fmt='0' align=right />
 </DataTable>
 
-## The rest of the field
+## Against the top 25
 
 ```sql gauntlet
 -- The first team against everyone the model rates in the top 25, at a neutral
@@ -459,10 +449,8 @@ order by other.national_rank
 
 <Alert status="info">
 
-**No price for this pairing.** The matchup grid is built from teams with a
-settled rating in the current season, so a team that has not played enough to
-be rated is not in it yet. Pick another opponent, or come back after the next
-nightly run.
+**No price for this pairing.** One of these teams has no rating yet this
+season. Pick another opponent.
 
 </Alert>
 

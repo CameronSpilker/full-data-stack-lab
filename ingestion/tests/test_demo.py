@@ -167,8 +167,11 @@ def test_only_the_next_few_days_of_the_schedule_are_priced():
 
 
 def test_the_as_of_date_falls_inside_the_season_either_way():
-    inside = date(2026, 1, 20)
-    assert demo.as_of_date(SEASONS[-1], inside) == inside
+    # Dated from the season rather than written down, so registering a new
+    # season does not move the test's dates outside it.
+    season = SEASONS[-1]
+    inside = date(season.year, 1, 20)
+    assert demo.as_of_date(season, inside) == inside
 
-    outside = demo.as_of_date(SEASONS[-1], date(2026, 8, 30))
-    assert SEASONS[-1].contains(outside)
+    outside = demo.as_of_date(season, date(season.year, 8, 30))
+    assert season.contains(outside)

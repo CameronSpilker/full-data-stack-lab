@@ -9,22 +9,9 @@ title: Upcoming picks
 
 <ViewNav current="picks" />
 
-Every other page here grades a prediction against a game that already
-happened. This one does not: it is what the model makes of games nobody has
-played yet, rebuilt every morning from last night's results.
-
-That makes it the only page where the full model is honestly point-in-time. In
-the [backtest](/model), the blended predictor has to be labelled as a model
-that saw the future, because scoring a January game with a rating that
-describes the whole season means using March information. A game that has not
-been played has no future to leak.
-
-**Read the edge column, not the probability column.** The model is very sure
-about a lot of games, and so is everyone else: a 95% favourite is 95% on every
-screen in the country and priced accordingly. The only interesting number here
-is where the model and the betting market disagree, and even then the market
-is the better forecaster more often than not. The
-[accuracy page](/model) is where that claim gets checked.
+What the model makes of games not played yet, rebuilt every morning. Read the
+**edge** column: where the model and the betting market disagree. The market is
+usually right ([model accuracy](/model)).
 
 ```sql season_status
 select
@@ -42,17 +29,8 @@ from season_status
 
 <Alert status="info">
 
-**The <Value data={season_status} column=data_season_label /> season is over, and
-the <Value data={season_status} column=awaited_season_label /> schedule has not been
-published.** The last game was played
-<Value data={season_status} column=last_completed_game_date fmt='mmmm d, yyyy' />, and
-a forecast needs fixtures: with nothing ahead to price, every table on this page
-would be empty. They are held back rather than drawn blank, and they come back
-on the first nightly run after the new schedule lands in the feed.
-
-Nothing here is waiting on a fix. The [season overview](/) and the
-[team scorecard](/scorecard) are complete, because they describe results rather
-than fixtures.
+No fixtures to price until the <Value data={season_status} column=awaited_season_label />
+schedule lands. The tables come back on the first nightly run after it does.
 
 </Alert>
 
@@ -79,21 +57,14 @@ from upcoming_games
     <BigValue data={slate} value=on_last_season title="Rated partly on last season" fmt='#,##0' />
 </Grid>
 
-The last tile is the one to watch in November. A team that has played fewer
-than ten games is rated partly on what it carried out of last season, and a
-matchup counts against that tile if either side is. Early in a season most of
-the card is, the model is at its worst, and the edges it reports are mostly its
-own error. By January the tile reads zero.
-
-Dated from the last day a game was played rather than from the clock, so a
-warehouse that is a day behind says what it knows instead of describing a
-slate its data never reached.
+In November many teams are still rated partly on last season (the last tile).
+By January that tile reads zero.
 
 {:else}
 
 <AwaitingData
     title="The slate"
-    detail="How far the results run, how many games are in the next seven days, how many of them a book has priced, and how many are still being rated partly on last season. Four counts over the fixtures ahead, which is what there are none of right now."
+    detail="Counts for the next seven days. Fills in when the schedule does."
     height={140}
 />
 
@@ -101,9 +72,7 @@ slate its data never reached.
 
 ## Where the model disagrees with the price
 
-The ten games in the next week where the model's probability is furthest above
-what the market is charging for the same side. Positive edge means the model
-thinks the price is too long. This is the list to read first.
+The ten games this week where the model likes a side most above its price.
 
 ```sql edges
 select
@@ -141,7 +110,7 @@ order by edge_rank
 
 <AwaitingData
     title="The ten biggest disagreements with the price"
-    detail="Needs two things a book provides and the calendar does not: a fixture inside the next seven days, and a posted line to disagree with. It fills in as soon as both exist."
+    detail="Needs games this week with a posted line."
     height={160}
 />
 
@@ -149,10 +118,7 @@ order by edge_rank
 
 ## The upsets it likes
 
-The same disagreement, restricted to games where the model is taking the side
-the market has priced as the underdog. These are the picks that lose most of
-the time and pay for it when they do not, which is a different bet from the
-one above and worth separating.
+The same, limited to underdogs.
 
 ```sql upsets
 select
@@ -187,7 +153,7 @@ order by upset_rank
 
 <AwaitingData
     title="The upsets the model likes"
-    detail="The same disagreement as the table above, narrowed to the games where the model is on the side the market has priced as the underdog. It needs the same posted lines."
+    detail="Needs games this week with a posted line."
     height={160}
 />
 
@@ -195,10 +161,8 @@ order by upset_rank
 
 ## Model against market, every priced game this week
 
-Each point is one game, plotted at what the market gives the model's pick
-against what the model gives it. The diagonal is agreement. Everything above
-the line is a game the model likes more than the price does, and the further
-from the line, the bigger the claim being made.
+One point per game. The diagonal is agreement; above it the model likes the pick
+more than the market does.
 
 ```sql agreement
 select
@@ -234,7 +198,7 @@ where days_out <= 7
 
 <AwaitingData
     title="Model against market, every priced game this week"
-    detail="One point per priced game, plotted against the diagonal where the model and the book agree. It is the clearest read on this page and the one that needs the most: a week of fixtures with lines posted against them."
+    detail="Needs games this week with a posted line."
     height={300}
 />
 
@@ -242,11 +206,8 @@ where days_out <= 7
 
 ## The ten it is most sure about
 
-Sorted on the model's own confidence, with no reference to a price. Most of
-these are unbettable at the number the market posts, which is exactly why the
-edge tables above lead the page. The last column is the check on the number
-beside it: across every season in the warehouse, this is how often a real
-forecast at that confidence has actually won.
+Ranked on confidence alone. "Has won" is how often past forecasts at that
+confidence came in.
 
 ```sql confident
 select
@@ -281,7 +242,7 @@ order by confidence_rank
 
 <AwaitingData
     title="The ten the model is most sure about"
-    detail="Ranked on the model's own confidence, with no reference to a price, and checked against how often a real forecast at that confidence has actually won. It needs fixtures inside the next seven days to rank."
+    detail="Needs games in the next seven days."
     height={160}
 />
 
@@ -289,8 +250,7 @@ order by confidence_rank
 
 ## The whole slate
 
-Every scheduled game in the next week, whether or not a book has posted it.
-Sorted by date, so this is the card rather than a ranking.
+Every game in the next seven days, by date.
 
 ```sql week
 select
@@ -328,7 +288,7 @@ order by game_date, pick_win_probability desc
 
 <AwaitingData
     title="Every scheduled game in the next week"
-    detail="The card rather than a ranking: every fixture inside seven days, priced or not. It is the first table on this page to fill in, because it is the only one that needs nothing from a bookmaker."
+    detail="Fills in when the schedule does."
     height={200}
 />
 
@@ -336,32 +296,9 @@ order by game_date, pick_win_probability desc
 
 ## How a pick is made
 
-Same predictor as everywhere else on this site, defined once in a dbt macro so
-the bracket, the head-to-head numbers and this page cannot disagree about the
-same game.
+Both teams are rated on adjusted efficiency (60%) and Elo (40%), plus 3.5 points
+for home court. The margin becomes a probability, and the market's median line
+is converted the same way and subtracted to give the edge. Full detail is on
+[how it works](/how-it-works).
 
-1. **Rate both teams as of today.** Adjusted efficiency margin, tempo, and Elo.
-   A team that has played fewer than ten games this season is rated partly on
-   what it carried out of last season, regressed toward the league, because a
-   rating built from four games is mostly noise and on opening night there is
-   no rating at all.
-2. **Turn the two ratings into an expected margin.** Efficiency at 60% weight
-   and Elo at 40%, tempo-adjusted, plus 3.5 points to the home side and
-   nothing at a neutral site.
-3. **Turn the margin into a probability** with the logistic the betting
-   market's own spread-to-moneyline conversion uses, so the model and the
-   benchmark are on one scale.
-4. **Compare it to the price.** Every book's spread and moneyline is reduced
-   to a median, converted the same way, and subtracted. What is left is the
-   edge column.
-5. **Rank, and stop at seven days out.** Anything further ahead has no line to
-   disagree with, so it sits in the slate table without a rank.
-
-The ratings this runs on are the same ones the [season overview](/) ranks
-teams with, and the accuracy of the predictor behind it is on the
-[model page](/model), including how badly it is calibrated where it is badly
-calibrated.
-
-None of this is betting advice, and the numbers are only as good as that
-calibration curve. A model that is overconfident at 80% will produce a
-confident-looking edge on every game it is wrong about.
+Not betting advice.

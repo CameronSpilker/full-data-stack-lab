@@ -1,5 +1,5 @@
 _schema_version: "0.10.0"  # written automatically by dct migrate
-title: The tournament
+title: March Madness
 notes: >
   Twenty thousand simulated tournaments, read three ways: who wins it, how far
   a seed line usually gets, and where the bracket stops being predictable.
@@ -118,7 +118,7 @@ charts:
       min_height: 132
       max_height: 132
     options:
-      current: Tournament
+      current: March Madness
 
   kpi_favourite:
     query: headline
@@ -274,7 +274,7 @@ rows:
   - banner
   # One short line saying what the page is. The charts carry the rest.
   - text: |
-      Title odds and seed value from 20,000 simulated brackets.
+      The NCAA tournament, simulated 20,000 times from a projected field.
   - cols: [kpi_favourite, kpi_final_four, kpi_sims]
   - cols: [odds_board, seed_bars]
   - cols: [survival_grid]

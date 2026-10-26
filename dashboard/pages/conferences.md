@@ -8,57 +8,35 @@ title: Conferences
 
 <ViewNav current="conferences" />
 
-A conference is usually judged by its best team. That is the wrong measure — one
-outstanding program can carry a league's reputation while the median team is mediocre.
-Depth is what actually predicts March, so these are ranked on the **median** team's
-rating rather than the mean or the maximum.
+Leagues ranked on their **median** team, because depth predicts March better
+than one great program does.
 
-```sql season_status
+```sql seasons
 select
-    schedule_season_label,
-    data_season_label,
-    awaited_season_label,
-    phase,
-    upcoming_games,
-    next_game_date,
-    last_completed_game_date
-from season_status
+    season,
+    (season - 1)::varchar || '-' || right(season::varchar, 2) as season_label
+from conference_strength
+-- Only seasons with ratings: without them the ranks and charts are empty.
+where median_efficiency_margin is not null
+group by season
+order by season desc
 ```
 
-{#if season_status[0].phase === 'preseason'}
+```sql season_pick
+select coalesce(
+    try_cast(nullif('${inputs.season.value}', '') as integer),
+    (select max(season) from conference_strength where median_efficiency_margin is not null)
+) as season
+```
 
-<Alert status="warning">
-
-**The <Value data={season_status} column=schedule_season_label /> season has not
-tipped off.** These standings describe <Value data={season_status} column=data_season_label />, the
-last completed season, because a team that has not played a game cannot be rated,
-ranked or seeded. <Value data={season_status} column=upcoming_games fmt='#,##0' />
-games are on the schedule, the first of them
-<Value data={season_status} column=next_game_date fmt='mmmm d' />.
-
-The [upcoming picks](/picks) page is the one that has already moved on: a forecast
-does not need results, so it is pricing those fixtures now.
-
-</Alert>
-
-{:else if season_status[0].phase === 'offseason'}
-
-<Alert status="info">
-
-**The <Value data={season_status} column=data_season_label /> season is over.**
-These standings are final: the last game was played
-<Value data={season_status} column=last_completed_game_date fmt='mmmm d, yyyy' />.
-The <Value data={season_status} column=awaited_season_label /> schedule has not been
-published yet, so there is nothing ahead to rate and nothing here is waiting on a
-fix. Everything updates itself on the first nightly run after the new fixtures
-land in the feed.
-
-The [upcoming picks](/picks) page is the one that needs those fixtures, so it is
-holding its tables until they arrive.
-
-</Alert>
-
-{/if}
+<Dropdown
+    data={seasons}
+    name=season
+    value=season
+    label=season_label
+    title="Season"
+    defaultValue={seasons[0]?.season}
+/>
 
 ```sql conferences
 select
@@ -66,16 +44,12 @@ select
     conference_name,
     team_count,
     median_efficiency_margin,
-    avg_efficiency_margin,
     best_efficiency_margin,
     best_team,
-    teams_in_top_25,
     teams_in_top_50,
-    ncaa_bids,
-    ncaa_tournament_wins,
-    avg_tempo
+    ncaa_bids
 from conference_strength
-where season = (select max(season) from conference_strength)
+where season = (select season from ${season_pick})
 order by conference_rank
 ```
 
@@ -92,19 +66,16 @@ order by conference_rank
 
 ## Depth against peak
 
-The horizontal axis is the median team, the vertical axis the best one. A conference high
-and to the right is strong throughout; high and to the left is one great team and not
-much else.
+Right is a deeper league, up is a better top team. Bubble size is NCAA bids.
 
 ```sql depth
 select
     conference_name,
     median_efficiency_margin,
     best_efficiency_margin,
-    team_count,
     ncaa_bids
 from conference_strength
-where season = (select max(season) from conference_strength)
+where season = (select season from ${season_pick})
 ```
 
 <ScatterPlot
@@ -117,21 +88,52 @@ where season = (select max(season) from conference_strength)
     tooltipTitle=conference_name
 />
 
-## How leagues have moved
+## Across seasons
+
+```sql conference_list
+select conference_name
+from conference_strength
+where season = (select season from ${season_pick})
+order by conference_rank
+```
+
+<Dropdown
+    data={conference_list}
+    name=compare
+    value=conference_name
+    title="Conferences"
+    multiple=true
+    defaultValue={conference_list.slice(0, 3).map((d) => d.conference_name)}
+/>
 
 ```sql over_time
+-- The picked conferences, or the top three when nothing is picked. The pick is
+-- read out of a dollar-quoted string rather than spliced in as a list, so the
+-- same SQL runs whether the input holds a selection, an empty one, or nothing
+-- yet while the page prerenders.
+with picked as (
+    select unnest(regexp_extract_all($$${inputs.compare.value}$$, '''([^'']+)''', 1)) as conference_name
+),
+
+shown as (
+    select conference_name from picked
+    union all
+    select conference_name from (
+        select conference_name
+        from conference_strength
+        where season = (select season from ${season_pick})
+        order by conference_rank
+        limit 3
+    )
+    where not exists (select 1 from picked)
+)
+
 select
     season,
     conference_name,
-    median_efficiency_margin,
-    conference_rank
+    median_efficiency_margin
 from conference_strength
-where conference_name in (
-    select conference_name from conference_strength
-    where season = (select max(season) from conference_strength)
-    order by conference_rank
-    limit 8
-)
+where conference_name in (select conference_name from shown)
 order by season
 ```
 
@@ -140,5 +142,7 @@ order by season
     x=season
     y=median_efficiency_margin
     series=conference_name
-    title="Median team rating, top eight conferences"
+    xFmt='0000'
+    yFmt='+0.0'
+    title="Median team rating by season"
 />

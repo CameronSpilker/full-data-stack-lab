@@ -8,16 +8,18 @@
     { "source": "/scorecard", "destination": "/evidence/scorecard", "permanent": true },
     { "source": "/matchup", "destination": "/evidence/matchup", "permanent": true },
     { "source": "/picks", "destination": "/evidence/picks", "permanent": true },
-    { "source": "/bracket", "destination": "/evidence/bracket", "permanent": true },
+    { "source": "/bracket", "destination": "/evidence/march-madness", "permanent": true },
+    { "source": "/evidence/bracket", "destination": "/evidence/march-madness", "permanent": true },
+    { "source": "/march-madness", "destination": "/evidence/march-madness", "permanent": true },
     { "source": "/conferences", "destination": "/evidence/conferences", "permanent": true },
     { "source": "/model", "destination": "/evidence/model", "permanent": true },
     { "source": "/how-it-works", "destination": "/evidence/how-it-works", "permanent": true },
     { "source": "/teams/:path*", "destination": "/evidence/teams/:path*", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/charts/scorecard", "destination": "https://lab-charts-live.vercel.app/charts/scorecard/" },
-    { "source": "/charts/scorecard/", "destination": "https://lab-charts-live.vercel.app/charts/scorecard/" },
-    { "source": "/charts/matchup", "destination": "https://lab-charts-live.vercel.app/charts/matchup/" },
-    { "source": "/charts/matchup/", "destination": "https://lab-charts-live.vercel.app/charts/matchup/" }
+    { "source": "/charts", "destination": "https://lab-charts-live.vercel.app/charts/" },
+    { "source": "/charts/", "destination": "https://lab-charts-live.vercel.app/charts/" },
+    { "source": "/charts/:board", "destination": "https://lab-charts-live.vercel.app/charts/:board/" },
+    { "source": "/charts/:board/", "destination": "https://lab-charts-live.vercel.app/charts/:board/" }
   ]
 }

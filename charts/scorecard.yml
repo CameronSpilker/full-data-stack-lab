@@ -23,6 +23,14 @@ style:
 # (?team=Duke Blue Devils); the static export draws the default and drops the
 # control.
 variables:
+  season:
+    input: select
+    notes: The season every chart on the board describes.
+    options:
+      query: season_options
+      column: season_key
+    default: Latest
+    required: true
   team:
     input: select
     notes: The team the whole board is about.
@@ -41,12 +49,55 @@ variables:
 # whose teams are generated and include no real school. It mirrors the rule
 # the Evidence scorecard at /scorecard uses, so the two open on the same team.
 queries:
+  season_options:
+    notes: Every season with ratings, newest first, behind a "Latest" choice.
+    sql: |
+      SELECT season_key
+      FROM (
+          SELECT 'Latest' AS season_key, 9999 AS sort_key
+          UNION ALL
+          SELECT
+              CAST(season - 1 AS VARCHAR) || '-' || right(CAST(season AS VARCHAR), 2),
+              season
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+          GROUP BY season
+      )
+      ORDER BY sort_key DESC
+
+  picked_banner:
+    notes: The banner's line for the picked season, in place of the shared one.
+    sql: |
+      WITH picked AS (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season)) AS season
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
+      SELECT
+          CAST(picked.season - 1 AS VARCHAR) || '-' || right(CAST(picked.season AS VARCHAR), 2)
+              AS season_label,
+          CASE
+              WHEN status.phase = 'in_season' AND status.data_season = picked.season
+                  THEN 'in progress'
+              ELSE 'final'
+          END AS phase_label,
+          strftime(max(games.game_date), '%b %-d, %Y') AS last_game
+      FROM picked
+      CROSS JOIN marts.mart_season_status AS status
+      LEFT JOIN marts.mart_game_results AS games
+          ON games.season = picked.season AND games.is_completed
+      GROUP BY picked.season, status.phase, status.data_season
+
   team_names:
     notes: Every ranked team in the latest season, for the team pickers.
     sql: |
       SELECT team_name
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
       ORDER BY team_name
 
   identity:
@@ -55,7 +106,11 @@ queries:
       WITH focus AS (
           SELECT team_id
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
           ORDER BY
               CASE
                   WHEN team_name = {{ team }} THEN 0
@@ -74,7 +129,11 @@ queries:
       field AS (
           SELECT count(*) AS teams_ranked
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
       )
       SELECT
           team.team_id,
@@ -107,7 +166,11 @@ queries:
           (SELECT teams_ranked FROM field) AS teams_ranked
       FROM marts.mart_team_season AS team
       INNER JOIN focus ON team.team_id = focus.team_id
-      WHERE team.season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE team.season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
 
   # Both halves of the rating as a percentile rather than a raw number. A
   # reader knows what "better than 92% of the country" means without being
@@ -119,7 +182,11 @@ queries:
       WITH focus AS (
           SELECT team_id
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
           ORDER BY
               CASE
                   WHEN team_name = {{ team }} THEN 0
@@ -133,7 +200,11 @@ queries:
       season AS (
           SELECT *
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
       ),
       ranked AS (
           SELECT
@@ -182,7 +253,11 @@ queries:
       WITH focus AS (
           SELECT team_id
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
           ORDER BY
               CASE
                   WHEN team_name = {{ team }} THEN 0
@@ -199,7 +274,11 @@ queries:
           timeline.is_win
       FROM marts.mart_elo_timeline AS timeline
       INNER JOIN focus ON timeline.team_id = focus.team_id
-      WHERE timeline.season = (SELECT max(season) FROM marts.mart_elo_timeline)
+      WHERE timeline.season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
       ORDER BY timeline.game_number
 
   results:
@@ -208,7 +287,11 @@ queries:
       WITH focus AS (
           SELECT team_id
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
           ORDER BY
               CASE
                   WHEN team_name = {{ team }} THEN 0
@@ -233,14 +316,18 @@ queries:
           timeline.was_upset_win
       FROM marts.mart_elo_timeline AS timeline
       INNER JOIN focus ON timeline.team_id = focus.team_id
-      WHERE timeline.season = (SELECT max(season) FROM marts.mart_elo_timeline)
+      WHERE timeline.season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
       ORDER BY timeline.game_date DESC
 
 charts:
   banner:
     type: custom
     template: court_banner
-    query: season_banner
+    query: picked_banner
     style:
       min_height: 132
       max_height: 132

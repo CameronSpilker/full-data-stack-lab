@@ -26,7 +26,14 @@
 with teams as (
 
     select * from {{ ref('mart_team_season') }}
-    where season = (select max(season) from {{ ref('mart_team_season') }})
+    -- The latest season with ratings, not the latest season. A new season
+    -- has games before its ratings feed catches up, and a bracket seeded from
+    -- a season with no ratings would be empty, which the simulation refuses.
+    -- Until the new ratings land, the bracket stays on the last rated season.
+    where season = (
+            select max(season) from {{ ref('mart_team_season') }}
+            where adjusted_efficiency_margin is not null
+        )
         and adjusted_efficiency_margin is not null
         and elo_rating is not null
 

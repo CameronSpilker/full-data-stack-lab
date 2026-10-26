@@ -8,96 +8,79 @@ title: NCAA Division I Men's Basketball
 
 <ViewNav current="index" />
 
-Tracking every Division I team through the season, and simulating the tournament
-at the end of it. Every number here comes out of a tested dbt model:
-[how it works](/how-it-works).
+Every Division I men's team, season by season. Pick a season. Every number
+comes from a tested dbt model ([how it works](/how-it-works)).
 
-For one team on one screen, open the [team scorecard](/scorecard). For any two
-teams priced against each other, open the [matchup page](/matchup). For the
-whole field in one order, open the [rankings](/rankings). For the games that
-have not been played yet, and what the model makes of them, open
-[upcoming picks](/picks).
+```sql seasons
+-- Every season the warehouse has rated, newest first, labelled the way the
+-- sport writes them: 2026 is the 2025-26 season.
+select
+    season,
+    (season - 1)::varchar || '-' || right(season::varchar, 2) as season_label
+from team_season
+-- Only seasons with ratings: without them the ranks and charts are empty.
+where adjusted_efficiency_margin is not null
+group by season
+order by season desc
+```
+
+```sql season_pick
+-- Every query below reads its season from here. Before anyone touches the
+-- dropdown, and while the page prerenders with no inputs, that is the latest.
+select coalesce(
+    try_cast(nullif('${inputs.season.value}', '') as integer),
+    (select max(season) from team_season where adjusted_efficiency_margin is not null)
+) as season
+```
+
+<Dropdown
+    data={seasons}
+    name=season
+    value=season
+    label=season_label
+    title="Season"
+    defaultValue={seasons[0]?.season}
+/>
 
 ```sql season_status
-select
-    schedule_season_label,
-    data_season_label,
-    awaited_season_label,
-    phase,
-    upcoming_games,
-    next_game_date,
-    last_completed_game_date
+select phase, schedule_season_label, data_season_label, next_game_date
 from season_status
 ```
 
 {#if season_status[0].phase === 'preseason'}
 
 <Alert status="warning">
-
-**The <Value data={season_status} column=schedule_season_label /> season has not
-tipped off.** Every number on this page describes <Value data={season_status} column=data_season_label />, the
-last completed season, because a team that has not played a game cannot be rated,
-ranked or seeded. <Value data={season_status} column=upcoming_games fmt='#,##0' />
-games are on the schedule, the first of them
-<Value data={season_status} column=next_game_date fmt='mmmm d' />.
-
-The [upcoming picks](/picks) page is the one that has already moved on: a forecast
-does not need results, so it is pricing those fixtures now.
-
-</Alert>
-
-{:else if season_status[0].phase === 'offseason'}
-
-<Alert status="info">
-
-**The <Value data={season_status} column=data_season_label /> season is over.**
-Every number on this page is final: the last game was played
-<Value data={season_status} column=last_completed_game_date fmt='mmmm d, yyyy' />.
-The <Value data={season_status} column=awaited_season_label /> schedule has not been
-published yet, so there is nothing ahead to rate and nothing here is waiting on a
-fix. Everything updates itself on the first nightly run after the new fixtures
-land in the feed.
-
-The [upcoming picks](/picks) page is the one that needs those fixtures, so it is
-holding its tables until they arrive.
-
+The <Value data={season_status} column=schedule_season_label /> season tips off
+<Value data={season_status} column=next_game_date fmt='mmmm d' />. Until then the
+latest season here is <Value data={season_status} column=data_season_label />.
 </Alert>
 
 {/if}
-
-```sql current
-select max(season) as season from team_season
-```
 
 ```sql totals
 select
     count(*) as teams,
     count(distinct conference_name) as conferences
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${season_pick})
 ```
 
 ```sql games_played
--- Played, not scheduled. Mid-season the schedule runs to about six thousand
--- games and only a fraction of them have happened.
 select count(*) as games from game_results
-where season = (select max(season) from game_results)
+where season = (select season from ${season_pick})
     and is_completed
 ```
 
-<Grid cols=4>
+<Grid cols=3>
     <BigValue data={totals} value=teams title="Division I teams" />
     <BigValue data={totals} value=conferences title="Conferences" />
     <BigValue data={games_played} value=games title="Games played" fmt='#,##0' />
-    <!-- A season is a year, not a quantity, so it takes no thousands separator. -->
-    <BigValue data={current} value=season title="Season" fmt='0000' />
 </Grid>
 
-## The top of the country
+## The top 25
 
-Ranked by adjusted efficiency margin — points scored minus points allowed per 100
-possessions, adjusted for the quality of the opponent. It is the single best one-number
-summary of how good a team is, and it is what the predictor runs on.
+Ranked on adjusted efficiency margin: points scored minus points allowed per 100
+possessions, adjusted for opponent.
 
 ```sql top_teams
 select
@@ -110,10 +93,9 @@ select
     adjusted_offensive_efficiency,
     adjusted_defensive_efficiency,
     adjusted_tempo,
-    elo_rating,
-    strength_of_schedule
+    elo_rating
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${season_pick})
 order by national_rank
 limit 25
 ```
@@ -132,9 +114,7 @@ limit 25
 
 ## Offense against defense
 
-Every team placed by what it does on each end. Up and to the right is good at both —
-the top left quadrant is elite offense, the bottom right elite defense. Teams furthest
-from the centre in either direction are the ones with a real identity.
+Up and to the right is good at both ends.
 
 ```sql quadrant
 select
@@ -142,13 +122,12 @@ select
     conference_name,
     adjusted_offensive_efficiency,
     adjusted_defensive_efficiency,
-    adjusted_efficiency_margin,
-    national_rank,
     case when national_rank <= 25 then 'Top 25' else 'Everyone else' end as tier,
     -- The top 25 are drawn last so they land on top of the cloud.
     case when national_rank <= 25 then 1 else 0 end as is_top
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${season_pick})
+    and adjusted_offensive_efficiency is not null
 order by is_top
 ```
 
@@ -165,9 +144,9 @@ order by is_top
     tooltipTitle=team_name
 />
 
-## Best of the season so far
+## Biggest upsets
 
-The games the ratings said were least likely to go the way they did.
+The results Elo thought least likely before tip-off.
 
 ```sql upsets
 select
@@ -180,16 +159,16 @@ select
         else 1 - elo_home_win_probability
     end as winner_pregame_probability
 from game_results
-where season = (select max(season) from game_results)
+where season = (select season from ${season_pick})
     and elo_home_win_probability is not null
 order by winner_pregame_probability
 limit 10
 ```
 
 <DataTable data={upsets} rows=10>
-    <Column id=game_date title="Date" fmt='mmm d' />
+    <Column id=game_date title="Date" fmt='mmm d, yyyy' />
     <Column id=winner title="Winner" />
-    <Column id=loser title="Lost to" />
+    <Column id=loser title="Beat" />
     <Column id=margin title="By" />
     <Column id=winner_pregame_probability title="Pregame odds" fmt='pct1' contentType=colorscale colorScale=negative />
 </DataTable>

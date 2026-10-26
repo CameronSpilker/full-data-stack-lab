@@ -27,7 +27,62 @@ style:
           Hit or miss: "#86b6ef"
           The rest: "#b4b1aa"
 
+# The season picker. Under `dct serve`, and on the live boards, it is a
+# dropdown and a URL parameter (?season=2025-26). Its default is "Latest",
+# which every query resolves to the newest season with ratings, so the
+# default moves on by itself when a new season is rated. The value is the
+# label itself, and queries read the year off its last two digits, which also
+# makes ?season=2026 work. The static export draws the default.
+variables:
+  season:
+    input: select
+    notes: The season every chart on the board describes.
+    options:
+      query: season_options
+      column: season_key
+    default: Latest
+    required: true
+
 queries:
+  season_options:
+    notes: Every season with ratings, newest first, behind a "Latest" choice.
+    sql: |
+      SELECT season_key
+      FROM (
+          SELECT 'Latest' AS season_key, 9999 AS sort_key
+          UNION ALL
+          SELECT
+              CAST(season - 1 AS VARCHAR) || '-' || right(CAST(season AS VARCHAR), 2),
+              season
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+          GROUP BY season
+      )
+      ORDER BY sort_key DESC
+
+  picked_banner:
+    notes: The banner's line for the picked season, in place of the shared one.
+    sql: |
+      WITH picked AS (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season)) AS season
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
+      SELECT
+          CAST(picked.season - 1 AS VARCHAR) || '-' || right(CAST(picked.season AS VARCHAR), 2)
+              AS season_label,
+          CASE
+              WHEN status.phase = 'in_season' AND status.data_season = picked.season
+                  THEN 'in progress'
+              ELSE 'final'
+          END AS phase_label,
+          strftime(max(games.game_date), '%b %-d, %Y') AS last_game
+      FROM picked
+      CROSS JOIN marts.mart_season_status AS status
+      LEFT JOIN marts.mart_game_results AS games
+          ON games.season = picked.season AND games.is_completed
+      GROUP BY picked.season, status.phase, status.data_season
+
   # The tiers are cut on national rank rather than on an efficiency number.
   # Cutting on margin reads better, because the bands are the diagonals a
   # reader already sees on the quadrant, but it hard-codes the spread of one
@@ -57,7 +112,11 @@ queries:
               ELSE 'The rest'
           END AS tier
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
       ORDER BY national_rank
 
   # The same field for the scatter, worst first, so the top tiers are drawn
@@ -84,7 +143,11 @@ queries:
               ELSE 8
           END AS point_radius
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
       ORDER BY national_rank DESC
 
   top_25:
@@ -100,7 +163,11 @@ queries:
                   ELSE 'The rest'
               END AS tier
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
       )
       SELECT
           national_rank,
@@ -130,7 +197,11 @@ queries:
               adjusted_offensive_efficiency,
               adjusted_defensive_efficiency
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
       )
       SELECT
           tier,
@@ -150,13 +221,17 @@ queries:
           max(adjusted_efficiency_margin) AS best_margin,
           count(*) FILTER (WHERE national_rank <= 16) AS favourites
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (
+          SELECT coalesce(try_cast('20' || right({{ season }}, 2) AS INTEGER), max(season))
+          FROM marts.mart_team_season
+          WHERE adjusted_efficiency_margin IS NOT NULL
+      )
 
 charts:
   banner:
     type: custom
     template: court_banner
-    query: season_banner
+    query: picked_banner
     style:
       min_height: 132
       max_height: 132

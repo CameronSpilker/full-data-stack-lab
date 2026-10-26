@@ -3,7 +3,7 @@
 #
 #   /            landing page, two tiles (dashboard/landing/)
 #   /evidence/   the Evidence dashboard
-#   /charts/     the dbt Charts boards
+#   /charts/     the dbt Charts boards, rewritten to the live project
 #   /docs/       the dbt docs, shared by both
 #
 # Evidence is built with basePath /evidence, so every link and asset it emits
@@ -36,14 +36,9 @@ else
     echo "  no dbt docs fetched; /docs will 404"
 fi
 
-if [ -d .site/charts ]; then
-    cp -R .site/charts build/charts
-    # The scorecard and matchup are served live, with their team pickers, by
-    # the lab-charts-live project (api/index.py at the repository root), and
-    # vercel.json rewrites their paths there. A file at the same path would
-    # win over the rewrite, so their static copies are left out.
-    rm -rf build/charts/scorecard build/charts/matchup
-    echo "  dbt Charts boards -> build/charts (scorecard and matchup served live)"
-else
-    echo "  no dbt Charts boards fetched; /charts will 404"
-fi
+# The dbt Charts boards are not copied in. Every board is served live, with
+# its season and team pickers, by the lab-charts-live project (api/index.py at
+# the repository root), and vercel.json rewrites /charts there. A static file
+# at the same path would win over the rewrite, so none is put there. The
+# pipeline still renders the static pages, as a check that every board draws.
+echo "  dbt Charts boards: served live from lab-charts-live"

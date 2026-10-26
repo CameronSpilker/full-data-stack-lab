@@ -16,7 +16,7 @@ reads it are one diff.
 | `matchup.yml` | `/charts/matchup/` | One game priced at a neutral site, with each half of the model shown separately |
 | `model.yml` | `/charts/model/` | Which predictor was best, and whether its confidence means anything |
 | `season.yml` | `/charts/season/` | Who was good and which conferences were deep |
-| `tournament.yml` | `/charts/tournament/` | Title odds, seed value and survival, from 20,000 simulated brackets |
+| `tournament.yml` | `/charts/tournament/` | March Madness: title odds, seed value and survival, from 20,000 simulated brackets |
 
 Every board opens with the same header: a navy court banner with the season
 it reports on and seven buttons in a fixed order, one per board, with the
@@ -33,9 +33,9 @@ on), because dbt Charts checks that a chart is complete before it merges in
 what a board extends. Under the banner is one line saying what the page gets
 you.
 
-On the published site the scorecard and matchup boards are fixed on one team
-and one game, because these pages render to static HTML and a picker does not
-survive the export. Under `dct serve` they have team pickers (see below).
+Home, Rankings, Scorecard and Season have a season picker, and Scorecard and
+Matchup have team pickers. On the published site every board is served live,
+so the pickers work there as they do under `dct serve` (see below).
 
 `meta.yml` is not a board. dbt Charts applies it to every file in this folder,
 and it carries what must not be decided per board: the look (a pale maple
@@ -159,40 +159,34 @@ catches most mistakes before anything touches the warehouse.
 
 ## How a board reaches the site
 
-The pages are static. `scripts/render-charts.sh` runs each board's SQL against
-the warehouse and writes the drawn result to HTML, the daily pipeline publishes
-that as `charts.tar.gz` on the `warehouse-latest` release, and the dashboard
-build unpacks it and `dashboard/scripts/assemble-site.sh` puts it at
-`/charts`. The dbt docs take the same route to `/docs`.
+Two ways, for two jobs. `scripts/render-charts.sh` runs each board's SQL
+against the warehouse and writes the drawn result to static HTML. The daily
+pipeline and CI both run it, so a board whose query breaks fails a run rather
+than reaching a reader, and the pipeline publishes the pages as
+`charts.tar.gz` on the `warehouse-latest` release. What readers see at
+`/charts` is the live server below, which draws the same boards on request.
 
-Two consequences worth knowing:
-
-- A board is only as fresh as the last pipeline run, exactly like every number
-  on the Evidence pages.
-- Editing a board and pushing to `main` re-runs the pipeline, because
-  `charts/**` is in its trigger paths. A Vercel rebuild on its own would only
-  re-fetch the pages the last pipeline run drew.
-
-Static also means the variable widgets `dct serve` gives you do not survive the
-render. `scorecard.yml` has a `team` variable and `matchup.yml` has `team` and
-`opponent`: under `dct serve` they are dropdowns and URL parameters
-(`/scorecard/?team=Duke Blue Devils`), and the export draws their defaults.
-Each board's `focus` CTE takes the picked team first, then BYU, then the
-top-ranked team, which is also what makes them render against the synthetic
-demo seasons. On the published site, a page that needs the reader to choose
-belongs on the Evidence side, and both of those boards link to it.
+The variables are why. `season` (on Home, Rankings, Scorecard and Season),
+`team` (Scorecard and Matchup) and `opponent` (Matchup) are dropdowns and URL
+parameters (`/charts/season/?season=2023-24`, `/charts/scorecard/?team=Duke
+Blue Devils`), and a static export can only draw their defaults. The season
+default is `Latest`, which every query resolves to the newest season with
+ratings, so it moves on by itself. Each team board's `focus` CTE takes the
+picked team first, then BYU, then the top-ranked team, which is also what
+makes them render against the synthetic demo seasons.
 
 ## The live boards
 
-The scorecard and matchup boards have team pickers, which a static page
-cannot keep, so those two are also served live: `api/index.py` runs dbt
+Every board is served live, so its pickers work: `api/index.py` runs dbt
 Charts' own server as a Vercel Function in a second Vercel project,
 `lab-charts-live`, deployed from the repository root (`vercel.json`,
 `pyproject.toml` and `uv.lock` there belong to it and to nothing else).
 
-- It answers `/scorecard/` and `/matchup/` only. The inspector, live reload,
-  the other boards and the server's own top bar are local authoring tools
-  and are not exposed.
+- It answers the seven boards and nothing else. The inspector, live reload
+  and the server's own top bar are local authoring tools and are not
+  exposed. `dashboard/vercel.json` rewrites every `/charts` path to it, and
+  the dashboard build leaves `/charts` empty, because a static file at the
+  same path would win over the rewrite.
 - It downloads the published warehouse on first use and again once that copy
   is six hours old, so it is never more than a pipeline run and a few hours
   behind.
@@ -201,5 +195,5 @@ Charts' own server as a Vercel Function in a second Vercel project,
   the two seconds a render takes. The first visit after a quiet spell also
   pays for the function starting and fetching the warehouse, about ten
   seconds.
-- Picks live in the URL (`/charts/scorecard/?team=Duke Blue Devils`), so a
-  link opens on the team it was copied from.
+- Picks live in the URL (`/charts/scorecard/?team=Duke Blue Devils&season=2025-26`),
+  so a link opens on the team and season it was copied from.
