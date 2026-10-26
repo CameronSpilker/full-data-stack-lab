@@ -56,6 +56,10 @@ on:
         description: "Include the team dimension, as the monthly run does"
         type: boolean
         default: false
+      ratings_backfill:
+        description: "Re-fetch adjusted ratings for every season in seasons.yml, and nothing else"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -122,7 +126,15 @@ jobs:
           CBD_API_KEY: ${{ secrets.CBD_API_KEY }}
           DUCKDB_PATH: data/warehouse.duckdb
         run: |
-          if [ "${{ inputs.backfill }}" = "true" ]; then
+          if [ "${{ inputs.ratings_backfill }}" = "true" ]; then
+            # Two requests a season: the ratings and the season stats beside
+            # them. The nightly run only asks for the season in progress, so
+            # this is how a finished season gets its adjusted efficiency and
+            # four factors, which the season pickers on both dashboards read.
+            # Loads replace only the rows they cover, so games, box scores and
+            # lines are left exactly as they were.
+            ingest ratings
+          elif [ "${{ inputs.backfill }}" = "true" ]; then
             # A backfill is thousands of requests in one go, which is what
             # exhausts the API's rate limit. Nobody is waiting on it, so it
             # asks more slowly rather than spending the run backing off.
