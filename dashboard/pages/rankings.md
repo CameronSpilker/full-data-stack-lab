@@ -9,28 +9,34 @@ title: Rankings
 
 <ViewNav current="rankings" />
 
-Every Division I team the model rated this season, in one order.
+The whole field in one order, for any season.
 
-```sql season_status
+```sql seasons
 select
-    schedule_season_label,
-    data_season_label,
-    phase
-from season_status
+    season,
+    (season - 1)::varchar || '-' || right(season::varchar, 2) as season_label
+from team_season
+-- Only seasons with ratings: without them the ranks and charts are empty.
+where adjusted_efficiency_margin is not null
+group by season
+order by season desc
 ```
 
-{#if season_status[0].phase === 'preseason'}
+```sql season_pick
+select coalesce(
+    try_cast(nullif('${inputs.season.value}', '') as integer),
+    (select max(season) from team_season where adjusted_efficiency_margin is not null)
+) as season
+```
 
-<Alert status="warning">
-
-**The <Value data={season_status} column=schedule_season_label /> season has not
-tipped off.** This order describes
-<Value data={season_status} column=data_season_label />, the last completed
-season, because a team that has not played cannot be rated or ranked.
-
-</Alert>
-
-{/if}
+<Dropdown
+    data={seasons}
+    name=season
+    value=season
+    label=season_label
+    title="Season"
+    defaultValue={seasons[0]?.season}
+/>
 
 ```sql field
 -- The tiers are cut on national rank rather than on an efficiency number.
@@ -68,7 +74,7 @@ select
         else 'The rest'
     end as tier
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${season_pick})
 order by national_rank
 ```
 
@@ -87,9 +93,8 @@ from ${field}
     <BigValue data={headline} value=conferences title="Conferences represented" fmt='0' />
 </Grid>
 
-The rating is adjusted efficiency margin: how many points per 100 possessions
-better than an average team the model thinks a team is, after adjusting for who
-it played. The order, the tiers and the plot below are all drawn from it.
+Ranked on adjusted efficiency margin: points per 100 possessions better than an
+average team, adjusted for opponent.
 
 ## The top of the order
 
@@ -128,8 +133,6 @@ order by national_rank
 {/each}
 </div>
 
-Each row opens that team's page.
-
 ## Offence against defence
 
 <LogoScatter
@@ -144,14 +147,9 @@ Each row opens that team's page.
     yAxisTitle="Points allowed per 100 possessions"
     xAxisTitle="Points scored per 100 possessions"
     title="Every team in the country"
-    subtitle="Up and to the right is good. The defensive axis runs downward, because points allowed is a number to minimise."
+    subtitle="Up and to the right is good at both ends. The axes are fixed, so a position means the same in every season."
     tooltipTitle=team_name
 />
-
-The defensive axis is reversed on purpose: defensive efficiency is points
-allowed, so putting the low numbers at the top makes "up and to the right" mean
-good on both axes. The window is fixed rather than fitted to the season, so a
-team's position means the same thing from one year to the next.
 
 ## What each tier looks like
 
@@ -183,9 +181,7 @@ order by avg_margin desc
 
 ## The full field
 
-Sortable and searchable, and wide enough to compare the two halves of a rating.
-A team can rank tenth overall on the strength of one side of the ball, and the
-offence and defence ranks beside the margin are where that shows.
+Sortable and searchable. Each row opens that team's page.
 
 ```sql field_linked
 -- The same rows with a link column, so a row in the table opens that team's

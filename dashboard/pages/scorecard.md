@@ -1,5 +1,5 @@
 ---
-title: Team scorecard
+title: Teams
 ---
 
 <script>
@@ -10,59 +10,25 @@ title: Team scorecard
 
 <ViewNav current="scorecard" />
 
-Every number that decides whether a team is any good, on one screen. Pick a team.
-It opens on BYU.
+One team, one season. It opens on BYU in the latest season.
 
-The short version is at the top: where the team ranks, what it has done, and
-what the model makes of it in one sentence. Everything below that is the
-working.
-
-```sql season_status
+```sql seasons
 select
-    schedule_season_label,
-    data_season_label,
-    awaited_season_label,
-    phase,
-    upcoming_games,
-    next_game_date,
-    last_completed_game_date
-from season_status
+    season,
+    (season - 1)::varchar || '-' || right(season::varchar, 2) as season_label
+from team_season
+-- Only seasons with ratings: without them the ranks and charts are empty.
+where adjusted_efficiency_margin is not null
+group by season
+order by season desc
 ```
 
-{#if season_status[0].phase === 'preseason'}
-
-<Alert status="warning">
-
-**The <Value data={season_status} column=schedule_season_label /> season has not
-tipped off.** Every number on this page describes <Value data={season_status} column=data_season_label />, the
-last completed season, because a team that has not played a game cannot be rated,
-ranked or seeded. <Value data={season_status} column=upcoming_games fmt='#,##0' />
-games are on the schedule, the first of them
-<Value data={season_status} column=next_game_date fmt='mmmm d' />.
-
-The [upcoming picks](/picks) page is the one that has already moved on: a forecast
-does not need results, so it is pricing those fixtures now.
-
-</Alert>
-
-{:else if season_status[0].phase === 'offseason'}
-
-<Alert status="info">
-
-**The <Value data={season_status} column=data_season_label /> season is over.**
-Every number on this page is final: the last game was played
-<Value data={season_status} column=last_completed_game_date fmt='mmmm d, yyyy' />.
-The <Value data={season_status} column=awaited_season_label /> schedule has not been
-published yet, so there is nothing ahead to rate and nothing here is waiting on a
-fix. Everything updates itself on the first nightly run after the new fixtures
-land in the feed.
-
-The [upcoming picks](/picks) page is the one that needs those fixtures, so it is
-holding its tables until they arrive.
-
-</Alert>
-
-{/if}
+```sql season_pick
+select coalesce(
+    try_cast(nullif('${inputs.season.value}', '') as integer),
+    (select max(season) from team_season where adjusted_efficiency_margin is not null)
+) as season
+```
 
 ```sql teams
 select
@@ -70,7 +36,7 @@ select
     team_name,
     conference_name
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${season_pick})
 order by team_name
 ```
 
@@ -107,6 +73,15 @@ select coalesce(
 ) as team_id
 ```
 
+<div class="pickers">
+<Dropdown
+    data={seasons}
+    name=season
+    value=season
+    label=season_label
+    title="Season"
+    defaultValue={seasons[0]?.season}
+/>
 <Dropdown
     data={teams}
     name=team
@@ -115,6 +90,7 @@ select coalesce(
     title="Team"
     defaultValue={default_team[0]?.team_id}
 />
+</div>
 
 ```sql team
 select
@@ -155,11 +131,11 @@ select
     -- one and renders '#24.0 of 365.0'.
     (
         select count(*) from team_season
-        where season = (select max(season) from team_season)
+        where season = (select season from ${season_pick})
     ) as field_size
 from team_season
 where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from team_season)
+    and season = (select season from ${season_pick})
 ```
 
 <div class="masthead">
@@ -201,10 +177,10 @@ with sized as (
         last_10_wins,
         last_10_games,
         (select count(*) from team_season
-         where season = (select max(season) from team_season)) as field_size
+         where season = (select season from ${season_pick})) as field_size
     from team_season
     where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) from team_season)
+        and season = (select season from ${season_pick})
 )
 select
     national_rank,
@@ -256,7 +232,7 @@ with prior as (
     select elo_rating, win_pct, avg_margin
     from team_season
     where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) - 1 from team_season)
+        and season = (select season - 1 from ${season_pick})
 ),
 
 -- Schedule strength is on a different scale in team_season, so the comparison
@@ -265,14 +241,14 @@ prior_opponents as (
     select avg(opponent_elo_before) as opponent_elo
     from elo_timeline
     where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) - 1 from elo_timeline)
+        and season = (select season - 1 from ${season_pick})
 ),
 
 games as (
     select game_date, elo_after, margin, is_win, opponent_elo_before
     from elo_timeline
     where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) from elo_timeline)
+        and season = (select season from ${season_pick})
 ),
 
 -- Ten games is the window the rest of the page already uses for form. Early in
@@ -320,7 +296,7 @@ order by rolled.game_date desc
         comparison=elo_vs_last
         comparisonFmt='+#,##0;-#,##0'
         comparisonTitle="vs last season"
-        description="A running rating that moves with every result: up for a win, further up for beating someone good. It carries across seasons rather than resetting, so last season's closing rating is what this is measured against."
+        description="A rating that moves with every result and carries across seasons."
     />
     <BigValue
         data={form_trend}
@@ -332,7 +308,7 @@ order by rolled.game_date desc
         comparison=margin_vs_last
         comparisonFmt='+0.0;-0.0'
         comparisonTitle="vs last season"
-        description="Average points won or lost by across the last ten games, against the same team's average for all of last season."
+        description="Average margin over the last ten games."
     />
     <BigValue
         data={form_trend}
@@ -344,7 +320,7 @@ order by rolled.game_date desc
         comparison=win_rate_vs_last
         comparisonFmt='+0%;-0%'
         comparisonTitle="vs last season"
-        description="Share of the last ten games won, against last season's rate across every game."
+        description="Share of the last ten games won."
     />
     <BigValue
         data={form_trend}
@@ -356,7 +332,7 @@ order by rolled.game_date desc
         comparison=opponent_elo_vs_last
         comparisonFmt='+#,##0;-#,##0'
         comparisonTitle="vs last season"
-        description="Average rating of the last ten opponents. Higher is a harder run of games, not a better team, so read it beside the three tiles to its left rather than on its own."
+        description="Average rating of the last ten opponents. Higher is a harder run of games."
     />
 </Grid>
 
@@ -370,7 +346,7 @@ order by rolled.game_date desc
         comparisonFmt='0'
         comparisonDelta=false
         comparisonTitle="nationally"
-        description="Points scored minus points allowed per 100 possessions, adjusted for the quality of the opponent. The single best one number summary of how good a team is."
+        description="Points scored minus allowed per 100 possessions, opponent adjusted."
     />
     <BigValue
         data={team}
@@ -392,7 +368,7 @@ order by rolled.game_date desc
         comparisonFmt='0'
         comparisonDelta=false
         comparisonTitle="nationally for conceding"
-        description="Points allowed per 100 possessions, opponent adjusted. Lower is better, which is why the rank beside it and the number move in opposite directions."
+        description="Points allowed per 100 possessions, opponent adjusted. Lower is better."
     />
     <BigValue
         data={team}
@@ -403,34 +379,27 @@ order by rolled.game_date desc
         comparisonFmt='0'
         comparisonDelta=false
         comparisonTitle="fastest nationally"
-        description="Possessions per 40 minutes. Neither fast nor slow is better, but it shapes every other number on this page."
+        description="Possessions per 40 minutes."
     />
 </Grid>
 
-The top row is this season moving: each tile draws its own last ten games and
-compares where the team is now against where they finished last season. The
-bottom row is the opponent adjusted ratings, which the warehouse holds for this
-season only, so they carry their national rank instead of a trend.
+Top row: the last ten games against last season. Bottom row: the season's
+opponent-adjusted ratings and their national rank.
 
-## The detail
-
-Everything from here is the working behind the two rows above: where the team
-sits against the field, how the season moved, and every game it played.
-
-### Where they stand
+## Where they stand
 
 ```sql percentiles
 with field as (
     select count(*) as teams
     from team_season
-    where season = (select max(season) from team_season)
+    where season = (select season from ${season_pick})
 ),
 
 subject as (
     select *
     from team_season
     where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) from team_season)
+        and season = (select season from ${season_pick})
 )
 
 select 'Net efficiency' as measure, subject.national_rank as rank,
@@ -459,7 +428,7 @@ from subject, field
 with season as (
     select *
     from team_season
-    where season = (select max(season) from team_season)
+    where season = (select season from ${season_pick})
 ),
 
 ranked as (
@@ -507,7 +476,7 @@ order by ordering
         labelFmt='pct0'
         chartAreaHeight=220
         title="Rank as a position"
-        subtitle="Percentile among all Division I teams. Higher is better on every row, schedule included."
+        subtitle="Percentile among Division I teams. Higher is better."
     />
     <BarChart
         data={four_factors}
@@ -523,14 +492,11 @@ order by ordering
         labelFmt='pct0'
         chartAreaHeight=220
         title="The four factors, both ends"
-        subtitle="Shooting, turnovers, rebounding and free throws decide games. Percentile, direction applied, so higher is always better."
+        subtitle="Percentile, so higher is always better."
     />
 </Grid>
 
 ## The season as it happened
-
-Elo after every game. The level says how good they are. The slope says whether they
-are getting there.
 
 ```sql timeline
 select
@@ -544,7 +510,7 @@ select
     game_type
 from elo_timeline
 where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from elo_timeline)
+    and season = (select season from ${season_pick})
 order by game_date
 ```
 
@@ -560,7 +526,7 @@ order by game_date
     title="Elo rating through the season"
 />
 
-## Five seasons
+## Every season on record
 
 ```sql program
 -- Every game the team has played in the warehouse, not just this season. Elo
@@ -587,11 +553,6 @@ from elo_timeline
 where team_id::varchar = (select team_id from ${chosen})
 ```
 
-Where the program has been, not just where it is. One line, every game since
-<Value data={program_span} column=first_season fmt='0000' />: the flat stretches
-are summers, and each climb or slide is a season. A team peaking is a line that
-ends higher than the one before it started.
-
 <LineChart
     data={program}
     x=game_date
@@ -602,7 +563,7 @@ ends higher than the one before it started.
     markers=false
     chartAreaHeight=260
     title="Elo across every season in the warehouse"
-    subtitle="Higher is better. 1500 is an average Division I team, and the rating only moves when a game is played."
+    subtitle="1500 is an average Division I team. Flat stretches are summers."
 />
 
 <Grid cols=4>
@@ -612,7 +573,7 @@ ends higher than the one before it started.
     <BigValue data={program_span} value=lowest title="Lowest Elo reached" fmt='#,##0' />
 </Grid>
 
-## Form and March
+## The last ten games
 
 ```sql form
 select
@@ -623,115 +584,140 @@ select
     pregame_win_probability
 from elo_timeline
 where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from elo_timeline)
+    and season = (select season from ${season_pick})
 order by game_date desc
 limit 10
 ```
 
-```sql odds
-select
-    seed,
-    region_name,
-    reached_round_of_32,
-    reached_sweet_16,
-    reached_elite_eight,
-    reached_final_four,
-    reached_championship_game,
-    won_championship,
-    expected_wins
+```sql in_field
+-- Whether this team is in the projected field. The simulations themselves
+-- live on the March Madness page.
+select seed, region_name
 from tournament_odds
 where team_id::varchar = (select team_id from ${chosen})
+    and season = (select season from ${season_pick})
 ```
 
-```sql rounds
-select round, probability from (
-    select 'Round of 32' as round, reached_round_of_32 as probability, 1 as step
-    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-    union all
-    select 'Sweet 16', reached_sweet_16, 2
-    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-    union all
-    select 'Elite Eight', reached_elite_eight, 3
-    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-    union all
-    select 'Final Four', reached_final_four, 4
-    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-    union all
-    select 'Title game', reached_championship_game, 5
-    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-    union all
-    select 'Champion', won_championship, 6
-    from tournament_odds where team_id::varchar = (select team_id from ${chosen})
-)
-order by step
-```
-
-<Grid cols=2>
-    {#if form.length > 0}
-        <BarChart
-            data={form}
-            x=game_date
-            y=margin
-            series=result
-            seriesColors={{Won: 'positive', Lost: 'negative'}}
-            yAxisTitle="Margin"
-            chartAreaHeight=200
-            title="The last ten games"
-            subtitle="Height is the winning or losing margin. Colour and the legend both say which."
-        />
-    {:else}
-        <AwaitingData
-            title="The last ten games"
-            detail="The winning or losing margin of each of this team's most recent games. It needs results, so it fills in once they have played."
-            height={200}
-        />
-    {/if}
-    {#if rounds.length > 0}
-        <BarChart
-            data={rounds}
-            x=round
-            y=probability
-            sort=false
-            yFmt='pct1'
-            labels=true
-            labelFmt='pct1'
-            chartAreaHeight=200
-            title="How far the simulations take them"
-            subtitle="Share of 20,000 simulated brackets reaching each round."
-        />
-    {:else}
-        <AwaitingData
-            title="How far the simulations take them"
-            detail="The share of 20,000 simulated brackets in which this team reaches each round. Drawn only for teams in the projected field: the bracket page has the 64 that are."
-            height={200}
-        />
-    {/if}
-</Grid>
-
-{#if odds.length > 0}
-
-Projected a <Value data={odds} column=seed /> seed in the
-<Value data={odds} column=region_name /> region.
-
-<Grid cols=4>
-    <BigValue data={odds} value=reached_sweet_16 title="Sweet 16" fmt='pct1' />
-    <BigValue data={odds} value=reached_final_four title="Final Four" fmt='pct1' />
-    <BigValue data={odds} value=won_championship title="Title" fmt='pct1' />
-    <BigValue data={odds} value=expected_wins title="Expected wins" fmt='0.00' />
-</Grid>
-
+{#if form.length > 0}
+<BarChart
+    data={form}
+    x=game_date
+    y=margin
+    series=result
+    seriesColors={{Won: 'positive', Lost: 'negative'}}
+    yAxisTitle="Margin"
+    chartAreaHeight=200
+/>
 {:else}
+<AwaitingData
+    title="The last ten games"
+    detail="Fills in once this team has played."
+    height={200}
+/>
+{/if}
 
-Not in the projected field. The [bracket page](/bracket) has the 64 teams that are.
+{#if in_field.length > 0}
+
+Projected a <Value data={in_field} column=seed /> seed in the
+<Value data={in_field} column=region_name /> region. Its odds are on the
+[March Madness](/march-madness) page.
 
 {/if}
 
+## Compare teams
+
+```sql compare_options
+select team_id, team_name
+from team_season
+where season = (select season from ${season_pick})
+order by national_rank
+```
+
+<Dropdown
+    data={compare_options}
+    name=compare
+    value=team_id
+    label=team_name
+    title="Teams"
+    multiple=true
+    defaultValue={compare_options.slice(0, 3).map((d) => d.team_id)}
+/>
+
+```sql compared
+-- The chosen team plus whoever is picked here, or the top three when nothing
+-- is. The pick is read out of a dollar-quoted string rather than spliced in
+-- as a list, so the same SQL runs with a selection, an empty one, or none yet
+-- while the page prerenders.
+with picked as (
+    select unnest(regexp_extract_all($$${inputs.compare.value}$$, '\b[1-9][0-9]*\b')) as team_id
+),
+
+shown as (
+    select team_id from picked
+    union
+    select team_id::varchar from (
+        select team_id from team_season
+        where season = (select season from ${season_pick})
+        order by national_rank
+        limit 3
+    )
+    where not exists (select 1 from picked)
+    union
+    select team_id from ${chosen}
+)
+
+select
+    team_id,
+    team_name,
+    national_rank,
+    record,
+    adjusted_efficiency_margin,
+    adjusted_offensive_efficiency,
+    adjusted_defensive_efficiency,
+    adjusted_tempo,
+    elo_rating,
+    schedule_strength_rank
+from team_season
+where season = (select season from ${season_pick})
+    and team_id::varchar in (select team_id from shown)
+order by national_rank
+```
+
+```sql compared_elo
+select e.game_date, e.team_name, e.elo_after
+from elo_timeline as e
+where e.season = (select season from ${season_pick})
+    and e.team_id::varchar in (select team_id::varchar from ${compared})
+order by e.game_date
+```
+
+<LineChart
+    data={compared_elo}
+    x=game_date
+    y=elo_after
+    series=team_name
+    yAxisTitle="Elo"
+    markers=false
+    chartAreaHeight=240
+    title="Elo through the season"
+/>
+
+<DataTable data={compared} rows=10>
+    <Column id=national_rank title="#" />
+    <Column id=team_name title="Team" />
+    <Column id=record title="Record" />
+    <Column id=adjusted_efficiency_margin title="Net eff." fmt='+0.0;-0.0' contentType=colorscale />
+    <Column id=adjusted_offensive_efficiency title="Off." fmt='0.0' />
+    <Column id=adjusted_defensive_efficiency title="Def." fmt='0.0' />
+    <Column id=adjusted_tempo title="Tempo" fmt='0.0' />
+    <Column id=elo_rating title="Elo" fmt='#,##0' />
+    <Column id=schedule_strength_rank title="SOS rank" />
+</DataTable>
+
 ## What is next
 
-The rest of the schedule, priced the same way the [upcoming picks](/picks) page
-prices it. "Model" is this team's chance of winning, "market" is what the
-betting consensus gives them, and a game with no market number is one no book
-has posted yet.
+The rest of this season's schedule. "Model" is this team's chance of winning,
+"market" is the betting consensus.
 
 ```sql next_games
 select
@@ -760,8 +746,9 @@ select
     end as predicted_margin,
     days_out
 from upcoming_games
-where home_team_id = (select team_id from ${chosen})
-    or away_team_id = (select team_id from ${chosen})
+where (home_team_id = (select team_id from ${chosen})
+        or away_team_id = (select team_id from ${chosen}))
+    and season = (select season from ${season_pick})
 order by game_date
 limit 10
 ```
@@ -781,7 +768,7 @@ limit 10
 
 <AwaitingData
     title="The rest of the schedule, priced"
-    detail="This team's next ten fixtures with the model's line beside the market's. The schedule arrives with the rest of the game feed, so a fixture appears here as soon as the source carries it."
+    detail="This team's next ten fixtures, priced. Empty for a finished season."
     height={180}
 />
 
@@ -789,8 +776,7 @@ limit 10
 
 ## Good offense or good defense
 
-Every Division I team placed by what they do at each end, with this team marked.
-Defense is inverted, so up and to the right is good at both.
+This team against the field. Up and to the right is good at both ends.
 
 ```sql landscape
 select
@@ -804,7 +790,7 @@ select
     end as highlight,
     case when team_id::varchar = (select team_id from ${chosen}) then 1 else 0 end as is_subject
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${season_pick})
 -- The marked team is drawn last so it lands on top of the cloud rather than under it.
 order by is_subject
 ```
@@ -825,8 +811,7 @@ order by is_subject
 
 ## The wins that count
 
-Ranked by how unlikely the model thought each one was before tip-off. A team's best
-result is not its biggest blowout, it is the game it had no business winning.
+Ranked by how unlikely Elo thought each one was before tip-off.
 
 ```sql best_wins
 select
@@ -838,7 +823,7 @@ select
     case when is_home then 'Home' when is_neutral_site then 'Neutral' else 'Away' end as site
 from elo_timeline
 where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from elo_timeline)
+    and season = (select season from ${season_pick})
     and is_win
 order by pregame_win_probability
 limit 5
@@ -867,7 +852,7 @@ select
     game_type
 from elo_timeline
 where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from elo_timeline)
+    and season = (select season from ${season_pick})
 order by game_date desc
 ```
 
@@ -882,6 +867,14 @@ order by game_date desc
 </DataTable>
 
 <style>
+    .pickers {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-end;
+        margin-bottom: 1rem;
+    }
+
     .masthead {
         display: flex;
         gap: 1rem;

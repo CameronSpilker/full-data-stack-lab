@@ -26,11 +26,11 @@
     const views = [
         { slug: 'index', label: 'Overview', href: '/' },
         { slug: 'rankings', label: 'Rankings', href: '/rankings' },
-        { slug: 'scorecard', label: 'Scorecard', href: '/scorecard' },
+        { slug: 'scorecard', label: 'Teams', href: '/scorecard' },
         { slug: 'matchup', label: 'Matchup', href: '/matchup' },
-        { slug: 'picks', label: 'Picks', href: '/picks' },
-        { slug: 'bracket', label: 'Bracket', href: '/bracket' },
         { slug: 'conferences', label: 'Conferences', href: '/conferences' },
+        { slug: 'picks', label: 'Picks', href: '/picks' },
+        { slug: 'march-madness', label: 'March Madness', href: '/march-madness' },
         { slug: 'model', label: 'Model', href: '/model' },
         { slug: 'how-it-works', label: 'How it works', href: '/how-it-works' },
     ];

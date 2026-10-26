@@ -1,77 +1,54 @@
 ---
-title: Tournament Odds
+title: March Madness
 ---
 
 <script>
     import ViewNav from '$lib/ViewNav.svelte';
 </script>
 
-<ViewNav current="bracket" />
+<ViewNav current="march-madness" />
+
+The NCAA tournament, simulated. A projected 64-team field (conference champions
+plus the best at-large teams, seeded across four regions) is played out
+<Value data={sims} column=simulations fmt='#,##0' /> times, and the odds below
+are how often each result happened.
 
 ```sql sims
-select max(simulations) as simulations, max(season) as season from tournament_odds
+select
+    max(simulations) as simulations,
+    max(season) as season,
+    (max(season) - 1)::varchar || '-' || right(max(season)::varchar, 2) as season_label
+from tournament_odds
 ```
 
 ```sql season_status
-select
-    schedule_season_label,
-    data_season_label,
-    awaited_season_label,
-    phase,
-    upcoming_games,
-    next_game_date,
-    last_completed_game_date
-from season_status
+select phase, schedule_season, schedule_season_label from season_status
 ```
 
-{#if season_status[0].phase === 'preseason'}
+{#if sims[0].season < season_status[0].schedule_season}
 
-<Alert status="warning">
-
-**The <Value data={season_status} column=schedule_season_label /> season has not
-tipped off.** This field and these odds describe <Value data={season_status} column=data_season_label />, the
-last completed season, because a team that has not played a game cannot be rated,
-ranked or seeded. <Value data={season_status} column=upcoming_games fmt='#,##0' />
-games are on the schedule, the first of them
-<Value data={season_status} column=next_game_date fmt='mmmm d' />.
-
-The [upcoming picks](/picks) page is the one that has already moved on: a forecast
-does not need results, so it is pricing those fixtures now.
-
+<Alert status="info">
+Showing the final <Value data={sims} column=season_label /> simulation. The
+<Value data={season_status} column=schedule_season_label /> run starts on the
+first nightly run after that season has ratings, then reruns every morning
+(twice a day in March).
 </Alert>
 
 {:else if season_status[0].phase === 'offseason'}
 
 <Alert status="info">
+Showing the final <Value data={sims} column=season_label /> simulation. The next
+season's run starts once it tips off and has ratings.
+</Alert>
 
-**The <Value data={season_status} column=data_season_label /> season is over.**
-This field and these odds are final: the last game was played
-<Value data={season_status} column=last_completed_game_date fmt='mmmm d, yyyy' />.
-The <Value data={season_status} column=awaited_season_label /> schedule has not been
-published yet, so there is nothing ahead to rate and nothing here is waiting on a
-fix. Everything updates itself on the first nightly run after the new fixtures
-land in the feed.
+{:else}
 
-The [upcoming picks](/picks) page is the one that needs those fixtures, so it is
-holding its tables until they arrive.
-
+<Alert status="info">
+<Value data={sims} column=season_label /> projected field, rerun every morning
+(twice a day in March). It is a forecast of the bracket until Selection Sunday.
 </Alert>
 
 {/if}
-
-The bracket played <Value data={sims} column=simulations fmt='#,##0' /> times. Each
-simulation plays all 63 games, drawing every result from the same matchup
-probabilities the rest of the site uses, and the odds below are simply how often
-each outcome happened.
-
-<Alert status="info">
-
-Before Selection Sunday there is no official bracket, so this field is
-<strong>projected</strong>: automatic bids to conference tournament champions, at-large
-places to the best remaining teams, seeded across four regions. It is a forecast of the
-bracket, not the bracket.
-
-</Alert>
 
 ```sql favourites
 select
@@ -113,9 +90,8 @@ limit 16
 
 ## Every team in the field
 
-`Expected wins` is the sum of a team's odds of surviving each round. It ranks a field
-better than title odds do, because title odds are dominated by a handful of teams while
-most of a bracket is decided by whether a 6 seed reaches the second weekend.
+Expected wins is the sum of a team's odds of winning each round. Each row opens
+that team's page.
 
 ```sql field
 select
@@ -149,9 +125,8 @@ order by expected_wins desc
 
 ## Does seeding hold up?
 
-If the seeding is sound, title odds should fall steadily as the seed number rises. Where
-it does not, the committee's ordering and the ratings disagree — which is exactly where
-the value in a bracket pool is.
+Odds should fall as the seed number rises. Where they do not, the seeding and
+the ratings disagree.
 
 ```sql by_seed
 select

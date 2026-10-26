@@ -66,34 +66,40 @@ from season_status
 {#if season_status[0].phase === 'preseason'}
 
 <Alert status="warning">
-
-**The <Value data={season_status} column=schedule_season_label /> season has not
-tipped off.** Everything above and below describes
-<Value data={season_status} column=data_season_label />, the last completed season.
-This team's <Value data={season_status} column=schedule_season_label /> fixtures are
-under "What is next", priced by a model that does not need results to run.
-
-</Alert>
-
-{:else if season_status[0].phase === 'offseason'}
-
-<Alert status="info">
-
-**The <Value data={season_status} column=data_season_label /> season is over.**
-Everything above and below is this team's final record for it: the last game in the
-warehouse was played
-<Value data={season_status} column=last_completed_game_date fmt='mmmm d, yyyy' />. The
-<Value data={season_status} column=awaited_season_label /> schedule has not been
-published, so "What is next" is holding its table until it is.
-
+The <Value data={season_status} column=schedule_season_label /> season has not
+tipped off, so this page shows <Value data={season_status} column=data_season_label />.
 </Alert>
 
 {/if}
 
-## The season, game by game
+## Season by season
 
-Elo after every game. The slope matters more than the level: a line climbing through
-February is a team playing its best basketball at the right time.
+```sql history
+select
+    season,
+    (season - 1)::varchar || '-' || right(season::varchar, 2) as season_label,
+    conference_name,
+    record,
+    national_rank,
+    adjusted_efficiency_margin,
+    elo_rating,
+    made_ncaa_tournament
+from team_season
+where team_id = '${params.team_id}'
+order by season desc
+```
+
+<DataTable data={history} rows=10>
+    <Column id=season_label title="Season" />
+    <Column id=conference_name title="Conference" />
+    <Column id=record title="Record" />
+    <Column id=national_rank title="Rank" />
+    <Column id=adjusted_efficiency_margin title="Net eff." fmt='+0.0;-0.0' contentType=colorscale />
+    <Column id=elo_rating title="Elo" fmt='#,##0' />
+    <Column id=made_ncaa_tournament title="NCAA" />
+</DataTable>
+
+## This season, game by game
 
 ```sql timeline
 select
@@ -121,9 +127,6 @@ order by game_date
 
 ## Four factors
 
-The four things that decide basketball games, in the order they matter. Shooting is
-roughly twice as important as any of the others.
-
 ```sql factors
 select 'Effective FG%' as factor, effective_fg_pct as offense, effective_fg_pct_allowed as defense
 from team_season where team_id = '${params.team_id}' and season = (select max(season) from team_season)
@@ -141,19 +144,8 @@ from team_season where team_id = '${params.team_id}' and season = (select max(se
     <Column id=defense title="Defense" fmt='0.0' />
 </DataTable>
 
-## Tournament outlook
-
 ```sql odds
-select
-    seed,
-    region_name,
-    reached_round_of_32,
-    reached_sweet_16,
-    reached_elite_eight,
-    reached_final_four,
-    reached_championship_game,
-    won_championship,
-    expected_wins
+select seed, region_name
 from tournament_odds
 where team_id = '${params.team_id}'
 ```
@@ -161,27 +153,12 @@ where team_id = '${params.team_id}'
 {#if odds.length > 0}
 
 Projected a <Value data={odds} column=seed /> seed in the
-<Value data={odds} column=region_name /> region.
-
-<BigValue data={odds} value=reached_sweet_16 title="Sweet 16" fmt='pct1' />
-<BigValue data={odds} value=reached_final_four title="Final Four" fmt='pct1' />
-<BigValue data={odds} value=won_championship title="Title" fmt='pct1' />
-<BigValue data={odds} value=expected_wins title="Expected wins" fmt='0.00' />
-
-{:else}
-
-<AwaitingData
-    title="Tournament outlook"
-    detail="A projected seed and the odds of reaching each round, from 20,000 simulated brackets. Drawn only for teams in the projected field, and this one is not in it."
-    height={140}
-/>
+<Value data={odds} column=region_name /> region. Its odds are on the
+[March Madness](/march-madness) page.
 
 {/if}
 
 ## What is next
-
-The rest of this team's schedule, priced the same way the
-[upcoming picks](/picks) page prices it.
 
 ```sql next_games
 select
@@ -230,7 +207,7 @@ limit 10
 
 <AwaitingData
     title="The rest of the schedule, priced"
-    detail="This team's next ten fixtures with the model's line and the market's beside each other. It fills in as soon as the game feed carries a fixture that has not been played."
+    detail="This team's next ten fixtures, priced. Fills in when the schedule does."
     height={180}
 />
 
