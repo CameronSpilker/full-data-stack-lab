@@ -33,14 +33,28 @@ typed as (
         home_team_name,
         home_team_abbreviation,
         cast(home_conference_id as varchar) as home_conference_id,
-        cast(home_score as integer) as home_score,
+        -- A fixture the source has not called final comes back 0-0 rather
+        -- than null (the 2026-27 schedule arrived that way). That is a
+        -- placeholder, not a score, and keeping it would make every upcoming
+        -- game look like one with a result already on record.
+        case
+            when not coalesce(is_completed, false)
+                and coalesce(home_score, 0) = 0 and coalesce(away_score, 0) = 0
+                then null
+            else cast(home_score as integer)
+        end as home_score,
         cast(home_ap_rank as integer) as home_ap_rank,
 
         cast(away_team_id as varchar) as away_team_id,
         away_team_name,
         away_team_abbreviation,
         cast(away_conference_id as varchar) as away_conference_id,
-        cast(away_score as integer) as away_score,
+        case
+            when not coalesce(is_completed, false)
+                and coalesce(home_score, 0) = 0 and coalesce(away_score, 0) = 0
+                then null
+            else cast(away_score as integer)
+        end as away_score,
         cast(away_ap_rank as integer) as away_ap_rank,
 
         coalesce(is_neutral_site, false) as is_neutral_site,
