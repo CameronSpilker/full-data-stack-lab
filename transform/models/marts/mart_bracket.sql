@@ -26,7 +26,16 @@
 with teams as (
 
     select * from {{ ref('mart_team_season') }}
-    where season = (select max(season) from {{ ref('mart_team_season') }})
+    -- The latest season that has ratings, not the latest season. A season is
+    -- in mart_team_season from its first result, but the efficiency ratings
+    -- the selection score is built on arrive a week or two later, and a
+    -- bracket filtered to the newest season in that gap holds nobody. Until
+    -- they do, this stays on the last rated field, the way every page already
+    -- does in the preseason, and moves on by itself when they land.
+    where season = (
+        select max(season) from {{ ref('mart_team_season') }}
+        where adjusted_efficiency_margin is not null
+    )
         and adjusted_efficiency_margin is not null
         and elo_rating is not null
 

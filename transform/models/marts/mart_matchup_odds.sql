@@ -12,7 +12,15 @@
 with inputs as (
 
     select * from {{ ref('int_team_prediction_inputs') }}
-    where season = (select max(season) from {{ ref('int_team_prediction_inputs') }})
+    -- The latest season that has efficiency ratings, which in the first week
+    -- or two of a season is the one before it: results arrive before the
+    -- ratings do, and filtering to the newest season first left this grid,
+    -- and the tournament simulation that draws from it, with nobody in it.
+    -- Same rule as mart_bracket.
+    where season = (
+        select max(season) from {{ ref('int_team_prediction_inputs') }}
+        where adjusted_efficiency_margin is not null
+    )
         and adjusted_efficiency_margin is not null
         and elo_rating is not null
 
