@@ -45,9 +45,20 @@ teams as (
 
 ),
 
+-- Published ratings only. A season the source has not rated yet arrives here
+-- carrying last season's ratings (int_team_prediction_inputs), and this model
+-- does its own carrying, so counting those as current-season evidence would
+-- carry them twice and label the result 'current_season'.
 this_season as (
 
-    select * from inputs
+    select
+        * replace (
+            case when rating_basis = 'published' then adjusted_efficiency_margin end
+                as adjusted_efficiency_margin,
+            case when rating_basis = 'published' then adjusted_tempo end
+                as adjusted_tempo
+        )
+    from inputs
     where season = (select season from target)
 
 ),

@@ -91,6 +91,7 @@ options:
     {%- if season -%}
       {{ season.season_label }} season · {{ season.phase_label }}
       {%- if season.last_game %} · last game {{ season.last_game }}{% endif %}
+      {%- if season.ratings_note %} · {{ season.ratings_note }}{% endif %}
     {%- else -%}
       Full Data Stack Lab
     {%- endif -%}

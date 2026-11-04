@@ -21,6 +21,9 @@ select
     adjusted_defensive_efficiency,
     adjusted_efficiency_margin,
     adjusted_tempo,
+    -- 'published', or 'carried' for a season the rating source has not
+    -- published yet, which borrows last season's (int_team_prediction_inputs).
+    rating_basis,
     elo_rating,
     srs_rating,
     strength_of_schedule,
