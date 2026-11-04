@@ -67,6 +67,15 @@ queries:
           FROM offered
       ),
 
+      -- A season the rating source has not published yet is rated from the
+      -- one before it (int_team_prediction_inputs), and the banner says so.
+      carried AS (
+          SELECT season
+          FROM marts.mart_team_season
+          GROUP BY season
+          HAVING bool_or(rating_basis = 'carried')
+      ),
+
       last_games AS (
           SELECT season, max(game_date) AS last_game_date
           FROM marts.mart_game_results
@@ -95,9 +104,15 @@ queries:
                   THEN 'in progress'
               ELSE 'final'
           END AS phase_label,
-          strftime(last_games.last_game_date, '%b %-d, %Y') AS last_game
+          strftime(last_games.last_game_date, '%b %-d, %Y') AS last_game,
+          CASE
+              WHEN carried.season IS NOT NULL
+                  THEN 'ratings from ' || CAST(offered.season - 2 AS VARCHAR) || '-'
+                      || right(CAST(offered.season - 1 AS VARCHAR), 2)
+          END AS ratings_note
       FROM offered
       CROSS JOIN picked
       CROSS JOIN marts.mart_season_status AS status
       LEFT JOIN last_games ON last_games.season = offered.season
+      LEFT JOIN carried ON carried.season = offered.season
       ORDER BY offered.season DESC

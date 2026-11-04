@@ -46,9 +46,24 @@ market as (
 
 ),
 
+-- Published ratings only. This is the model graded as having seen the
+-- season's own ratings, so a season the source has not rated yet, which
+-- int_team_prediction_inputs fills with last season's, keeps its games but
+-- leaves them unpredicted, rather than scoring them under a name that no
+-- longer describes them.
 inputs as (
 
-    select * from {{ ref('int_team_prediction_inputs') }}
+    select
+        * replace (
+            {%- for column in [
+                'adjusted_offensive_efficiency', 'adjusted_defensive_efficiency',
+                'adjusted_efficiency_margin', 'adjusted_tempo',
+            ] %}
+            case when rating_basis = 'published' then {{ column }} end as {{ column }}
+            {{- "," if not loop.last }}
+            {%- endfor %}
+        )
+    from {{ ref('int_team_prediction_inputs') }}
 
 ),
 

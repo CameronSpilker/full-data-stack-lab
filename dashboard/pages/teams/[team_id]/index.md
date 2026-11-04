@@ -5,7 +5,7 @@
 # ${params.team_id}
 
 ```sql seasons
--- Every season this team has in the warehouse, newest first, for the season
+-- Every season this team has ratings for, newest first, for the season
 -- picker. The picker opens on the first one, so the page opens on the season
 -- being played.
 select distinct
@@ -13,6 +13,7 @@ select distinct
     cast(season - 1 as varchar) || '-' || right(cast(season as varchar), 2) as season_label
 from team_season
 where team_id = '${params.team_id}'
+    and adjusted_efficiency_margin is not null
 order by season desc
 ```
 
@@ -33,6 +34,32 @@ select coalesce(
     label=season_label
     title="Season"
 />
+
+```sql rating_note
+-- Whether the season on screen is rated from last season's numbers, because
+-- the source has not published its own yet.
+select
+    bool_or(rating_basis = 'carried') as is_carried,
+    cast(max(season) - 2 as varchar) || '-' || right(cast(max(season) - 1 as varchar), 2)
+        as prior_season_label
+from team_season
+where season = (select season from ${selected_season})
+```
+
+{#if rating_note[0]?.is_carried}
+
+<Alert status="info">
+
+**These ratings are carried from <Value data={rating_note} column=prior_season_label />.**
+The rating source has not published this season's efficiency ratings yet, so
+each team starts from last season's, pulled a quarter of the way back toward
+the league average. Records, results and Elo are this season's and move with
+every game. The ratings switch to this season's on the first nightly run after
+the source publishes them.
+
+</Alert>
+
+{/if}
 
 ```sql team
 select
