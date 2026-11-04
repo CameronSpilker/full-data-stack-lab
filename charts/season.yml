@@ -26,7 +26,7 @@ queries:
           sum(games_played) / 2 AS games,
           max(adjusted_efficiency_margin) AS best_margin
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
 
   top_20:
     notes: The top 20 by the model's own rating, not by a poll.
@@ -42,7 +42,7 @@ queries:
           adjusted_tempo,
           elo_rating
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       ORDER BY national_rank
       LIMIT 20
 
@@ -59,7 +59,7 @@ queries:
           conference_name || ' · ' || record AS detail,
           adjusted_efficiency_margin
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       ORDER BY national_rank
       LIMIT 20
 
@@ -76,7 +76,7 @@ queries:
           team_color,
           team_secondary_color
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       -- Weakest first, so the best teams are drawn on top.
       ORDER BY national_rank DESC
 
@@ -92,7 +92,7 @@ queries:
           ncaa_tournament_wins,
           best_team
       FROM marts.mart_conference_strength
-      WHERE season = (SELECT max(season) FROM marts.mart_conference_strength)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_conference_strength)
       ORDER BY conference_rank
       LIMIT 15
 
@@ -107,7 +107,7 @@ queries:
               ELSE 'Below average'
           END AS band
       FROM marts.mart_conference_strength
-      WHERE season = (SELECT max(season) FROM marts.mart_conference_strength)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_conference_strength)
       ORDER BY conference_rank
       LIMIT 15
 

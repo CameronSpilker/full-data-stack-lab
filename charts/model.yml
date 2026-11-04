@@ -51,7 +51,7 @@ queries:
           END AS band
       FROM marts.mart_model_accuracy
       WHERE game_type = 'regular_season'
-        AND season = (SELECT max(season) FROM marts.mart_model_accuracy)
+        AND season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_model_accuracy)
       ORDER BY brier_score
 
   # The reliability diagram. A model sitting on the diagonal is honest about
@@ -109,20 +109,27 @@ queries:
               WHEN 'blended_season_ratings' THEN 'Blended season ratings'
               ELSE model_name
           END AS model,
+          -- Every game type staging accepts is named, rather than the last one
+          -- falling into an ELSE: the live feed files conference tournaments
+          -- under other_postseason, but the demo seasons keep them apart, and
+          -- an ELSE would put two rows on one bar.
           CASE game_type
               WHEN 'regular_season' THEN 'Regular season'
+              WHEN 'conference_tournament' THEN 'Conference tournaments'
               WHEN 'other_postseason' THEN 'Other postseason'
-              ELSE 'NCAA tournament'
+              WHEN 'ncaa_tournament' THEN 'NCAA tournament'
+              ELSE game_type
           END AS phase,
           accuracy,
           games_scored
       FROM marts.mart_model_accuracy
-      WHERE season = (SELECT max(season) FROM marts.mart_model_accuracy)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_model_accuracy)
       ORDER BY
           CASE game_type
               WHEN 'regular_season' THEN 1
-              WHEN 'other_postseason' THEN 2
-              ELSE 3
+              WHEN 'conference_tournament' THEN 2
+              WHEN 'other_postseason' THEN 3
+              ELSE 4
           END,
           model
 

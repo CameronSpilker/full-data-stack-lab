@@ -4,6 +4,36 @@
 
 # ${params.team_id}
 
+```sql seasons
+-- Every season this team has in the warehouse, newest first, for the season
+-- picker. The picker opens on the first one, so the page opens on the season
+-- being played.
+select distinct
+    season,
+    cast(season - 1 as varchar) || '-' || right(cast(season as varchar), 2) as season_label
+from team_season
+where team_id = '${params.team_id}'
+order by season desc
+```
+
+```sql selected_season
+-- Every query below reads its season from here. Before anyone touches the
+-- picker, and while the page is prerendered with no inputs, that is the
+-- latest season.
+select coalesce(
+    try_cast(nullif(nullif('${inputs.season.value}', ''), 'undefined') as integer),
+    (select max(season) from team_season where team_id = '${params.team_id}')
+) as season
+```
+
+<Dropdown
+    data={seasons}
+    name=season
+    value=season
+    label=season_label
+    title="Season"
+/>
+
 ```sql team
 select
     team_id,
@@ -36,7 +66,7 @@ select
     three_point_pct
 from team_season
 where team_id = '${params.team_id}'
-    and season = (select max(season) from team_season)
+    and season = (select season from ${selected_season})
 ```
 
 # <Value data={team} column=team_name />
@@ -107,7 +137,7 @@ select
     game_type
 from elo_timeline
 where team_id = '${params.team_id}'
-    and season = (select max(season) from elo_timeline)
+    and season = (select season from ${selected_season})
 order by game_date
 ```
 
@@ -126,13 +156,13 @@ roughly twice as important as any of the others.
 
 ```sql factors
 select 'Effective FG%' as factor, effective_fg_pct as offense, effective_fg_pct_allowed as defense
-from team_season where team_id = '${params.team_id}' and season = (select max(season) from team_season)
+from team_season where team_id = '${params.team_id}' and season = (select season from ${selected_season})
 union all
 select 'Turnover %', turnover_pct, turnover_pct_forced
-from team_season where team_id = '${params.team_id}' and season = (select max(season) from team_season)
+from team_season where team_id = '${params.team_id}' and season = (select season from ${selected_season})
 union all
 select 'Rebound %', offensive_rebound_pct, defensive_rebound_pct
-from team_season where team_id = '${params.team_id}' and season = (select max(season) from team_season)
+from team_season where team_id = '${params.team_id}' and season = (select season from ${selected_season})
 ```
 
 <DataTable data={factors} rows=4>
@@ -250,7 +280,7 @@ select
     game_type
 from elo_timeline
 where team_id = '${params.team_id}'
-    and season = (select max(season) from elo_timeline)
+    and season = (select season from ${selected_season})
 order by game_date desc
 ```
 

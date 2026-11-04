@@ -60,6 +60,34 @@ holding its tables until they arrive.
 
 {/if}
 
+```sql seasons
+-- Every season the warehouse holds, newest first, for the season picker. The
+-- picker opens on the first one, so the page opens on the season being played.
+select distinct
+    season,
+    cast(season - 1 as varchar) || '-' || right(cast(season as varchar), 2) as season_label
+from team_season
+order by season desc
+```
+
+```sql selected_season
+-- Every query below reads its season from here. Before anyone touches the
+-- picker, and while the page is prerendered with no inputs, that is the
+-- latest season.
+select coalesce(
+    try_cast(nullif(nullif('${inputs.season.value}', ''), 'undefined') as integer),
+    (select max(season) from team_season)
+) as season
+```
+
+<Dropdown
+    data={seasons}
+    name=season
+    value=season
+    label=season_label
+    title="Season"
+/>
+
 ```sql conferences
 select
     conference_rank,
@@ -75,7 +103,7 @@ select
     ncaa_tournament_wins,
     avg_tempo
 from conference_strength
-where season = (select max(season) from conference_strength)
+where season = (select season from ${selected_season})
 order by conference_rank
 ```
 
@@ -104,7 +132,7 @@ select
     team_count,
     ncaa_bids
 from conference_strength
-where season = (select max(season) from conference_strength)
+where season = (select season from ${selected_season})
 ```
 
 <ScatterPlot
@@ -128,7 +156,7 @@ select
 from conference_strength
 where conference_name in (
     select conference_name from conference_strength
-    where season = (select max(season) from conference_strength)
+    where season = (select season from ${selected_season})
     order by conference_rank
     limit 8
 )

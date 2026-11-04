@@ -57,7 +57,7 @@ queries:
               ELSE 'The rest'
           END AS tier
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       ORDER BY national_rank
 
   # The same field for the scatter, worst first, so the top tiers are drawn
@@ -84,7 +84,7 @@ queries:
               ELSE 8
           END AS point_radius
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       ORDER BY national_rank DESC
 
   top_25:
@@ -100,7 +100,7 @@ queries:
                   ELSE 'The rest'
               END AS tier
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       )
       SELECT
           national_rank,
@@ -130,7 +130,7 @@ queries:
               adjusted_offensive_efficiency,
               adjusted_defensive_efficiency
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       )
       SELECT
           tier,
@@ -150,7 +150,7 @@ queries:
           max(adjusted_efficiency_margin) AS best_margin,
           count(*) FILTER (WHERE national_rank <= 16) AS favourites
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
 
 charts:
   banner:

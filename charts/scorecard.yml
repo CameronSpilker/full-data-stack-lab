@@ -46,7 +46,7 @@ queries:
     sql: |
       SELECT team_name
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       ORDER BY team_name
 
   identity:
@@ -55,7 +55,7 @@ queries:
       WITH focus AS (
           SELECT team_id
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
           ORDER BY
               CASE
                   WHEN team_name = {{ team }} THEN 0
@@ -74,7 +74,7 @@ queries:
       field AS (
           SELECT count(*) AS teams_ranked
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       )
       SELECT
           team.team_id,
@@ -107,7 +107,7 @@ queries:
           (SELECT teams_ranked FROM field) AS teams_ranked
       FROM marts.mart_team_season AS team
       INNER JOIN focus ON team.team_id = focus.team_id
-      WHERE team.season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE team.season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
 
   # Both halves of the rating as a percentile rather than a raw number. A
   # reader knows what "better than 92% of the country" means without being
@@ -119,7 +119,7 @@ queries:
       WITH focus AS (
           SELECT team_id
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
           ORDER BY
               CASE
                   WHEN team_name = {{ team }} THEN 0
@@ -133,7 +133,7 @@ queries:
       season AS (
           SELECT *
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       ),
       ranked AS (
           SELECT
@@ -182,7 +182,7 @@ queries:
       WITH focus AS (
           SELECT team_id
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
           ORDER BY
               CASE
                   WHEN team_name = {{ team }} THEN 0
@@ -199,7 +199,7 @@ queries:
           timeline.is_win
       FROM marts.mart_elo_timeline AS timeline
       INNER JOIN focus ON timeline.team_id = focus.team_id
-      WHERE timeline.season = (SELECT max(season) FROM marts.mart_elo_timeline)
+      WHERE timeline.season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_elo_timeline)
       ORDER BY timeline.game_number
 
   results:
@@ -208,7 +208,7 @@ queries:
       WITH focus AS (
           SELECT team_id
           FROM marts.mart_team_season
-          WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+          WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
           ORDER BY
               CASE
                   WHEN team_name = {{ team }} THEN 0
@@ -233,7 +233,7 @@ queries:
           timeline.was_upset_win
       FROM marts.mart_elo_timeline AS timeline
       INNER JOIN focus ON timeline.team_id = focus.team_id
-      WHERE timeline.season = (SELECT max(season) FROM marts.mart_elo_timeline)
+      WHERE timeline.season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_elo_timeline)
       ORDER BY timeline.game_date DESC
 
 charts:

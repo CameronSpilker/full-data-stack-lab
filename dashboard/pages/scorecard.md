@@ -64,13 +64,41 @@ holding its tables until they arrive.
 
 {/if}
 
+```sql seasons
+-- Every season the warehouse holds, newest first, for the season picker. The
+-- picker opens on the first one, so the page opens on the season being played.
+select distinct
+    season,
+    cast(season - 1 as varchar) || '-' || right(cast(season as varchar), 2) as season_label
+from team_season
+order by season desc
+```
+
+```sql selected_season
+-- Every query below reads its season from here. Before anyone touches the
+-- picker, and while the page is prerendered with no inputs, that is the
+-- latest season.
+select coalesce(
+    try_cast(nullif(nullif('${inputs.season.value}', ''), 'undefined') as integer),
+    (select max(season) from team_season)
+) as season
+```
+
+<Dropdown
+    data={seasons}
+    name=season
+    value=season
+    label=season_label
+    title="Season"
+/>
+
 ```sql teams
 select
     team_id,
     team_name,
     conference_name
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${selected_season})
 order by team_name
 ```
 
@@ -83,14 +111,14 @@ select coalesce(
     (
         select team_id::varchar
         from team_season
-        where season = (select max(season) from team_season)
+        where season = (select season from ${selected_season})
             and (team_name ilike '%BYU%' or team_name ilike 'Brigham Young%')
         limit 1
     ),
     (
         select team_id::varchar
         from team_season
-        where season = (select max(season) from team_season)
+        where season = (select season from ${selected_season})
         order by national_rank
         limit 1
     )
@@ -155,11 +183,11 @@ select
     -- one and renders '#24.0 of 365.0'.
     (
         select count(*) from team_season
-        where season = (select max(season) from team_season)
+        where season = (select season from ${selected_season})
     ) as field_size
 from team_season
 where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from team_season)
+    and season = (select season from ${selected_season})
 ```
 
 <div class="masthead">
@@ -201,10 +229,10 @@ with sized as (
         last_10_wins,
         last_10_games,
         (select count(*) from team_season
-         where season = (select max(season) from team_season)) as field_size
+         where season = (select season from ${selected_season})) as field_size
     from team_season
     where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) from team_season)
+        and season = (select season from ${selected_season})
 )
 select
     national_rank,
@@ -256,7 +284,7 @@ with prior as (
     select elo_rating, win_pct, avg_margin
     from team_season
     where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) - 1 from team_season)
+        and season = (select season - 1 from ${selected_season})
 ),
 
 -- Schedule strength is on a different scale in team_season, so the comparison
@@ -265,14 +293,14 @@ prior_opponents as (
     select avg(opponent_elo_before) as opponent_elo
     from elo_timeline
     where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) - 1 from elo_timeline)
+        and season = (select season - 1 from ${selected_season})
 ),
 
 games as (
     select game_date, elo_after, margin, is_win, opponent_elo_before
     from elo_timeline
     where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) from elo_timeline)
+        and season = (select season from ${selected_season})
 ),
 
 -- Ten games is the window the rest of the page already uses for form. Early in
@@ -423,14 +451,14 @@ sits against the field, how the season moved, and every game it played.
 with field as (
     select count(*) as teams
     from team_season
-    where season = (select max(season) from team_season)
+    where season = (select season from ${selected_season})
 ),
 
 subject as (
     select *
     from team_season
     where team_id::varchar = (select team_id from ${chosen})
-        and season = (select max(season) from team_season)
+        and season = (select season from ${selected_season})
 )
 
 select 'Net efficiency' as measure, subject.national_rank as rank,
@@ -459,7 +487,7 @@ from subject, field
 with season as (
     select *
     from team_season
-    where season = (select max(season) from team_season)
+    where season = (select season from ${selected_season})
 ),
 
 ranked as (
@@ -544,7 +572,7 @@ select
     game_type
 from elo_timeline
 where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from elo_timeline)
+    and season = (select season from ${selected_season})
 order by game_date
 ```
 
@@ -623,7 +651,7 @@ select
     pregame_win_probability
 from elo_timeline
 where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from elo_timeline)
+    and season = (select season from ${selected_season})
 order by game_date desc
 limit 10
 ```
@@ -804,7 +832,7 @@ select
     end as highlight,
     case when team_id::varchar = (select team_id from ${chosen}) then 1 else 0 end as is_subject
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${selected_season})
 -- The marked team is drawn last so it lands on top of the cloud rather than under it.
 order by is_subject
 ```
@@ -838,7 +866,7 @@ select
     case when is_home then 'Home' when is_neutral_site then 'Neutral' else 'Away' end as site
 from elo_timeline
 where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from elo_timeline)
+    and season = (select season from ${selected_season})
     and is_win
 order by pregame_win_probability
 limit 5
@@ -867,7 +895,7 @@ select
     game_type
 from elo_timeline
 where team_id::varchar = (select team_id from ${chosen})
-    and season = (select max(season) from elo_timeline)
+    and season = (select season from ${selected_season})
 order by game_date desc
 ```
 

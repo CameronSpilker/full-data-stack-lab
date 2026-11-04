@@ -66,22 +66,50 @@ holding its tables until they arrive.
 {/if}
 
 ```sql current
-select max(season) as season from team_season
+select season from ${selected_season}
 ```
+
+```sql seasons
+-- Every season the warehouse holds, newest first, for the season picker. The
+-- picker opens on the first one, so the page opens on the season being played.
+select distinct
+    season,
+    cast(season - 1 as varchar) || '-' || right(cast(season as varchar), 2) as season_label
+from team_season
+order by season desc
+```
+
+```sql selected_season
+-- Every query below reads its season from here. Before anyone touches the
+-- picker, and while the page is prerendered with no inputs, that is the
+-- latest season.
+select coalesce(
+    try_cast(nullif(nullif('${inputs.season.value}', ''), 'undefined') as integer),
+    (select max(season) from team_season)
+) as season
+```
+
+<Dropdown
+    data={seasons}
+    name=season
+    value=season
+    label=season_label
+    title="Season"
+/>
 
 ```sql totals
 select
     count(*) as teams,
     count(distinct conference_name) as conferences
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${selected_season})
 ```
 
 ```sql games_played
 -- Played, not scheduled. Mid-season the schedule runs to about six thousand
 -- games and only a fraction of them have happened.
 select count(*) as games from game_results
-where season = (select max(season) from game_results)
+where season = (select season from ${selected_season})
     and is_completed
 ```
 
@@ -113,7 +141,7 @@ select
     elo_rating,
     strength_of_schedule
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${selected_season})
 order by national_rank
 limit 25
 ```
@@ -148,7 +176,7 @@ select
     -- The top 25 are drawn last so they land on top of the cloud.
     case when national_rank <= 25 then 1 else 0 end as is_top
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${selected_season})
 order by is_top
 ```
 
@@ -180,7 +208,7 @@ select
         else 1 - elo_home_win_probability
     end as winner_pregame_probability
 from game_results
-where season = (select max(season) from game_results)
+where season = (select season from ${selected_season})
     and elo_home_win_probability is not null
 order by winner_pregame_probability
 limit 10

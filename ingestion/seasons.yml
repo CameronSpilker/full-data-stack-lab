@@ -15,7 +15,8 @@ seasons:
   - year: 2024
   - year: 2025
   - year: 2026
+  - year: 2027
 
 # Ratings and the bracket are only meaningful for the season in progress.
 # Everything else is history the predictor is backtested against.
-current_season: 2026
+current_season: 2027
