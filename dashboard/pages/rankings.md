@@ -32,6 +32,34 @@ season, because a team that has not played cannot be rated or ranked.
 
 {/if}
 
+```sql seasons
+-- Every season the warehouse holds, newest first, for the season picker. The
+-- picker opens on the first one, so the page opens on the season being played.
+select distinct
+    season,
+    cast(season - 1 as varchar) || '-' || right(cast(season as varchar), 2) as season_label
+from team_season
+order by season desc
+```
+
+```sql selected_season
+-- Every query below reads its season from here. Before anyone touches the
+-- picker, and while the page is prerendered with no inputs, that is the
+-- latest season.
+select coalesce(
+    try_cast(nullif(nullif('${inputs.season.value}', ''), 'undefined') as integer),
+    (select max(season) from team_season)
+) as season
+```
+
+<Dropdown
+    data={seasons}
+    name=season
+    value=season
+    label=season_label
+    title="Season"
+/>
+
 ```sql field
 -- The tiers are cut on national rank rather than on an efficiency number.
 -- Cutting on margin reads better, because the bands are the diagonals a reader
@@ -68,7 +96,7 @@ select
         else 'The rest'
     end as tier
 from team_season
-where season = (select max(season) from team_season)
+where season = (select season from ${selected_season})
 order by national_rank
 ```
 

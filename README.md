@@ -91,9 +91,9 @@ ingest demo
 
 # Before the first live run, check the sources actually return what the
 # parsers expect. Writes nothing; exits non-zero if a critical field is empty.
-ingest preflight --season 2026
-ingest diagnose --season 2026         # why a preflight failed, if it did
-ingest all --season 2026              # the real APIs, the team list included
+ingest preflight --season 2027
+ingest diagnose --season 2027         # why a preflight failed, if it did
+ingest all --season 2027              # the real APIs, the team list included
 ingest daily --current-only          # what the schedule runs: everything but teams
 
 cd transform

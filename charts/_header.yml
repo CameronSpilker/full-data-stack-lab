@@ -1,19 +1,103 @@
 # Not a board. Every board extends this file for the header it opens with:
-# the court banner, which carries the season line and the bar of buttons.
-# Each board still declares `charts.banner` in full (type, template, query,
-# height and the button it is on), because dbt Charts checks that a chart is
-# complete before it merges in what a board extends. What lives here is the
-# query the banner reads, which is the part worth having once.
+# the court banner, which carries the season line, the season switch and the
+# bar of buttons. Each board still declares `charts.banner` in full (type,
+# template, query, height and the button it is on), because dbt Charts checks
+# that a chart is complete before it merges in what a board extends. What
+# lives here is the query the banner reads and the season every board is
+# filtered to, which are the parts worth having once.
+
+# The season picker, shared by every board. Each board's queries read it as
+# `coalesce(try_cast({{ season }} AS INTEGER), max(season))`, so leaving it
+# unset means the latest season in that query's own mart. That is what the
+# default render draws, and it is why nothing here names a year: the boards
+# move to a new season by themselves once its first games are in.
+#
+# Under `dct serve` (and on the live scorecard) it is a URL parameter,
+# `?season=2026`. The matchup board reads it for its banner only: odds are
+# priced on the ratings teams carry now, so it always shows the newest season. The static pages cannot read one, so
+# scripts/render-charts.sh draws the previous season a second time under
+# /charts/<label>/. Either way the reader switches with the two buttons at the
+# top right of the banner, which link to whichever of those fits the board.
+variables:
+  season:
+    input: select
+    label: Season
+    notes: The season every chart on the board describes. Unset means the latest.
+    # The banner's season switch is the control, on the static pages and the
+    # live ones alike, so the variable's own widget is not drawn. It is still
+    # read from the URL.
+    visible: false
+    options:
+      query: season_options
+      column: season
+      label_column: season_label
+
 queries:
-  season_banner:
-    notes: The season the boards report on, in the words the banner prints.
+  # The latest two seasons: the one being played and the one before it. Older
+  # seasons are still in the warehouse (the model board scores them all), but
+  # each season offered here is a full second render of every board, so the
+  # list stops at the one a reader is likely to want to look back at.
+  season_options:
+    notes: The seasons a reader can switch between, newest first.
     sql: |
       SELECT
-          data_season_label AS season_label,
-          CASE phase
-              WHEN 'in_season' THEN 'in progress'
+          season,
+          CAST(season - 1 AS VARCHAR) || '-' || right(CAST(season AS VARCHAR), 2) AS season_label
+      FROM (SELECT DISTINCT season FROM marts.mart_team_season)
+      ORDER BY season DESC
+      LIMIT 2
+
+  # One row per season on offer. The banner prints the picked one and links
+  # the other, and builds its buttons from `base_path` so a board drawn for
+  # last season links to last season's copy of the others.
+  season_banner:
+    notes: The seasons the boards report on, in the words the banner prints.
+    sql: |
+      WITH offered AS (
+          SELECT
+              season,
+              CAST(season - 1 AS VARCHAR) || '-' || right(CAST(season AS VARCHAR), 2) AS season_label,
+              row_number() OVER (ORDER BY season DESC) AS recency
+          FROM (SELECT DISTINCT season FROM marts.mart_team_season)
+          QUALIFY recency <= 2
+      ),
+
+      picked AS (
+          SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) AS season
+          FROM offered
+      ),
+
+      last_games AS (
+          SELECT season, max(game_date) AS last_game_date
+          FROM marts.mart_game_results
+          WHERE is_completed
+          GROUP BY season
+      )
+
+      SELECT
+          offered.season_label,
+          offered.season = picked.season AS is_selected,
+          offered.recency = 1 AS is_latest,
+          -- The latest season is the site's own /charts/. Any other is a copy
+          -- of every board under its label, drawn by scripts/render-charts.sh.
+          CASE
+              WHEN offered.recency = 1 THEN '/charts/'
+              ELSE '/charts/' || offered.season_label || '/'
+          END AS base_path,
+          -- What the live scorecard is asked for when the reader is on this
+          -- season: nothing for the latest, the year otherwise.
+          CASE
+              WHEN offered.recency = 1 THEN ''
+              ELSE '?season=' || CAST(offered.season AS VARCHAR)
+          END AS season_param,
+          CASE
+              WHEN offered.season = status.data_season AND status.phase = 'in_season'
+                  THEN 'in progress'
               ELSE 'final'
           END AS phase_label,
-          strftime(last_completed_game_date, '%b %-d, %Y') AS last_game
-      FROM marts.mart_season_status
-
+          strftime(last_games.last_game_date, '%b %-d, %Y') AS last_game
+      FROM offered
+      CROSS JOIN picked
+      CROSS JOIN marts.mart_season_status AS status
+      LEFT JOIN last_games ON last_games.season = offered.season
+      ORDER BY offered.season DESC

@@ -1,24 +1,36 @@
 {#---
 description: >
   The header every board opens with. A navy panel with half-court lines, the
-  season it is reporting on, and the seven buttons that move between boards.
-  The buttons live here rather than in each board, so adding a board is one
-  line in this file instead of a row copied into seven.
+  season it is reporting on, a switch between the seasons on offer, and the
+  seven buttons that move between boards. The buttons live here rather than
+  in each board, so adding a board is one line in this file instead of a row
+  copied into seven. Reads one row per season (charts/_header.yml), one of
+  them marked `is_selected`.
 options:
   current:
     type: string
     description: The board this banner sits on, by its label in the bar.
 ---#}
-{#- Label and path for each board, in bar order. -#}
+{#- Label, path, and how the board covers past seasons, in bar order.
+    "copy": a static copy per season, under that season's base path.
+    "live": one address, served live, taking the season as a URL parameter.
+    "latest": only the newest season exists, so every season links to it.
+    The bracket is only ever simulated for the season in progress, and a
+    matchup is only ever priced on the ratings teams carry now. -#}
 {% set boards = [
-  ["Home", "/charts/"],
-  ["Rankings", "/charts/rankings/"],
-  ["Scorecard", "/charts/scorecard/"],
-  ["Matchup", "/charts/matchup/"],
-  ["Model", "/charts/model/"],
-  ["Season", "/charts/season/"],
-  ["Tournament", "/charts/tournament/"],
+  ["Home", "", "copy"],
+  ["Rankings", "rankings/", "copy"],
+  ["Scorecard", "scorecard/", "live"],
+  ["Matchup", "matchup/", "latest"],
+  ["Model", "model/", "copy"],
+  ["Season", "season/", "copy"],
+  ["Tournament", "tournament/", "latest"],
 ] %}
+{%- macro href(row, board) -%}
+  {%- if board[2] == "live" -%}/charts/{{ board[1] }}{{ row.season_param }}
+  {%- elif board[2] == "latest" -%}/charts/{{ board[1] }}
+  {%- else -%}{{ row.base_path }}{{ board[1] }}{%- endif -%}
+{%- endmacro -%}
 {% set navy = "#0c2340" %}
 {% set orange = "#f47b20" %}
 {% set line = "#ffffff" %}
@@ -26,7 +38,9 @@ options:
 {% set pad = 22 %}
 {% set nav_h = 38 %}
 {% set nav_y = height - pad - nav_h %}
-{% set season = rows[0] if rows else none %}
+{% set picked = rows | selectattr("is_selected") | list %}
+{% set season = picked[0] if picked else (rows[0] if rows else none) %}
+{% set here = boards | selectattr(0, "equalto", options.current) | first %}
 
 <defs>
   <clipPath id="{{ uid }}-panel">
@@ -82,6 +96,36 @@ options:
     {%- endif -%}
   </text>
 
+  {#- The season switch, top right: the picked season filled, the other a link
+      to this same board in that season. Only drawn when there is a choice. -#}
+  {% if season and rows | length > 1 %}
+    {% set pill_w = 76 %}
+    {% set pill_h = 26 %}
+    {% set pill_gap = 6 %}
+    {% set sx = width - pad - (rows | length) * pill_w - (rows | length - 1) * pill_gap %}
+    {% set sy = pad + 4 %}
+    <text x="{{ sx - 10 }}" y="{{ sy + pill_h / 2 + 4 }}" text-anchor="end"
+          font-family="{{ display }}" font-size="12" font-weight="600" letter-spacing="2"
+          fill="{{ line }}" fill-opacity="0.6">SEASON</text>
+    {% for r in rows %}
+      {% set x = sx + loop.index0 * (pill_w + pill_gap) %}
+      {% if r is sameas season %}
+        <rect x="{{ x }}" y="{{ sy }}" width="{{ pill_w }}" height="{{ pill_h }}" rx="13" fill="{{ orange }}"/>
+        <text x="{{ x + pill_w / 2 }}" y="{{ sy + pill_h / 2 + 5 }}" text-anchor="middle"
+              font-family="{{ display }}" font-size="14" font-weight="600" letter-spacing="0.8"
+              fill="{{ navy }}">{{ r.season_label }}</text>
+      {% else %}
+        <a href="{{ href(r, here) if here else r.base_path }}">
+          <rect x="{{ x }}" y="{{ sy }}" width="{{ pill_w }}" height="{{ pill_h }}" rx="13"
+                fill="{{ line }}" fill-opacity="0.07" stroke="{{ line }}" stroke-opacity="0.3"/>
+          <text x="{{ x + pill_w / 2 }}" y="{{ sy + pill_h / 2 + 5 }}" text-anchor="middle"
+                font-family="{{ display }}" font-size="14" font-weight="500" letter-spacing="0.8"
+                fill="{{ line }}" fill-opacity="0.88">{{ r.season_label }}</text>
+        </a>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
   {#- The bar. The button for this board is filled and is not a link. -#}
   {% set gap = 6 %}
   {% set slot = (width - 2 * pad - gap * (boards | length - 1)) / (boards | length) %}
@@ -93,7 +137,7 @@ options:
             font-family="{{ display }}" font-size="14" font-weight="600" letter-spacing="1.4"
             fill="{{ navy }}">{{ b[0] | upper }}</text>
     {% else %}
-      <a href="{{ b[1] }}">
+      <a href="{{ href(season, b) if season else '/charts/' ~ b[1] }}">
         <rect x="{{ x }}" y="{{ nav_y }}" width="{{ slot }}" height="{{ nav_h }}" rx="8"
               fill="{{ line }}" fill-opacity="0.07" stroke="{{ line }}" stroke-opacity="0.16"/>
         <text x="{{ x + slot / 2 }}" y="{{ nav_y + nav_h / 2 + 5 }}" text-anchor="middle"

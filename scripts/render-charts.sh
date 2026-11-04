@@ -28,21 +28,78 @@ mkdir -p "$OUT"
 # meta.yml is the folder's shared style and files starting with an underscore
 # are pieces boards extend, so neither is ever rendered. Everything else in
 # charts/ is a page.
-for board in charts/*.yml; do
-    name="$(basename "$board" .yml)"
-    case "$name" in
-        meta|_*) continue ;;
-        index) target="$OUT/index.html" ;;
-        *) target="$OUT/$name/index.html" ;;
-    esac
+#
+# render_boards <dir> [dct render options...] [--skip <board>...] draws every
+# board into <dir>, leaving out any named after --skip.
+render_boards() {
+    local dir="$1"
+    shift
+    local opts=() skip=" "
+    while [ $# -gt 0 ]; do
+        if [ "$1" = "--skip" ]; then
+            shift
+            skip=" $* "
+            break
+        fi
+        opts+=("$1")
+        shift
+    done
 
-    mkdir -p "$(dirname "$target")"
-    echo "  $board -> $target"
+    for board in charts/*.yml; do
+        name="$(basename "$board" .yml)"
+        case "$name" in
+            meta|_*) continue ;;
+        esac
+        case "$skip" in
+            *" $name "*) continue ;;
+        esac
+        case "$name" in
+            index) target="$dir/index.html" ;;
+            *) target="$dir/$name/index.html" ;;
+        esac
 
-    # No --allow-chart-errors on purpose: a chart whose query broke should
-    # fail the run rather than publish a page with a hole in it.
-    dct render "$board" --format html --output "$target"
-done
+        mkdir -p "$(dirname "$target")"
+        echo "  $board -> $target ${opts[*]}"
+
+        # No --allow-chart-errors on purpose: a chart whose query broke should
+        # fail the run rather than publish a page with a hole in it.
+        dct render "$board" --format html --output "$target" "${opts[@]}"
+    done
+}
+
+# The latest season, with the season variable left unset, so every query
+# falls back to the newest season in its own mart. This is /charts/.
+render_boards "$OUT"
+
+# Every other season the banner offers (charts/_header.yml, `season_options`:
+# the latest two) gets its own copy of every board under /charts/<label>/,
+# because a static page cannot keep the season dropdown `dct serve` draws.
+# The banner's season switch links the copies. Asked of the warehouse rather
+# than written here, so the archive moves on by itself when a season starts.
+#
+# Three boards have no copy. The scorecard is served live and takes the
+# season as a URL parameter, which is where the banner sends a reader on an
+# older season. The matchup and tournament boards only ever describe the
+# newest season: odds are priced on the ratings teams carry now, and the
+# bracket is only simulated for the season in progress.
+ARCHIVE="$(python3 - <<'PY'
+import duckdb
+with duckdb.connect("data/warehouse.duckdb", read_only=True) as con:
+    # The same list as `season_options`, less the latest, which is /charts/.
+    offered = con.sql(
+        "SELECT season FROM (SELECT DISTINCT season FROM marts.mart_team_season)"
+        " ORDER BY season DESC LIMIT 2"
+    ).fetchall()
+for (season,) in offered[1:]:
+    print(season, f"{season - 1}-{str(season)[2:]}")
+PY
+)"
+
+while read -r season label; do
+    [ -n "$season" ] || continue
+    echo "Archive: the $label season, under $OUT/$label/"
+    render_boards "$OUT/$label" --var "season=$season" --skip scorecard matchup tournament
+done <<< "$ARCHIVE"
 
 # Two additions to every page's <head>, both things a board's YAML cannot
 # say. They live in scripts/charts-head.html, read in here:

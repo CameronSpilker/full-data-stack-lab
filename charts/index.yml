@@ -17,7 +17,7 @@ queries:
           count(*) AS teams,
           sum(games_played) / 2 AS games
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
 
   best_model:
     notes: The best-calibrated honest forecast in the latest season.
@@ -29,7 +29,7 @@ queries:
       FROM marts.mart_model_accuracy
       WHERE game_type = 'regular_season'
         AND is_point_in_time
-        AND season = (SELECT max(season) FROM marts.mart_model_accuracy)
+        AND season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_model_accuracy)
       ORDER BY brier_score
       LIMIT 1
 
@@ -59,7 +59,7 @@ queries:
           conference_name || ' · ' || record AS detail,
           adjusted_efficiency_margin
       FROM marts.mart_team_season
-      WHERE season = (SELECT max(season) FROM marts.mart_team_season)
+      WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       ORDER BY national_rank
       LIMIT 10
 

@@ -18,11 +18,11 @@ reads it are one diff.
 | `season.yml` | `/charts/season/` | Who was good and which conferences were deep |
 | `tournament.yml` | `/charts/tournament/` | Title odds, seed value and survival, from 20,000 simulated brackets |
 
-Every board opens with the same header: a navy court banner with the season
-it reports on and seven buttons in a fixed order, one per board, with the
-button for the page you are on filled in orange rather than linked. The
-boards are a site of their own under `/charts`, so the bar never links to the
-Evidence dashboard.
+Every board opens with the same header: a navy court banner with the season it
+reports on, a switch to the previous season, and seven buttons in a fixed
+order, one per board, with the button for the page you are on filled in orange
+rather than linked. The boards are a site of their own under `/charts`, so the
+bar never links to the Evidence dashboard.
 
 The banner is a custom chart drawn by `templates/court_banner.svg.j2`, and the
 list of boards lives in that template, so adding a board means adding a row
@@ -45,6 +45,32 @@ bad side of a baseline), and
 `title.font.case: none`, because the default is Chicago title case and the
 rest of the site is sentence case. Files starting with an underscore, like
 `_header.yml`, are pieces boards extend and are never rendered as pages.
+
+## Seasons
+
+Every board opens on the newest season and can be switched to the one before
+it with the two buttons at the top right of the banner. Nothing names a year:
+`_header.yml` declares a `season` variable that every board inherits, and each
+query filters with
+
+```sql
+season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
+```
+
+so an unset variable means the latest season in that mart, and the boards
+move to a new season by themselves once its first games are played.
+
+How the switch reaches each board:
+
+| Board | Previous season |
+| --- | --- |
+| Home, Rankings, Model, Season | A static copy under `/charts/<label>/`, e.g. `/charts/2025-26/rankings/`, drawn by `scripts/render-charts.sh` with `--var season=<year>` |
+| Scorecard | The live board, with `?season=<year>` |
+| Matchup, Tournament | Always the newest season. Odds are priced on the ratings teams carry now, and the bracket is only simulated for the season in progress |
+
+The seasons on offer are the latest two in `mart_team_season`
+(`season_options` in `_header.yml`), and the render script asks the
+warehouse for the same list, so the archive moves on when a season starts.
 
 ## Colour
 
