@@ -13,7 +13,8 @@ queries:
     notes: One row of numbers describing the latest completed season.
     sql: |
       SELECT
-          max(season) AS season,
+          CAST(max(season) - 1 AS VARCHAR) || '-' || right(CAST(max(season) AS VARCHAR), 2)
+              AS season,
           count(*) AS teams,
           sum(games_played) / 2 AS games
       FROM marts.mart_team_season
@@ -33,17 +34,27 @@ queries:
       ORDER BY brier_score
       LIMIT 1
 
-  # Elo's whole history in one line: the number the lab exists to move.
+  # Elo's accuracy in the two seasons the boards offer, the same pair as the
+  # banner's season switch. Older seasons are in the mart (the model board
+  # has them), but here they only pushed the season being played off to the
+  # side. Each label carries its game count, because a season a week old is
+  # scored on a few hundred games and its number moves a long way.
   elo_history:
-    notes: Point-in-time regular-season accuracy, season by season.
+    notes: Point-in-time regular-season accuracy in the two seasons on offer.
     sql: |
       SELECT
-          CAST(season AS VARCHAR) AS season,
+          CAST(season - 1 AS VARCHAR) || '-' || right(CAST(season AS VARCHAR), 2)
+              || ' · ' || format('{:,}', games_scored) || ' games' AS season,
           accuracy,
           games_scored
       FROM marts.mart_model_accuracy
       WHERE model_name = 'elo_pregame'
         AND game_type = 'regular_season'
+        AND season IN (
+            SELECT DISTINCT season FROM marts.mart_team_season
+            ORDER BY season DESC
+            LIMIT 2
+        )
       ORDER BY season
 
   top_10:
@@ -80,8 +91,6 @@ charts:
     label: Season
     value: season
     style:
-      value:
-        format: year
       label:
         font:
           case: none
@@ -115,26 +124,34 @@ charts:
       support:
         format: ".3f"
 
+  # Two bars from zero rather than a line: with two seasons there is no trend
+  # to draw, and a bar cannot run off its own axis the way an early-season
+  # point did against a window cut to fit the history.
   elo_trend:
     query: elo_history
-    type: line
+    type: bar
     title: The number the lab exists to move
-    subtitle: Regular-season accuracy on games it had not seen
+    subtitle: Elo's regular-season accuracy on games it had not seen
     x: season
     y: accuracy
     y_label: Accuracy
     height: 360
     style:
+      orientation: vertical
       legend:
         visible: false
       axis_y:
         scale:
           continuous:
-            # Auto-scaling a 1.5-point range draws a cliff. The window is wide
-            # enough that a real move looks like one and noise does not.
-            domain: [0.66, 0.78]
+            domain: [0, 1]
         labels:
           format: ".0%"
+      marks:
+        bar:
+          labels:
+            visible: true
+            position: above
+            format: ".1%"
 
   # A leaderboard rather than a table: the crest and the bar say "who" and
   # "how far ahead" before a reader gets to the numbers.
