@@ -12,22 +12,33 @@ name: Daily pipeline
 
 on:
   schedule:
-    # 06:00 America/Denver (13:00 UTC), after the last west coast final and
-    # before anyone looks at the dashboard.
-    - cron: "0 13 * * *"
+    # 09:17 UTC: 02:17 Mountain in the winter, 03:17 once daylight saving
+    # starts. The last final of the night (a late tip in Hawaii) is in by about
+    # 07:00 UTC, so this is the first time every game from the day before has
+    # a score. Not on the hour, because that is when GitHub is busiest and
+    # starts scheduled runs latest: at 13:00 UTC this run was starting around
+    # 20:00, after a whole day without the night's results.
+    - cron: "17 9 * * *"
+
+    # A second try six hours later. GitHub can delay a scheduled run by hours
+    # or skip it outright, and nothing else would bring last night's scores in
+    # until the next day. The gate below makes this a no-op whenever a
+    # warehouse has already been published since the night's games finished,
+    # so it costs one API call on a normal day.
+    - cron: "17 15 * * *"
 
     # And the 1st of the month, an hour earlier, with the team dimension
     # included. The nightly run deliberately leaves that table alone, so
     # without this nothing in production would ever refresh it: the monthly
     # refresh lives in the Dagster schedule, and Dagster is not what runs
     # here. Conference realignment would land in July and never arrive.
-    - cron: "0 12 1 * *"
+    - cron: "17 8 1 * *"
 
   # A merge that adds or changes a model makes the published warehouse wrong
   # for the code that is now deployed: the dashboard reads a table its own
   # models have only just started producing, and Evidence renders the error
   # rather than failing the build. Republishing on the merge closes that to
-  # minutes instead of leaving it until 06:00. Paths, because a change to the
+  # minutes instead of leaving it until the next morning. Paths, because a change to the
   # README cannot change what the warehouse holds.
   push:
     branches: [main]
@@ -73,7 +84,44 @@ env:
   WAREHOUSE_RELEASE: warehouse-latest
 
 jobs:
+  # Decides whether a nightly run has anything to do. Only the two nightly
+  # schedules are gated: a push, a manual run, and the monthly run always go
+  # ahead. A nightly run is skipped when the warehouse has already been
+  # published since 09:00 UTC today, because every run ingests the last week,
+  # so any publish after the night's last final already holds its scores.
+  # That is what lets the backup schedule stand down when the first one
+  # worked, and the first stand down when GitHub starts it after the backup.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      go: ${{ steps.check.outputs.go }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          if [ "$SCHEDULE" != "17 9 * * *" ] && [ "$SCHEDULE" != "17 15 * * *" ]; then
+            echo "go=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          cutoff="$(date -u +%Y-%m-%dT09:00:00Z)"
+          published="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$WAREHOUSE_RELEASE" \
+            --jq '.assets[] | select(.name == "warehouse.duckdb") | .updated_at' 2>/dev/null || true)"
+
+          # ISO 8601 in UTC sorts as text, so a string comparison is a time one.
+          if [ -n "$published" ] && [[ "$published" > "$cutoff" ]]; then
+            echo "Warehouse already published at $published, after today's $cutoff cutoff. Nothing to do."
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Last published ${published:-never}. Running."
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+
   run:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -127,7 +175,7 @@ jobs:
             # exhausts the API's rate limit. Nobody is waiting on it, so it
             # asks more slowly rather than spending the run backing off.
             REQUEST_DELAY_SECONDS=1.5 ingest all
-          elif [ "${{ github.event.schedule }}" = "0 12 1 * *" ] \
+          elif [ "${{ github.event.schedule }}" = "17 8 1 * *" ] \
               || [ "${{ inputs.refresh_teams }}" = "true" ]; then
             echo "Monthly run: refreshing the team dimension too."
             ingest all --current-only --since-days "${{ inputs.since_days || 7 }}"
