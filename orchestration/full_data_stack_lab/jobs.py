@@ -52,12 +52,15 @@ full_pipeline_job = define_asset_job(
     description="Every extractor followed by the whole dbt graph.",
 )
 
-# Games finish late. 6am Mountain is after the last west coast final and
-# before anyone looks at the dashboard.
+# Games finish late. 02:17 Mountain is after the last final of the night (a late
+# tip in Hawaii is in by about midnight Mountain), so one run picks up every
+# game from the day before. Off the hour, to match the GitHub Actions schedule,
+# which is the one that runs in production and is started late when it sits on
+# the hour.
 nightly_schedule = ScheduleDefinition(
     name="nightly_in_season_schedule",
     job=nightly_ingestion_job,
-    cron_schedule="0 6 * * *",
+    cron_schedule="17 2 * * *",
     execution_timezone="America/Denver",
     description=(
         "Daily during the season, and the cadence the upcoming-games forecast "

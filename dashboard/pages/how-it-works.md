@@ -52,19 +52,21 @@ These are the literal cron expressions from the Dagster definitions in
 
 | Schedule | Cadence | Cron | What it rebuilds |
 | --- | --- | --- | --- |
-| `nightly_in_season_schedule` | Daily, 06:00 | `0 6 * * *` | Scores, box scores, betting lines and ratings for the season in progress, then the dbt graph behind them |
+| `nightly_in_season_schedule` | Daily, 02:17 | `17 2 * * *` | Scores, box scores, betting lines and ratings for the season in progress, then the dbt graph behind them |
 | `march_madness_schedule` | Twice daily through March | `0 7,19 * 3 *` | The whole graph, every extractor followed by every model |
 | `team_dimension_schedule` | Monthly, the 1st | `0 5 1 * *` | The team list and conference membership |
 
-Games finish late, so 06:00 Mountain is after the last west coast final and
-before anyone looks at the dashboard. March gets a second session because the
+Games finish late, so 02:17 Mountain is after the last final of the night,
+Hawaii included, and one run picks up every game from the day before. March gets a second session because the
 odds move between afternoon and evening. Conference realignment is an offseason
 event, so refreshing the team list nightly would spend API budget rewriting rows
 that cannot change.
 
 GitHub Actions runs the same pipeline daily and publishes the rebuilt warehouse
 as a release asset, so this dashboard builds from a clean checkout without a
-local run.
+local run. GitHub can start a scheduled run hours late, so it tries again six
+hours later, and that second run stands down if the first one already
+published.
 
 ## What is on the rest of the site
 
