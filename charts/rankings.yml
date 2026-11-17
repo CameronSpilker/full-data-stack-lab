@@ -171,9 +171,6 @@ charts:
     style:
       value:
         format: integer
-      label:
-        font:
-          case: none
 
   kpi_best:
     query: headline
@@ -186,9 +183,6 @@ charts:
     style:
       value:
         format: "+.1f"
-      label:
-        font:
-          case: none
       support:
         format: "integer"
 
@@ -249,14 +243,9 @@ charts:
     subtitle: Tiers are cuts on rank
     style:
       columns:
-        tier:
-          label: Tier
         teams:
-          label: Teams
-          format: integer
           align: right
         avg_margin:
-          label: Avg margin
           format: "+.1f"
           align: right
         avg_offense:
@@ -275,7 +264,6 @@ charts:
     subtitle: Every ranked team, in order
     style:
       pagination:
-        enabled: true
         # Pinned rather than auto-fitted. A static export pre-renders at
         # most 20 pages, and auto-fitting a 376-team field gave 18 rows a
         # page, which is 21 pages: the last teams in the country were
@@ -290,17 +278,13 @@ charts:
       columns:
         national_rank:
           label: "#"
-          format: integer
           align: right
           width: 60
         team_name:
           label: Team
         conference_name:
           label: Conference
-        tier:
-          label: Tier
         record:
-          label: Record
           align: right
         adjusted_efficiency_margin:
           label: Margin
@@ -316,7 +300,6 @@ charts:
           align: right
         offense_rank:
           label: Off rank
-          format: integer
           align: right
         adjusted_defensive_efficiency:
           label: Defence
@@ -324,7 +307,6 @@ charts:
           align: right
         defense_rank:
           label: Def rank
-          format: integer
           align: right
         adjusted_tempo:
           label: Tempo

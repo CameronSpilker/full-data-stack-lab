@@ -151,10 +151,7 @@ charts:
     subtitle: Regular season. A coin flip scores 0.250 on Brier.
     style:
       columns:
-        model:
-          label: Model
         accuracy:
-          label: Accuracy
           format: percent_whole
           align: right
         brier_score:
@@ -166,7 +163,6 @@ charts:
               palette: ["#83afea", "#a2c3f0", "#dfebfb"]
               domain: data
         log_loss:
-          label: Log loss
           format: ".3f"
           align: right
         brier_skill_score:
@@ -183,7 +179,6 @@ charts:
           align: right
         games_scored:
           label: Games
-          format: integer
           align: right
         forecast:
           label: Forecast?
@@ -200,15 +195,13 @@ charts:
     # The model that saw the season it is scored on is drawn in grey, so the
     # lowest bar is not mistaken for the best forecast.
     color: band
-    sort: { by: brier_score, order: asc }
+    sort: { by: brier_score }
     style:
-      orientation: horizontal
       marks:
         bar:
           labels:
             visible: true
             position: above
-            format: ".3f"
       axis_y:
         labels:
           format: ".3f"
@@ -224,6 +217,12 @@ charts:
     style:
       legend:
         visible: false
+      # The latest season printed on the line, so the number the lab exists
+      # to move is read, not estimated off the axis.
+      marks:
+        line:
+          labels:
+            visible: last
       axis_y:
         scale:
           continuous:
@@ -244,6 +243,11 @@ charts:
     x_label: Probability the model stated
     y_label: Share that actually won
     height: 440
+    # A decile scored on a handful of games can sit off the diagonal by
+    # chance, so the hover card says how many games each point stands on.
+    tooltip:
+      - column: games
+        format: integer
     style:
       axis_x:
         labels:

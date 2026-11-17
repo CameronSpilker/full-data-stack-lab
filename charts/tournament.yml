@@ -133,9 +133,6 @@ charts:
       value:
         font:
           size: 28
-      label:
-        font:
-          case: none
       support:
         format: "percent_whole"
 
@@ -147,9 +144,6 @@ charts:
     style:
       value:
         format: percent_whole
-      label:
-        font:
-          case: none
 
   kpi_sims:
     query: headline
@@ -159,9 +153,6 @@ charts:
     style:
       value:
         format: integer
-      label:
-        font:
-          case: none
 
   odds_board:
     query: title_odds
@@ -194,11 +185,9 @@ charts:
     y_label: Expected wins
     height: 420
     style:
-      orientation: vertical
-      # Blue, the colour every general chart on these boards uses. Team
-      # colours are kept for lists where colour says which team.
-      color:
-        static: "#2a78d6"
+      # Blue comes from meta.yml's single-series palette, the colour every
+      # general chart on these boards uses. Team colours are kept for lists
+      # where colour says which team.
       legend:
         visible: false
       axis_y:
@@ -216,7 +205,7 @@ charts:
     x_label: Round
     y_label: Seed
     height: 620
-    sort: { by: round_order, order: asc }
+    sort: { by: round_order }
     style:
       color:
         gradient:
@@ -230,8 +219,6 @@ charts:
     style:
       columns:
         seed:
-          label: Seed
-          format: integer
           align: right
           width: 70
         team_name:
@@ -241,7 +228,6 @@ charts:
         region_name:
           label: Region
         record:
-          label: Record
           align: right
         adjusted_efficiency_margin:
           label: Margin

@@ -83,6 +83,7 @@ reader learns it once:
 | Any other number: a rating, a chance, simulation output | Blue | Elo lines, margin columns, seed value, the survival grid, win probability columns |
 | Groups that need telling apart | One blue at three depths, darkest first | The ranking tiers (which also draw larger the higher they are), the three models |
 | Signed around a baseline (zero, the median) | Blue for the good side, red for the bad side, grey for the middle | Conference depth, a team's strengths by thirds, game margins |
+| A change with a direction | Blue and an up arrow when it went the good way, red and a down arrow when it did not | The scorecard's Elo over the last five games |
 | Context, not a contender | Grey | "The rest", the model that saw its own season, the calibration diagonal |
 
 There is one hue for data, so no reader has to ask what an orange bar means.
@@ -95,6 +96,10 @@ into a dbt seed). When two teams are drawn together, `mart_matchup_odds`
 gives each side a display colour, switching one to its secondary where the
 two primaries are alike, so BYU and Michigan, both navy, are blue and maize.
 A primary too light to see as a bar gives way to the secondary.
+
+Theme tones carry the same pair: `style.tones` in `meta.yml` sets positive to
+the blue and negative to the red, so a KPI change marked `good: up` or
+`good: down` reads in the board's colours rather than the engine's green.
 
 Table cell ramps stop at mid-tone, because dbt Charts writes cell text in the
 same dark ink whatever the fill: every step clears APCA Lc 55 against it. The
@@ -118,6 +123,30 @@ dbt Charts looks for them:
 | `team_scatter.svg.j2` | Rankings, Season | Every team as its logo, ringed in its tier's colour (Rankings) or its own colour (Season), with the team's name on hover |
 
 `dct describe templates/` prints each one's channels and options.
+
+The templates lean on what dbt Charts gives a template rather than their own
+maths: `d3.scale_linear` for the scatter and pair-bar axes (the pair bars take
+their ticks from the scale, so a narrow matchup gets ticks every point and a
+wide one every ten), `label_ink(color)` to set a team colour as text that
+clears 4.5:1 on the card (Michigan's maize prints as a deep gold), and
+`style.fonts.secondary.color` for quiet text. The crests still choose their
+code's ink by hand, because `label_ink` answers "this colour as text on the
+card", not "which text sits on this colour".
+
+## Reference lines and hover cards
+
+A line a reader measures against is an annotation on the chart, not a fake
+series in the query: the national median on the scorecard's strengths, a coin
+flip on the matchup's gauntlet, the average team on conference depth. Each
+says what it is in words beside the line. The calibration diagonal is the
+exception and stays a series in its query, because annotations draw only
+level and upright lines.
+
+Where a point needs more than its two coordinates, the chart lists the extra
+columns under `tooltip:`. The scorecard's Elo line names the opponent and the
+result, and the reliability chart says how many games each decile stands on.
+Hover cards only work on the page, so no chart's title or subtitle points at
+one.
 
 A crest is the team's abbreviation on a disc of its own colour, both straight
 from `mart_team_season`. Team colour goes on the crest and nowhere else: bars
@@ -179,9 +208,19 @@ dct serve                   # live preview on localhost, with the filters live
 bash scripts/render-charts.sh   # exactly what CI and the pipeline produce
 ```
 
-`dct docs` is the full YAML reference offline, and `dct docs <topic>` is one
-section of it. Unknown keys are errors rather than warnings, so `dct validate`
-catches most mistakes before anything touches the warehouse.
+The YAML reference is [docs.dbtcharts.com](https://docs.dbtcharts.com), and
+`dct skills chart` prints the same grammar in the terminal. Unknown keys are
+errors rather than warnings, so `dct validate` catches most mistakes before
+anything touches the warehouse. It also warns on a key that restates a
+default; delete those rather than ignore them, so a board holds only what it
+changes.
+
+The dbt Charts version is pinned in `charts/requirements.txt` and
+`pyproject.toml`, and `locked_schema_version` in `dbt_charts.yml` holds the
+board syntax to match. An upgrade is one commit that moves all three, runs
+`dct migrate charts/`, and fixes whatever `dct validate` and the render then
+report. `dct migrate` skips `meta.yml`, because it is not a board, so check
+that one by hand against the release notes.
 
 ## How a board reaches the site
 

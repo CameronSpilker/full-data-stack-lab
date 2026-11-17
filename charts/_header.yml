@@ -20,8 +20,6 @@
 # top right of the banner, which link to whichever of those fits the board.
 variables:
   season:
-    input: select
-    label: Season
     notes: The season every chart on the board describes. Unset means the latest.
     # The banner's season switch is the control, on the static pages and the
     # live ones alike, so the variable's own widget is not drawn. It is still

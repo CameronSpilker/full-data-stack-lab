@@ -53,7 +53,7 @@ options:
 ---#}
 {% set display = "'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif" %}
 {% set ink = style.font.color or "#14213d" %}
-{% set muted = style.muted or "#6b7280" %}
+{% set muted = style.fonts.secondary.color or "#5f6b7a" %}
 {% set accent = options.bar_color or style.charts.color.categorical.palette[0] %}
 {% set hexdigits = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7,
                     "8": 8, "9": 9, "a": 10, "b": 11, "c": 12, "d": 13, "e": 14, "f": 15} %}

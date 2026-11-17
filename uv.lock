@@ -190,7 +190,7 @@ wheels = [
 
 [[package]]
 name = "dbt-charts"
-version = "0.10.0"
+version = "0.11.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-types" },
@@ -219,17 +219,18 @@ dependencies = [
     { name = "sqlglot" },
     { name = "tomli-w" },
     { name = "typer" },
+    { name = "tzdata" },
     { name = "uvicorn" },
     { name = "vl-convert-python" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/87/f1/47a8f91fe94a32d71539925cfa40884f4c3fa613e6c26c02421f870ce75b/dbt_charts-0.10.0.tar.gz", hash = "sha256:89864ddb8e1ed0ec11750a2e95cfcbfb0716dedc8d10a93ada4a8df30f698a09", size = 9984562, upload-time = "2026-10-19T23:08:30.805Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/18/2aec45436239b32e4375d696e6321484cd2a94c7c6da257f92a2d5dca581/dbt_charts-0.11.1.tar.gz", hash = "sha256:e65dd47c8df94f9b16c6d0bea2f18420995170a927fae9ed5bcb1f17640d6746", size = 11643155, upload-time = "2026-11-04T22:35:51.017Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/d1/b797088e4d0c76a682b0ceaa835deb0b20ee8912ef72e7e4233a97033f02/dbt_charts-0.10.0-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:4e9362a2fef1fb68c2621d31fd3844955c7d4e7b2c8676cd701b3e532c16eaea", size = 13286341, upload-time = "2026-10-19T23:08:15.107Z" },
-    { url = "https://files.pythonhosted.org/packages/39/40/7003a18cbbbc98d564b141079e10793acf33f8c0f884ca370b32abf91af9/dbt_charts-0.10.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:dda8703ee70ddf253f86bab88f81ad4aa471abe38f90d1e5340e7115da069962", size = 12871055, upload-time = "2026-10-19T23:08:18.223Z" },
-    { url = "https://files.pythonhosted.org/packages/25/6f/bb93fcc0cec9ce368e6b157b5047464c86d33d8ebef91bcef0db0994109a/dbt_charts-0.10.0-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:ecb8371d13fe532d6abbe5557b349d31cc634f77ef46e5caed1e42bb6e68a355", size = 13001588, upload-time = "2026-10-19T23:08:21.296Z" },
-    { url = "https://files.pythonhosted.org/packages/9b/30/be121a50d3d364bd92aaa5ea80f306c15c36d2a435bcb2fe78217cde2c4c/dbt_charts-0.10.0-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:8ec4a83610011364001d5218e5f6b02331682d31da675deacb7d65c673f96862", size = 13494635, upload-time = "2026-10-19T23:08:24.356Z" },
-    { url = "https://files.pythonhosted.org/packages/7f/1e/89edcbd4e328d6b48229917385689f9ff47fd727230c4f88abb8dc9108e8/dbt_charts-0.10.0-cp311-abi3-win_amd64.whl", hash = "sha256:33ee1e38887fd7799e07e25de7aec7aed0c60fc75701c110cfdfd5b5b3cc664c", size = 13682142, upload-time = "2026-10-19T23:08:27.644Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/6c/b8876adc28652b688d5d7a272981be19dd95fcb8145b2c1978aeb7b5ef46/dbt_charts-0.11.1-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:c04f64d0956955a65ad9fd539ec0da03e805d3103142dcd78a3a416d95d6fd98", size = 16239423, upload-time = "2026-11-04T22:35:37.716Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/ab/860d4cc8a747ce92c02feb22303a0a0af0102b86c4613fb336f6f5f97689/dbt_charts-0.11.1-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:3515b7d7739e48c271e6fac409c634e8ee61d738af10dc02e7d4cee259b50b2a", size = 15628775, upload-time = "2026-11-04T22:35:40.511Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/b7/1cdba252cb2abe983d1bd6c57d26ccc2240ce8ba52a5cf7fffc58c975c11/dbt_charts-0.11.1-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:2cde007411ef99f9bd63c4ee70ec8fc3ab5dfe39028160231244cb2bb0f2f670", size = 15817129, upload-time = "2026-11-04T22:35:43.307Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/f8/b363afa2b90834ba02405fb5cb6a1b50ea047ba77fbee20f91bb78606d6b/dbt_charts-0.11.1-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:7f0914c37bfbbedc6c9469be8fda78d5a06b27bddcbdb74597e93246bcd7aa71", size = 16542127, upload-time = "2026-11-04T22:35:45.957Z" },
+    { url = "https://files.pythonhosted.org/packages/43/e4/8a8574efab24bd7672f332a9aefb346af892b6a944163b777a6ce110a00f/dbt_charts-0.11.1-cp311-abi3-win_amd64.whl", hash = "sha256:bff615f8111ddb9fae85a313e3437586a283a48b45a3ebdb8e163854c6daaeb6", size = 16898862, upload-time = "2026-11-04T22:35:48.606Z" },
 ]
 
 [[package]]
@@ -557,7 +558,7 @@ dependencies = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "dbt-charts", specifier = "==0.10.0" }]
+requires-dist = [{ name = "dbt-charts", specifier = "==0.11.1" }]
 
 [[package]]
 name = "leather"

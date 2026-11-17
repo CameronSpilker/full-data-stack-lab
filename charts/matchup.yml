@@ -17,14 +17,12 @@ extends: [./_header.yml]
 # rule the scorecard board uses so the two agree about who the subject is.
 variables:
   team:
-    input: select
     notes: The team the board is about.
     options:
       query: team_names
       column: team_name
     default: BYU Cougars
   opponent:
-    input: select
     notes: Who they play, at a neutral site.
     options:
       query: team_names
@@ -325,9 +323,6 @@ charts:
       value:
         font:
           size: 28
-      label:
-        font:
-          case: none
       support:
         format: "percent_whole"
 
@@ -342,9 +337,6 @@ charts:
     style:
       value:
         format: "+.1f"
-      label:
-        font:
-          case: none
       support:
         format: "percent_whole"
 
@@ -356,9 +348,6 @@ charts:
     style:
       value:
         format: percent_whole
-      label:
-        font:
-          case: none
 
   kpi_elo:
     query: featured
@@ -368,9 +357,6 @@ charts:
     style:
       value:
         format: percent_whole
-      label:
-        font:
-          case: none
 
   # Each team in its own colour (templates/team_pair_bars), because the
   # colour here says which team, not how much.
@@ -402,11 +388,13 @@ charts:
     sort:
       by: win_probability
       order: desc
+    annotations:
+      - type: rule
+        y: 0.5
+        text: Coin flip
     style:
-      orientation: horizontal
-      # Blue, the same as the Model column in the table below.
-      color:
-        static: "#2a78d6"
+      # Blue comes from meta.yml's single-series palette, the same as the
+      # Model column in the table below.
       legend:
         visible: false
       axis_y:
@@ -425,18 +413,12 @@ charts:
       columns:
         opponent_rank:
           label: "#"
-          format: integer
           align: right
           width: 60
-        opponent:
-          label: Opponent
-        conference:
-          label: Conference
         opponent_record:
           label: Record
           align: right
         margin:
-          label: Margin
           format: "+.1f"
           align: right
           scale:
