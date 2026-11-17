@@ -9,7 +9,7 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
     # Pinned to the same version as charts/requirements.txt, because the
     # boards are validated against the compiler that ships with it.
-    "dbt-charts==0.10.0",
+    "dbt-charts==0.11.1",
 ]
 
 [tool.uv]

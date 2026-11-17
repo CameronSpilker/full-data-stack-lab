@@ -12,10 +12,13 @@ style:
   # narrow face that ships with the reader's system, so a blocked font
   # changes the letterforms and nothing else.
   background: "#f6f0e6"
-  muted: "#5f6b7a"
   font:
     color: "#14213d"
   fonts:
+    # Secondary text: subtitles, axis titles, notes. Slate rather than a
+    # lighter navy, so it still reads on the maple floor and the white cards.
+    secondary:
+      color: "#5f6b7a"
     heading:
       family: "'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif"
       weight: 600
@@ -25,6 +28,14 @@ style:
       weight: 500
     body:
       family: "Inter, system-ui, sans-serif"
+
+  # The good and bad sides of a change: a KPI delta with `good:` set, the
+  # arrow beside it. The same blue and red as a baseline split, rather than
+  # the engine's green, so a reader learns one pair of colours for "better"
+  # and "worse" across every board.
+  tones:
+    positive: "#2a78d6"
+    negative: "#e34948"
 
   title:
     font:

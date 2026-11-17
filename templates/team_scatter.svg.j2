@@ -53,7 +53,7 @@ options:
     description: Per-point radius, for drawing the groups that matter larger.
 ---#}
 {% set ink = style.font.color or "#14213d" %}
-{% set muted = style.muted or "#6b7280" %}
+{% set muted = style.fonts.secondary.color or "#5f6b7a" %}
 {% set grid = "#e7e2d8" %}
 {% set left = 44 %}
 {% set right = 150 if channels.color else 24 %}
@@ -66,8 +66,10 @@ options:
 {% set hexdigits = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7,
                     "8": 8, "9": 9, "a": 10, "b": 11, "c": 12, "d": 13, "e": 14, "f": 15} %}
 
-{% macro sx(v) %}{{ left + (v - options.x_min) / (options.x_max - options.x_min) * pw }}{% endmacro %}
-{% macro sy(v) %}{% if options.y_reverse %}{{ top + (v - options.y_min) / (options.y_max - options.y_min) * ph }}{% else %}{{ top + ph - (v - options.y_min) / (options.y_max - options.y_min) * ph }}{% endif %}{% endmacro %}
+{#- The engine's d3 scales: the window is the board's to set, so it stays the
+    authored min and max rather than a nice() of the data. -#}
+{% set sx = d3.scale_linear([options.x_min, options.x_max], [left, left + pw]) %}
+{% set sy = d3.scale_linear([options.y_min, options.y_max], [top, top + ph] if options.y_reverse else [top + ph, top]) %}
 
 <defs>
   <clipPath id="{{ uid }}-plot">

@@ -130,9 +130,6 @@ charts:
     style:
       value:
         format: integer
-      label:
-        font:
-          case: none
 
   kpi_games:
     query: season_kpis
@@ -142,9 +139,6 @@ charts:
     style:
       value:
         format: integer
-      label:
-        font:
-          case: none
 
   kpi_best:
     query: season_kpis
@@ -157,9 +151,6 @@ charts:
     style:
       value:
         format: "+.1f"
-      label:
-        font:
-          case: none
       support:
         format: "year"
 
@@ -224,8 +215,11 @@ charts:
     color: band
     sort: { by: avg_efficiency_margin, order: desc }
     height: 460
+    annotations:
+      - type: rule
+        y: 0
+        text: Average team
     style:
-      orientation: horizontal
       axis_y:
         labels:
           format: "+.1f"
@@ -241,7 +235,6 @@ charts:
           label: Conference
         team_count:
           label: Teams
-          format: integer
           align: right
         avg_efficiency_margin:
           label: Avg margin
@@ -255,18 +248,13 @@ charts:
               domain: data
         teams_in_top_50:
           label: Top 50
-          format: integer
           align: right
         ncaa_bids:
           label: Bids
-          format: integer
           align: right
         ncaa_tournament_wins:
           label: Wins
-          format: integer
           align: right
-        best_team:
-          label: Best team
 
   top_20_table:
     query: top_20
@@ -277,7 +265,6 @@ charts:
       columns:
         national_rank:
           label: "#"
-          format: integer
           align: right
           width: 60
         team_name:
@@ -285,7 +272,6 @@ charts:
         conference_name:
           label: Conference
         record:
-          label: Record
           align: right
         adjusted_efficiency_margin:
           label: Margin

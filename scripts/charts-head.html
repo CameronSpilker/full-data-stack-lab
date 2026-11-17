@@ -87,7 +87,11 @@
             window.getComputedStyle(text).textAnchor || "start";
         var y = box.y + box.height / 2 - size / 2;
         var image;
-        if (text.closest(".role-axis-label")) {
+        // dbt Charts 0.10 marked these labels `.role-axis-label`; 0.11 dropped
+        // that class and kept `.role-axis` on the group around them, so
+        // match either. Missing one sends the label down the table-cell
+        // branch below, which pushes the name into its bar.
+        if (text.closest(".role-axis-label, .role-axis")) {
             // A bar's axis label already fills the space up to the bars, so
             // its logo goes in front of it, into the card's padding, a little
             // smaller so it fits there.

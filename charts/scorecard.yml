@@ -24,7 +24,6 @@ style:
 # control.
 variables:
   team:
-    input: select
     notes: The team the whole board is about.
     options:
       query: team_names
@@ -75,6 +74,20 @@ queries:
           SELECT count(*) AS teams_ranked
           FROM marts.mart_team_season
           WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
+      ),
+      -- How far Elo has moved over the team's last five games, the KPI's
+      -- direction-of-travel line. Summed from each game's own change, so a
+      -- team with fewer than five games is measured over what it has.
+      recent AS (
+          SELECT sum(timeline.elo_change) AS elo_change_last_5
+          FROM (
+              SELECT elo_change
+              FROM marts.mart_elo_timeline
+              WHERE team_id = (SELECT team_id FROM focus)
+                AND season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_elo_timeline)
+              ORDER BY game_number DESC
+              LIMIT 5
+          ) AS timeline
       )
       SELECT
           team.team_id,
@@ -104,7 +117,8 @@ queries:
           team.games_vs_top_50,
           team.last_10_wins,
           team.last_10_games,
-          (SELECT teams_ranked FROM field) AS teams_ranked
+          (SELECT teams_ranked FROM field) AS teams_ranked,
+          (SELECT elo_change_last_5 FROM recent) AS elo_change_last_5
       FROM marts.mart_team_season AS team
       INNER JOIN focus ON team.team_id = focus.team_id
       WHERE team.season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
@@ -196,7 +210,11 @@ queries:
       SELECT
           timeline.game_number,
           timeline.elo_after,
-          timeline.is_win
+          timeline.is_win,
+          timeline.opponent_name,
+          CASE WHEN timeline.is_win THEN 'Won by ' ELSE 'Lost by ' END
+              || CAST(abs(timeline.margin) AS VARCHAR) AS result,
+          timeline.elo_change
       FROM marts.mart_elo_timeline AS timeline
       INNER JOIN focus ON timeline.team_id = focus.team_id
       WHERE timeline.season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_elo_timeline)
@@ -275,9 +293,6 @@ charts:
     style:
       value:
         format: integer
-      label:
-        font:
-          case: none
       support:
         format: "integer"
 
@@ -289,27 +304,24 @@ charts:
     support:
       value: conference_record
       label: In conference
-    style:
-      label:
-        font:
-          case: none
 
   kpi_rating:
     query: identity
     type: kpi
     label: Adjusted efficiency margin
     value: adjusted_efficiency_margin
+    # The support line is where Elo has been heading, not where it is: the
+    # line chart below ends on the current number. Up is good, so a rise
+    # reads blue and a slide red, with the arrow saying it as well.
     support:
-      value: elo_rating
-      label: Elo
+      value: elo_change_last_5
+      label: Elo over the last five games
+      good: up
     style:
       value:
         format: "+.1f"
-      label:
-        font:
-          case: none
       support:
-        format: "integer"
+        format: delta
 
   kpi_schedule:
     query: identity
@@ -322,9 +334,6 @@ charts:
     style:
       value:
         format: integer
-      label:
-        font:
-          case: none
       support:
         format: "integer"
 
@@ -342,8 +351,11 @@ charts:
     sort:
       by: percentile
       order: desc
+    annotations:
+      - type: rule
+        y: 0.5
+        text: National median
     style:
-      orientation: horizontal
       axis_y:
         scale:
           continuous:
@@ -361,13 +373,24 @@ charts:
     x_label: Game
     y_label: Elo
     height: 360
+    # Who each point was against and how it went, on the hover card.
+    tooltip:
+      - column: opponent_name
+        label: Opponent
+      - result
+      - column: elo_change
+        label: Elo change
+        format: delta
     style:
       legend:
         visible: false
+      # The two numbers a reader wants off this line without reading the
+      # axis: where the team is now, and its high point.
+      marks:
+        line:
+          labels:
+            visible: [last, max]
       axis_y:
-        scale:
-          continuous:
-            zero: false
         labels:
           format: "integer"
 
@@ -378,7 +401,6 @@ charts:
     subtitle: Most recent first
     style:
       pagination:
-        enabled: true
         page_rows: 15
       columns:
         game_date:
@@ -386,13 +408,9 @@ charts:
           format: date_short
         opponent_name:
           label: Opponent
-        venue:
-          label: Venue
         result:
-          label: Result
           align: center
         margin:
-          label: Margin
           format: "+.0f"
           align: right
           scale:

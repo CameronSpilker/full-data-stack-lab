@@ -44,7 +44,15 @@ queries:
     sql: |
       SELECT
           CAST(season - 1 AS VARCHAR) || '-' || right(CAST(season AS VARCHAR), 2)
-              || ' · ' || format('{:,}', games_scored) || ' games' AS season,
+              || ' · ' || format('{:,}', games_scored) || ' games'
+              -- A season still being played is scored on part of its games,
+              -- and its label says so.
+              || CASE
+                  WHEN season = (SELECT data_season FROM marts.mart_season_status)
+                   AND (SELECT phase FROM marts.mart_season_status) = 'in_season'
+                      THEN ' so far'
+                  ELSE ''
+              END AS season,
           accuracy,
           games_scored
       FROM marts.mart_model_accuracy
@@ -90,10 +98,6 @@ charts:
     type: kpi
     label: Season
     value: season
-    style:
-      label:
-        font:
-          case: none
 
   kpi_games:
     query: headline
@@ -103,9 +107,6 @@ charts:
     style:
       value:
         format: integer
-      label:
-        font:
-          case: none
 
   kpi_accuracy:
     query: best_model
@@ -118,9 +119,6 @@ charts:
     style:
       value:
         format: percent_whole
-      label:
-        font:
-          case: none
       support:
         format: ".3f"
 

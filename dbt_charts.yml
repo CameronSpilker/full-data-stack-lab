@@ -6,6 +6,12 @@
 # not in git: the pipeline builds it and publishes it as a release asset, and
 # charts/README.md says how to get a copy locally.
 
+# The board syntax these boards are written in. dct validate rejects newer
+# syntax and dct migrate stops here, so a dbt-charts upgrade that changes the
+# grammar is a deliberate edit to this line, not a side effect of a pip
+# install. Bump it together with the pin in charts/requirements.txt.
+locked_schema_version: "0.11.0"
+
 sources:
   warehouse:
     type: duckdb

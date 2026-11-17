@@ -37,7 +37,7 @@ options:
 ---#}
 {% set display = "'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif" %}
 {% set ink = style.font.color or "#14213d" %}
-{% set muted = style.muted or "#6b7280" %}
+{% set muted = style.fonts.secondary.color or "#5f6b7a" %}
 {% set palette = style.charts.color.categorical.palette %}
 {% set hexdigits = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7,
                     "8": 8, "9": 9, "a": 10, "b": 11, "c": 12, "d": 13, "e": 14, "f": 15} %}
@@ -66,13 +66,13 @@ options:
 {% macro paint_for(value, fallback) -%}
   {{- ("#" ~ value) if value and value | length == 6 else fallback -}}
 {%- endmacro %}
-{#- A colour light enough to vanish as text on white sets its number in ink. -#}
+{#- Each side's percentage is set in its team's colour, darkened by the
+    engine's label_ink until it clears 4.5:1 on the card. A light primary
+    (Michigan's maize, say) keeps its hue as a deep gold rather than giving
+    way to plain ink. -#}
 {% macro ink_for(value, fallback) -%}
   {%- set c = (value or "") | lower -%}
-  {%- if c | length == 6 -%}
-    {%- set lum = 0.299 * (hexdigits[c[0]] * 16 + hexdigits[c[1]]) + 0.587 * (hexdigits[c[2]] * 16 + hexdigits[c[3]]) + 0.114 * (hexdigits[c[4]] * 16 + hexdigits[c[5]]) -%}
-    {{- ink if lum > 170 else "#" ~ c -}}
-  {%- else -%}{{- fallback -}}{%- endif -%}
+  {{- label_ink("#" ~ c) if c | length == 6 else fallback -}}
 {%- endmacro %}
 
 {% if rows %}
