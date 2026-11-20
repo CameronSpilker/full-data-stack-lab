@@ -184,8 +184,11 @@ rate. A nightly run used to make 59: 12 date windows each for games and lines,
 and a 32 request box score walk that no model reads. That spent the November
 2026 allowance by the 12th, and every run after it was refused on its first
 request until the month turned. The nightly run now skips box scores (the
-monthly run still collects them) and walks five week windows, which brings a
-night to about 12 calls. The client logs the calls left after each response
+monthly run still collects them) and asks only for a week back and a week
+ahead, which is every game the forecast shows: one request each for games,
+lines, ratings and season stats, four a night. Fixtures further out are
+already in the warehouse, and a Monday run reads the schedule to the end of
+the season in five week windows so added or moved games still arrive. The client logs the calls left after each response
 and stops at once on a 429 that says none remain, rather than backing off for
 two minutes per request.
 

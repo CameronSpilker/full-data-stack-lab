@@ -554,11 +554,26 @@ def test_calls_remaining_reads_the_header_in_any_case():
     assert cbd._calls_remaining(response) is None
 
 
-def test_a_nightly_walk_is_a_handful_of_windows():
-    # A daily run walks from a week ago to the end of the season. At two week
-    # windows that was 12 requests for games and 12 for lines, every night.
+def test_a_walk_to_the_end_of_the_season_is_a_handful_of_windows():
+    # The weekly full-schedule run walks from a week ago to April. At two week
+    # windows that was 12 requests for games and 12 for lines.
     season = Season(year=2027, start=date(2026, 11, 1), end=date(2027, 4, 15))
     assert len(cbd._windows(season, since=date(2026, 11, 12))) <= 5
+
+
+def test_a_nightly_window_is_one_request():
+    # A week back for corrections and a week ahead for the forecast's slate
+    # is one window: one request for games and one for lines.
+    season = Season(year=2027, start=date(2026, 11, 1), end=date(2027, 4, 15))
+    windows = cbd._windows(season, since=date(2026, 11, 13), until=date(2026, 11, 27))
+    assert windows == [(date(2026, 11, 13), date(2026, 11, 27))]
+
+
+def test_until_never_reaches_past_the_season():
+    season = Season(year=2027, start=date(2026, 11, 1), end=date(2027, 4, 15))
+    windows = cbd._windows(season, since=date(2027, 4, 10), until=date(2027, 4, 30))
+    assert windows[-1][1] == season.end
+    assert cbd._windows(season, since=date(2027, 4, 20), until=date(2027, 4, 30)) == []
 
 
 def test_losing_every_season_is_an_error_not_an_empty_extract():

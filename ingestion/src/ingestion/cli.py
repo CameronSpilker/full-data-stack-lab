@@ -101,6 +101,18 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--ahead-days",
+        type=int,
+        metavar="N",
+        help=(
+            "Only extract games and lines up to N days ahead. A nightly run "
+            "wants the games the forecast can show (picks_window_days, 7), "
+            "not the rest of the season: later fixtures are already in the "
+            "warehouse and are refreshed by the weekly full-schedule run. "
+            "Omit it to read to the end of the season."
+        ),
+    )
+    parser.add_argument(
         "--as-of",
         type=date.fromisoformat,
         metavar="YYYY-MM-DD",
@@ -242,8 +254,17 @@ def main(argv: list[str] | None = None) -> int:
     since = (
         args.snapshot_date - timedelta(days=args.since_days) if args.since_days else None
     )
+    until = (
+        args.snapshot_date + timedelta(days=args.ahead_days)
+        if args.ahead_days is not None
+        else None
+    )
     if since:
-        log.info("Extracting games and lines from %s onward", since)
+        log.info(
+            "Extracting games and lines from %s to %s",
+            since,
+            until or "the end of the season",
+        )
 
     # Everything below is season-scoped, so a season that stopped producing
     # rows months ago is not asked for again.
@@ -268,7 +289,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if _wanted(args.source, "games"):
-        tables.update(cbd.extract_games(seasons, since=since))
+        tables.update(cbd.extract_games(seasons, since=since, until=until))
 
     if _wanted(args.source, "boxscores"):
         # The box score endpoint takes no date filter, so it cannot be narrowed
@@ -292,7 +313,7 @@ def main(argv: list[str] | None = None) -> int:
             )
 
     if _wanted(args.source, "lines"):
-        tables.update(cbd.extract_lines(seasons, since=since))
+        tables.update(cbd.extract_lines(seasons, since=since, until=until))
 
     if _wanted(args.source, "ratings"):
         tables.update(cbd.extract_ratings(seasons, args.snapshot_date))

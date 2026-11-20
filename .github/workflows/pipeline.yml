@@ -131,8 +131,19 @@ jobs:
               || [ "${{ inputs.refresh_teams }}" = "true" ]; then
             echo "Monthly run: refreshing the team dimension too."
             ingest all --current-only --since-days "${{ inputs.since_days || 7 }}"
-          else
+          elif [ "$(date -u +%u)" = "1" ]; then
+            # Mondays read the schedule to the end of the season, so a game
+            # added or moved weeks out still reaches the warehouse. About ten
+            # requests rather than four.
+            echo "Weekly run: refreshing the full schedule."
             ingest daily --current-only --since-days "${{ inputs.since_days || 7 }}"
+          else
+            # A week back, for late finals and corrected scores, and a week
+            # ahead, which is every game the forecast shows
+            # (picks_window_days). One request each for games and lines, one
+            # for ratings and one for season stats: four a night. Fixtures
+            # further out are already in the warehouse from earlier runs.
+            ingest daily --current-only --since-days "${{ inputs.since_days || 7 }}" --ahead-days 7
           fi
 
       - name: Transform
