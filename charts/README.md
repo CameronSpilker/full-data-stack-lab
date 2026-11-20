@@ -120,7 +120,8 @@ dbt Charts looks for them:
 | `team_hero.svg.j2` | Scorecard | One team's name plate and national rank |
 | `matchup_scoreboard.svg.j2` | Matchup | Both teams, each one's chance, and the split between them |
 | `team_pair_bars.svg.j2` | Matchup | Two teams measure by measure, each in its own colour |
-| `team_scatter.svg.j2` | Rankings, Season | Every team as its logo, ringed in its tier's colour (Rankings) or its own colour (Season), with the team's name on hover |
+| `team_scatter.svg.j2` | Rankings, Season | Every team as its logo, ringed in its tier's colour (Rankings) or its own colour (Season), with a hover card and a click through to the team's scorecard |
+| `team_picker.svg.j2` | Scorecard, Matchup | The team pickers, as a row under the banner |
 
 `dct describe templates/` prints each one's channels and options.
 
@@ -146,7 +147,14 @@ Where a point needs more than its two coordinates, the chart lists the extra
 columns under `tooltip:`. The scorecard's Elo line names the opponent and the
 result, and the reliability chart says how many games each decile stands on.
 Hover cards only work on the page, so no chart's title or subtitle points at
-one.
+one. The scatters are the exception, because a crowd of logos says nothing
+until you ask one of them who it is. `tooltip:` is not offered to a custom
+chart, so `team_scatter` takes a `details:` list of columns instead, each
+already formatted by its query, and writes them into each point as hidden
+text. The page script turns them into a card by the pointer (rank, record,
+conference, offence, defence and net rating), and a `link` column makes the
+point open that team's scorecard. On a phone the first tap shows the card
+and a second one follows the link.
 
 A crest is the team's abbreviation on a disc of its own colour, both straight
 from `mart_team_season`. Team colour goes on the crest and nowhere else: bars
@@ -268,3 +276,16 @@ Charts' own server as a Vercel Function in a second Vercel project,
   seconds.
 - Picks live in the URL (`/charts/scorecard/?team=Duke Blue Devils`), so a
   link opens on the team it was copied from.
+- The pickers sit under the banner, not in the title row where dbt Charts
+  draws a variable's control. In the title row they made it taller on these
+  two boards than on the rest, so the banner, and the bar of buttons a reader
+  had just pressed, moved down the page on the way in. The engine's controls
+  are hidden (`visible: false`, still read from the URL), `team_picker`
+  draws a field per variable, and the page script lays a native dropdown
+  over each one. `meta.yml` also pins every board to 1200 wide, because a
+  board otherwise hugs its widest item and Rankings came out at 1139, which
+  drew its banner larger than everywhere else.
+- Because a render can take seconds, every move to another page (a button,
+  a season, a pick, a click on a team) starts an orange bar along the top at
+  once, and a load still going after 0.6 seconds puts up a card saying what
+  is loading. Static boards arrive before the card would show.

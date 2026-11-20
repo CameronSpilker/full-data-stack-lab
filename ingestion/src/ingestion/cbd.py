@@ -44,6 +44,16 @@ class RateLimited(RuntimeError):
     """
 
 
+class AllowanceSpent(RateLimited):
+    """CBD says the key has no calls left this month.
+
+    A 429 normally means "slow down", and waiting is the answer. With the
+    monthly allowance spent it means "not until the 1st", and two minutes of
+    backoff per request only hides that. CBD reports what is left in a
+    response header, so a 429 that says zero remain is raised at once.
+    """
+
+
 class SourceExhausted(RuntimeError):
     """Every request for one source failed.
 
@@ -72,6 +82,21 @@ RATE_LIMIT_MAX_WAIT = 30.0
 # two minutes at a time, and the first one had already said it. Four in a row
 # is not bad luck, and the remaining leagues have nothing different to learn.
 RATE_LIMIT_GIVE_UP_STREAK = 4
+
+# The header CBD uses for the calls a key has left this month. Read wherever
+# it appears so the log shows the budget falling, not just the day it ends.
+CALLS_REMAINING_HEADER = "x-calllimit-remaining"
+
+
+def _calls_remaining(response: httpx.Response) -> int | None:
+    """What the source says this key has left, or None if it did not say."""
+    for name, value in (response.headers or {}).items():
+        if name.lower() == CALLS_REMAINING_HEADER:
+            try:
+                return int(str(value).strip())
+            except ValueError:
+                return None
+    return None
 
 
 def api_key() -> str:
@@ -123,11 +148,25 @@ def _get(client: httpx.Client, path: str, **params: Any) -> Any:
                 f"CBD rejected the API key ({response.status_code}). Check CBD_API_KEY."
             )
 
+        remaining = _calls_remaining(response)
+
         if response.status_code == 429:
+            if remaining == 0:
+                raise AllowanceSpent(
+                    f"CBD refused {path}: this API key has no calls left this month. "
+                    "Nothing will succeed until the allowance resets on the 1st, "
+                    "or the key moves to a larger tier."
+                )
             throttled += 1
             if throttled > RATE_LIMIT_ATTEMPTS:
+                # The body is the source's own reason, and the only clue to
+                # whether this is a burst limit or a spent allowance when the
+                # header above is missing. Thirteen nights of this were logged
+                # as a bare status code.
+                said = (getattr(response, "text", "") or "").strip()[:200]
                 raise RateLimited(
                     f"CBD is still rate limiting {path} after {RATE_LIMIT_ATTEMPTS} waits"
+                    + (f" (it said: {said})" if said else "")
                 )
             wait = min(
                 float(response.headers.get("retry-after", 2**throttled)),
@@ -145,6 +184,8 @@ def _get(client: httpx.Client, path: str, **params: Any) -> Any:
             continue
 
         response.raise_for_status()
+        if remaining is not None:
+            log.info("CBD %s: %s calls left this month", path, remaining)
         time.sleep(request_delay())
         return response.json()
 
@@ -235,7 +276,18 @@ def _to_float(value: Any) -> float | None:
 PAGE_LIMIT = 3000
 
 
-def _windows(season: Season, days: int = 14, since: date | None = None) -> list[tuple[date, date]]:
+# Five weeks. A daily run walks from a week ago to the end of the season,
+# because the forecast prices every fixture still to come, so the window size
+# sets most of what a night costs. At two weeks that walk was 12 requests for
+# games and 12 more for lines; at five it is about five of each. The busiest
+# five weeks of a season hold roughly 2,000 games, well under the 3,000 limit,
+# and a window that does overflow is split by `_paged_by_date` anyway.
+WINDOW_DAYS = 35
+
+
+def _windows(
+    season: Season, days: int = WINDOW_DAYS, since: date | None = None
+) -> list[tuple[date, date]]:
     """The season cut into fixed windows, oldest first.
 
     `since` trims the walk to recent history, which is what a daily run wants:

@@ -1,0 +1,64 @@
+{#---
+description: >
+  The team pickers on the live boards, drawn as a row under the banner. dbt
+  Charts draws a board's own variable controls in its title row, which made
+  that row taller on the two boards that have them and moved the banner down
+  the page when a reader switched tabs. Those controls are hidden instead
+  (`visible: false`), and this draws one labelled field per variable showing
+  the current pick. The page script (scripts/charts-head.html) lays a real
+  dropdown over each field, and picking a team reloads the board with it in
+  the URL, which is the same parameter dbt Charts' own control sets. The
+  list of teams rides along as hidden text, because a custom chart may not
+  carry data attributes.
+options:
+  team_column:
+    type: column
+    description: The column holding each option, one row per team.
+  variable:
+    type: string
+    description: The variable the first field sets, by its URL parameter name.
+  label:
+    type: string
+    default: Team
+  variable_2:
+    type: string
+    default: ""
+    description: A second variable, for a board that picks two teams.
+  label_2:
+    type: string
+    default: ""
+---#}
+{% set ink = style.font.color or "#14213d" %}
+{% set muted = style.fonts.secondary.color or "#5f6b7a" %}
+{% set orange = "#f47b20" %}
+{% set display = "'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif" %}
+{% set picks = [[options.variable, options.label]] %}
+{% if options.variable_2 %}{% set picks = picks + [[options.variable_2, options.label_2]] %}{% endif %}
+{% set gap = 28 %}
+{% set field_h = 36 %}
+{% set fy = (height - field_h) / 2 %}
+{% set slot = (width - gap * (picks | length - 1)) / (picks | length) %}
+
+<g class="picker">
+  {#- Every option, once, for the page script to read. Never drawn. -#}
+  <g class="picker-options" display="none">
+    {%- for row in rows %}<text>{{ row[options.team_column] }}</text>{% endfor -%}
+  </g>
+  {% for pick in picks %}
+    {% set x = loop.index0 * (slot + gap) %}
+    {% set label_w = 96 %}
+    {% set fw = [slot - label_w, 420] | min %}
+    {% set current = variables[pick[0]] if variables and pick[0] in variables else "" %}
+    <text x="{{ x }}" y="{{ fy + field_h / 2 }}" dy="0.35em" font-family="{{ display }}"
+          font-size="14" font-weight="600" letter-spacing="1.6" fill="{{ muted }}">{{ pick[1] | upper }}</text>
+    <g class="picker-field" id="{{ uid }}-pick-{{ pick[0] }}">
+      <rect x="{{ x + label_w }}" y="{{ fy }}" width="{{ fw }}" height="{{ field_h }}" rx="8"
+            fill="#ffffff" stroke="#d9d2c4"/>
+      <text class="picker-value" x="{{ x + label_w + 14 }}" y="{{ fy + field_h / 2 }}" dy="0.35em"
+            font-size="15" font-weight="500" fill="{{ ink }}">{{ current }}</text>
+      {#- The caret, in the banner's orange so it reads as the thing to press. -#}
+      <path d="M {{ x + label_w + fw - 26 }} {{ fy + field_h / 2 - 3 }} l 6 6 l 6 -6"
+            fill="none" stroke="{{ orange }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  {% endfor %}
+</g>

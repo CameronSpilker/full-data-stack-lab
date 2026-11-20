@@ -26,13 +26,20 @@ SOURCES = [
 ]
 
 # What a scheduled run asks for: everything that changes between one night and
-# the next. The team dimension is deliberately absent. Conference membership
-# changes once a year, in July, which is why the Dagster schedule refreshes it
-# monthly rather than nightly, and re-reading it every night spends the run's
-# first requests on 365 rows that cannot have moved. That is not free: it is
-# the first call the run makes, so when the source throttles it, the run dies
-# there and never reaches a game.
-NIGHTLY = ("games", "boxscores", "lines", "ratings")
+# the next and that a model reads. The team dimension is deliberately absent.
+# Conference membership changes once a year, in July, which is why the Dagster
+# schedule refreshes it monthly rather than nightly, and re-reading it every
+# night spends the run's first requests on 365 rows that cannot have moved.
+# That is not free: it is the first call the run makes, so when the source
+# throttles it, the run dies there and never reaches a game.
+#
+# Box scores are absent too. The walk is one request per conference, 32 of
+# the 59 a nightly run used to make, and no model reads the table: the four
+# factors come from the season stats endpoint alongside the ratings. CBD's
+# free tier is a monthly allowance, not a rate, and 59 calls a night spent it
+# by 12 November 2026, after which every run was refused on its first request
+# until the month turned. The monthly run (`ingest all`) still collects them.
+NIGHTLY = ("games", "lines", "ratings")
 
 
 def _wanted(source: str, extractor: str) -> bool:
@@ -51,9 +58,9 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         choices=SOURCES,
         help=(
             "Which extractor to run. 'all' runs every live extractor. 'daily' "
-            "runs the four that change overnight — games, box scores, lines "
-            "and ratings — and leaves the team dimension alone, which is what "
-            "a scheduled run wants. 'demo' "
+            "runs the three that change overnight and feed a model (games, "
+            "lines and ratings) and leaves the team dimension and box scores "
+            "alone, which is what a scheduled run wants. 'demo' "
             "simulates deterministic synthetic seasons so the whole pipeline "
             "runs with no network access and no API key. 'preflight' checks "
             "the live APIs against one season and writes nothing — run it "

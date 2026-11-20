@@ -4,9 +4,11 @@ description: >
   there. Each point is a small disc in its group's colour (a tier, a
   conference), or in the team's own colour when there is no group; once the
   logo loads (scripts/render-charts.sh) the disc turns white with the logo
-  inside and the colour stays as its ring. Hovering a point names the team.
-  Rows are drawn in query order, so order the query with the points that
-  matter last.
+  inside and the colour stays as its ring. Hovering or tapping a point opens a
+  card with the team's name and whatever `details` columns the board names
+  (scripts/charts-head.html draws it), and a `link` column makes the point a
+  link. Rows are drawn in query order, so order the query with the points
+  that matter last.
 channels:
   x:
     description: Horizontal measure.
@@ -51,6 +53,21 @@ options:
     type: column
     default: null
     description: Per-point radius, for drawing the groups that matter larger.
+  details:
+    type: columns
+    default: null
+    description: >
+      Columns shown in the hover card, in order, each already formatted as
+      text by the query. The column name is the label, with underscores read
+      as spaces.
+  link:
+    type: column
+    default: null
+    description: A URL per point, for a click through to that team's page.
+  link_note:
+    type: string
+    default: ""
+    description: The card's last line, saying where a click goes.
 ---#}
 {% set ink = style.font.color or "#14213d" %}
 {% set muted = style.fonts.secondary.color or "#5f6b7a" %}
@@ -120,11 +137,24 @@ options:
       {% endif %}
     {% endif %}
     {% set pr = (row[options.radius_column] or r) if options.radius_column else r %}
+    {% set href = row[options.link] if options.link else none %}
+    {% if href %}<a href="{{ href }}">{% endif %}
     <g id="{{ uid }}-crest-{{ row[options.team_id] }}" class="crest">
       <title>{{ row[options.team_name] }}</title>
       <circle cx="{{ sx(px) }}" cy="{{ sy(py) }}" r="{{ pr + 1.5 }}" fill="#ffffff" fill-opacity="0.9"/>
       <circle cx="{{ sx(px) }}" cy="{{ sy(py) }}" r="{{ pr }}" fill="{{ paint }}"/>
+      {#- The hover card's rows. Never drawn: the page script reads them and
+          shows them in a card beside the pointer. A custom chart may not
+          carry data attributes, so this is how the values reach it. -#}
+      {%- if options.details %}
+      <g class="tip" display="none">
+        {%- if channels.color %}<text class="tip-row"><tspan class="tip-k">{{ channels.color | replace("_", " ") | capitalize }}</tspan><tspan class="tip-v">{{ row[channels.color] }}</tspan><tspan class="tip-c">{{ paint }}</tspan></text>{% endif %}
+        {%- for col in options.details %}{% if row[col] is not none %}<text class="tip-row"><tspan class="tip-k">{{ col | replace("_", " ") | capitalize }}</tspan><tspan class="tip-v">{{ row[col] }}</tspan></text>{% endif %}{% endfor %}
+        {%- if href and options.link_note %}<text class="tip-more">{{ options.link_note }}</text>{% endif %}
+      </g>
+      {%- endif %}
     </g>
+    {% if href %}</a>{% endif %}
   {% endif %}
 {% endfor %}
 </g>

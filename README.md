@@ -178,6 +178,17 @@ have something new to say overnight and leaves the dimension to the job that
 owns it. A backfill still asks for everything, because that is when the
 dimension is genuinely being rebuilt.
 
+**The free tier is a monthly allowance, and the nightly run spends it
+deliberately.** CBD's free key allows a fixed number of calls a month, not a
+rate. A nightly run used to make 59: 12 date windows each for games and lines,
+and a 32 request box score walk that no model reads. That spent the November
+2026 allowance by the 12th, and every run after it was refused on its first
+request until the month turned. The nightly run now skips box scores (the
+monthly run still collects them) and walks five week windows, which brings a
+night to about 12 calls. The client logs the calls left after each response
+and stops at once on a 429 that says none remain, rather than backing off for
+two minutes per request.
+
 The box score walk needed one more thing to stop depending on it. That
 endpoint is paged by conference, and the league list came from `/teams` too,
 so the first run with the nightly change in it got past games and died there
