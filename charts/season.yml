@@ -74,7 +74,20 @@ queries:
           adjusted_defensive_efficiency,
           adjusted_tempo,
           team_color,
-          team_secondary_color
+          team_secondary_color,
+          -- What the hover card shows, formatted here so the card prints
+          -- it as it is. The column name is the label.
+          '#' || national_rank AS rank,
+          record,
+          conference_name AS conference,
+          CASE WHEN adjusted_offensive_efficiency IS NOT NULL
+              THEN printf('%.1f (#%d)', adjusted_offensive_efficiency, offense_rank) END AS offence,
+          CASE WHEN adjusted_defensive_efficiency IS NOT NULL
+              THEN printf('%.1f (#%d)', adjusted_defensive_efficiency, defense_rank) END AS defence,
+          CASE WHEN adjusted_efficiency_margin IS NOT NULL
+              THEN printf('%+.1f', adjusted_efficiency_margin) END AS net_rating,
+          -- A click opens the live scorecard on this team and this season.
+          '/charts/scorecard/?team=' || url_encode(team_name) || '&season=' || season AS scorecard_url
       FROM marts.mart_team_season
       WHERE season = (SELECT coalesce(try_cast({{ season }} AS INTEGER), max(season)) FROM marts.mart_team_season)
       -- Weakest first, so the best teams are drawn on top.
@@ -180,7 +193,7 @@ charts:
   quadrant:
     query: offense_defense
     title: Offence against defence, every team in the country
-    subtitle: Up and to the right is better. Hover a logo for the team.
+    subtitle: Up and to the right is better. Hover a logo for the team, click it for its scorecard.
     type: custom
     template: team_scatter
     x: adjusted_offensive_efficiency
@@ -190,6 +203,9 @@ charts:
       team_name: team_name
       team_color: team_color
       secondary_color: team_secondary_color
+      details: [rank, record, conference, offence, defence, net_rating]
+      link: scorecard_url
+      link_note: Click for the full scorecard
       # The window is the same on the season board's quadrant, so the two
       # plots read against each other. Defence runs downward because points
       # allowed is a number to minimise: up and to the right is good on both.

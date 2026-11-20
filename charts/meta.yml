@@ -1,6 +1,13 @@
 # Folder-level defaults: dbt charts applies this to every board in charts/.
 source: warehouse
 
+# Every board is drawn 1200 wide. Left to itself a board hugs its widest
+# item, and the rankings board came out at 1139, so its banner was drawn
+# larger than on every other tab and the bar of buttons jumped on the way
+# in. One width means the banner is the same size and in the same place on
+# every board.
+width: 1200
+
 style:
   # The look is a college basketball broadcast: a navy scoreboard banner on
   # top (templates/court_banner.svg.j2), a pale maple floor under the cards,

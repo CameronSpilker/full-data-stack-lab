@@ -461,14 +461,16 @@ class _Throttled:
         self.remaining = times
         self.retry_after = retry_after
         self.waits = []
+        self.headers = {}
 
     def get(self, path, params=None):
         if self.remaining:
             self.remaining -= 1
             response = _FakeResponse([])
             response.status_code = 429
+            response.headers = dict(self.headers)
             if self.retry_after is not None:
-                response.headers = {"retry-after": str(self.retry_after)}
+                response.headers["retry-after"] = str(self.retry_after)
             return response
         return _FakeResponse([{"id": 1}])
 
@@ -523,6 +525,55 @@ def test_endless_rate_limiting_eventually_raises(monkeypatch):
 
     with pytest.raises(RuntimeError, match="still rate limiting"):
         cbd._get(client, "/lines")
+
+
+def test_a_spent_monthly_allowance_fails_at_once(monkeypatch):
+    # CBD's free tier is a monthly allowance. Once it is spent every request is
+    # a 429 until the 1st, and the nightly run spent two minutes per request
+    # learning that. When the source says zero calls remain, believe it.
+    _, waits = _throttle_waits(monkeypatch)
+    client = _Throttled(times=cbd.RATE_LIMIT_ATTEMPTS + 1)
+    client.headers = {"X-CallLimit-Remaining": "0"}
+
+    with pytest.raises(cbd.AllowanceSpent, match="no calls left this month"):
+        cbd._get(client, "/games")
+    assert [wait for wait in waits if wait] == []
+
+
+def test_a_spent_allowance_is_still_a_rate_limit():
+    # The box score walk counts RateLimited to decide when to give up, so the
+    # stronger signal has to be caught by the same handler.
+    assert issubclass(cbd.AllowanceSpent, cbd.RateLimited)
+
+
+def test_calls_remaining_reads_the_header_in_any_case():
+    response = _FakeResponse([])
+    response.headers = {"x-calllimit-remaining": "41"}
+    assert cbd._calls_remaining(response) == 41
+    response.headers = {}
+    assert cbd._calls_remaining(response) is None
+
+
+def test_a_walk_to_the_end_of_the_season_is_a_handful_of_windows():
+    # The weekly full-schedule run walks from a week ago to April. At two week
+    # windows that was 12 requests for games and 12 for lines.
+    season = Season(year=2027, start=date(2026, 11, 1), end=date(2027, 4, 15))
+    assert len(cbd._windows(season, since=date(2026, 11, 12))) <= 5
+
+
+def test_a_nightly_window_is_one_request():
+    # A week back for corrections and a week ahead for the forecast's slate
+    # is one window: one request for games and one for lines.
+    season = Season(year=2027, start=date(2026, 11, 1), end=date(2027, 4, 15))
+    windows = cbd._windows(season, since=date(2026, 11, 13), until=date(2026, 11, 27))
+    assert windows == [(date(2026, 11, 13), date(2026, 11, 27))]
+
+
+def test_until_never_reaches_past_the_season():
+    season = Season(year=2027, start=date(2026, 11, 1), end=date(2027, 4, 15))
+    windows = cbd._windows(season, since=date(2027, 4, 10), until=date(2027, 4, 30))
+    assert windows[-1][1] == season.end
+    assert cbd._windows(season, since=date(2027, 4, 20), until=date(2027, 4, 30)) == []
 
 
 def test_losing_every_season_is_an_error_not_an_empty_extract():

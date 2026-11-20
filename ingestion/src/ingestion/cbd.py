@@ -44,6 +44,16 @@ class RateLimited(RuntimeError):
     """
 
 
+class AllowanceSpent(RateLimited):
+    """CBD says the key has no calls left this month.
+
+    A 429 normally means "slow down", and waiting is the answer. With the
+    monthly allowance spent it means "not until the 1st", and two minutes of
+    backoff per request only hides that. CBD reports what is left in a
+    response header, so a 429 that says zero remain is raised at once.
+    """
+
+
 class SourceExhausted(RuntimeError):
     """Every request for one source failed.
 
@@ -72,6 +82,21 @@ RATE_LIMIT_MAX_WAIT = 30.0
 # two minutes at a time, and the first one had already said it. Four in a row
 # is not bad luck, and the remaining leagues have nothing different to learn.
 RATE_LIMIT_GIVE_UP_STREAK = 4
+
+# The header CBD uses for the calls a key has left this month. Read wherever
+# it appears so the log shows the budget falling, not just the day it ends.
+CALLS_REMAINING_HEADER = "x-calllimit-remaining"
+
+
+def _calls_remaining(response: httpx.Response) -> int | None:
+    """What the source says this key has left, or None if it did not say."""
+    for name, value in (response.headers or {}).items():
+        if name.lower() == CALLS_REMAINING_HEADER:
+            try:
+                return int(str(value).strip())
+            except ValueError:
+                return None
+    return None
 
 
 def api_key() -> str:
@@ -123,11 +148,25 @@ def _get(client: httpx.Client, path: str, **params: Any) -> Any:
                 f"CBD rejected the API key ({response.status_code}). Check CBD_API_KEY."
             )
 
+        remaining = _calls_remaining(response)
+
         if response.status_code == 429:
+            if remaining == 0:
+                raise AllowanceSpent(
+                    f"CBD refused {path}: this API key has no calls left this month. "
+                    "Nothing will succeed until the allowance resets on the 1st, "
+                    "or the key moves to a larger tier."
+                )
             throttled += 1
             if throttled > RATE_LIMIT_ATTEMPTS:
+                # The body is the source's own reason, and the only clue to
+                # whether this is a burst limit or a spent allowance when the
+                # header above is missing. Thirteen nights of this were logged
+                # as a bare status code.
+                said = (getattr(response, "text", "") or "").strip()[:200]
                 raise RateLimited(
                     f"CBD is still rate limiting {path} after {RATE_LIMIT_ATTEMPTS} waits"
+                    + (f" (it said: {said})" if said else "")
                 )
             wait = min(
                 float(response.headers.get("retry-after", 2**throttled)),
@@ -145,6 +184,8 @@ def _get(client: httpx.Client, path: str, **params: Any) -> Any:
             continue
 
         response.raise_for_status()
+        if remaining is not None:
+            log.info("CBD %s: %s calls left this month", path, remaining)
         time.sleep(request_delay())
         return response.json()
 
@@ -235,26 +276,47 @@ def _to_float(value: Any) -> float | None:
 PAGE_LIMIT = 3000
 
 
-def _windows(season: Season, days: int = 14, since: date | None = None) -> list[tuple[date, date]]:
+# Five weeks. The busiest five weeks of a season hold roughly 2,000 games,
+# well under the 3,000 limit, and a window that does overflow is split by
+# `_paged_by_date` anyway. A nightly run asks for a fortnight around today
+# (`until`), so it is one window, one request per endpoint.
+WINDOW_DAYS = 35
+
+
+def _windows(
+    season: Season,
+    days: int = WINDOW_DAYS,
+    since: date | None = None,
+    until: date | None = None,
+) -> list[tuple[date, date]]:
     """The season cut into fixed windows, oldest first.
 
     `since` trims the walk to recent history, which is what a daily run wants:
     yesterday's finals and any score corrected since, rather than five months
-    of settled results re-fetched every night.
+    of settled results re-fetched every night. `until` trims the other end.
+    The fixtures further out are already in the warehouse from earlier runs
+    (the loader upserts on game_id), and they rarely change, so re-reading
+    the rest of the season every night bought nothing but requests.
     """
     spans = []
     start = max(season.start, since) if since else season.start
-    if start > season.end:
+    last = min(season.end, until) if until else season.end
+    if start > last:
         return []
-    while start <= season.end:
-        end = min(start + timedelta(days=days - 1), season.end)
+    while start <= last:
+        end = min(start + timedelta(days=days - 1), last)
         spans.append((start, end))
         start = end + timedelta(days=1)
     return spans
 
 
 def _paged_by_date(
-    client: httpx.Client, path: str, season: Season, since: date | None = None, **params: Any
+    client: httpx.Client,
+    path: str,
+    season: Season,
+    since: date | None = None,
+    until: date | None = None,
+    **params: Any,
 ) -> list[dict[str, Any]]:
     """Every record for a season, a date window at a time.
 
@@ -262,7 +324,7 @@ def _paged_by_date(
     and both halves are retried. A single day at the limit cannot be split any
     further and is reported rather than silently accepted.
     """
-    pending = list(reversed(_windows(season, since=since)))
+    pending = list(reversed(_windows(season, since=since, until=until)))
     collected: list[dict[str, Any]] = []
 
     while pending:
@@ -426,7 +488,7 @@ def parse_game(game: dict[str, Any], season_year: int) -> dict[str, Any] | None:
 
 
 def extract_games(
-    seasons: list[Season], since: date | None = None
+    seasons: list[Season], since: date | None = None, until: date | None = None
 ) -> dict[str, list[dict[str, Any]]]:
     """Games in each requested season, paged past the record limit.
 
@@ -442,7 +504,7 @@ def extract_games(
     with _client() as client:
         for season in seasons:
             try:
-                payload = _paged_by_date(client, "/games", season, since=since)
+                payload = _paged_by_date(client, "/games", season, since=since, until=until)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
                 failed += 1
                 log.error("Skipping games for %s: %s", season.label, exc)
@@ -681,7 +743,7 @@ def parse_lines(entry: dict[str, Any], season_year: int) -> list[dict[str, Any]]
 
 
 def extract_lines(
-    seasons: list[Season], since: date | None = None
+    seasons: list[Season], since: date | None = None, until: date | None = None
 ) -> dict[str, list[dict[str, Any]]]:
     """Closing betting lines, the benchmark the predictor is measured against."""
     rows: list[dict[str, Any]] = []
@@ -690,7 +752,7 @@ def extract_lines(
     with _client() as client:
         for season in seasons:
             try:
-                payload = _paged_by_date(client, "/lines", season, since=since)
+                payload = _paged_by_date(client, "/lines", season, since=since, until=until)
             except (httpx.HTTPStatusError, RuntimeError) as exc:
                 failed += 1
                 log.error("Skipping lines for %s: %s", season.label, exc)

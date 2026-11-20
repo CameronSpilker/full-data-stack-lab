@@ -19,12 +19,15 @@ style:
           Middle of the pack: "#898781"
           Weakness: "#e34948"
 
-# The team picker. Under `dct serve` it is a dropdown and a URL parameter
-# (?team=Duke Blue Devils); the static export draws the default and drops the
-# control.
+# The team picker. Under `dct serve` it is a URL parameter (?team=Duke Blue
+# Devils), set by the picker drawn under the banner (charts.picker). The
+# engine's own control is hidden because it sits in the title row, which made
+# that row taller here than on the other boards and moved the banner. The
+# static export draws the default.
 variables:
   team:
     notes: The team the whole board is about.
+    visible: false
     options:
       query: team_names
       column: team_name
@@ -255,6 +258,22 @@ queries:
       ORDER BY timeline.game_date DESC
 
 charts:
+
+  # The team pickers, under the banner rather than in the title row, so the
+  # banner sits in the same place as on every other board
+  # (templates/team_picker).
+  picker:
+    type: custom
+    template: team_picker
+    query: team_names
+    style:
+      min_height: 44
+      max_height: 44
+    options:
+      team_column: team_name
+      variable: team
+      label: Team
+
   banner:
     type: custom
     template: court_banner
@@ -444,9 +463,10 @@ rows:
   # The header: the court banner from _header.yml, with the bar of buttons
   # in it. This board's button is the one named in charts.banner.
   - banner
+  - picker
   # One short line saying what the page is. The charts carry the rest.
   - text: |
-      One team at a glance. Pick a team in the top right.
+      One team at a glance.
   - team_plate
   - cols: [kpi_rank, kpi_record, kpi_rating, kpi_schedule]
   - cols: [strength_bars, elo_line]

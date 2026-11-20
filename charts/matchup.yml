@@ -18,12 +18,16 @@ extends: [./_header.yml]
 variables:
   team:
     notes: The team the board is about.
+    # Set by the picker under the banner (charts.picker), not the engine's
+    # control in the title row, which moved the banner down this board.
+    visible: false
     options:
       query: team_names
       column: team_name
     default: BYU Cougars
   opponent:
     notes: Who they play, at a neutral site.
+    visible: false
     options:
       query: team_names
       column: team_name
@@ -274,6 +278,24 @@ queries:
       ORDER BY other.national_rank
 
 charts:
+
+  # The team pickers, under the banner rather than in the title row, so the
+  # banner sits in the same place as on every other board
+  # (templates/team_picker).
+  picker:
+    type: custom
+    template: team_picker
+    query: team_names
+    style:
+      min_height: 44
+      max_height: 44
+    options:
+      team_column: team_name
+      variable: team
+      label: Team
+      variable_2: opponent
+      label_2: Opponent
+
   banner:
     type: custom
     template: court_banner
@@ -452,9 +474,10 @@ rows:
   # The header: the court banner from _header.yml, with the bar of buttons
   # in it. This board's button is the one named in charts.banner.
   - banner
+  - picker
   # One short line saying what the page is. The charts carry the rest.
   - text: |
-      Any two teams at a neutral site. Pick both in the top right.
+      Any two teams at a neutral site.
   - scoreboard
   - cols: [kpi_favourite, kpi_margin, kpi_efficiency, kpi_elo]
   - cols: [comparison_bars]

@@ -64,8 +64,10 @@
         document.querySelectorAll("svg text").forEach(function (text) {
             // Legend entries are skipped too: they sit in a row sized to the
             // words, and the swatch beside each already says which is which.
+            // The picker's option list and the hover cards' rows are hidden
+            // text, read by the board script below, and never drawn.
             if (text.closest("g.crest") || text.closest(".named") || text.classList.contains("named") ||
-                text.closest(".role-legend")) return;
+                text.closest(".role-legend") || text.closest(".picker-options")) return;
             var id = byName[(text.textContent || "").trim()];
             if (!id) return;
             var url = BASE + encodeURIComponent(id) + ".png";
@@ -135,6 +137,351 @@
                 names(byName);
             })
             .catch(function () {});
+    });
+})();
+</script>
+<style id="board-ux-style">
+/* A thin orange bar across the top while the next page loads, and a card in
+   the middle once it has taken long enough to need saying. */
+.fdsl-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 1000;
+  background: #f47b20; transform-origin: 0 50%; transform: scaleX(0); opacity: 0;
+  pointer-events: none; }
+.fdsl-loading .fdsl-progress { opacity: 1; animation: fdsl-grow 8s cubic-bezier(.1,.7,.3,1) forwards; }
+@keyframes fdsl-grow { from { transform: scaleX(0.05); } to { transform: scaleX(0.92); } }
+.fdsl-wait { position: fixed; inset: 0; z-index: 999; display: none; align-items: flex-start;
+  justify-content: center; padding-top: 22vh; background: rgba(246, 240, 230, 0.55);
+  backdrop-filter: blur(1px); }
+.fdsl-loading.fdsl-slow .fdsl-wait { display: flex; }
+.fdsl-wait-card { display: flex; gap: 14px; align-items: center; padding: 16px 22px;
+  background: #0c2340; color: #ffffff; border-radius: 12px; max-width: min(420px, calc(100vw - 32px));
+  box-shadow: 0 10px 30px rgba(12, 35, 64, 0.25); font: 15px/1.4 Inter, system-ui, sans-serif; }
+.fdsl-wait-card b { display: block; font: 600 17px/1.2 'Oswald', 'Arial Narrow', sans-serif;
+  letter-spacing: 0.5px; }
+.fdsl-wait-card span { opacity: 0.8; font-size: 13px; }
+.fdsl-spinner { flex: none; width: 26px; height: 26px; border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.2); border-top-color: #f47b20;
+  animation: fdsl-spin 0.8s linear infinite; }
+@keyframes fdsl-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .fdsl-spinner { animation-duration: 2.4s; }
+  .fdsl-loading .fdsl-progress { animation: none; transform: scaleX(0.6); }
+}
+
+/* The hover card on a scatter's teams. */
+.fdsl-tip { position: fixed; z-index: 998; display: none; min-width: 210px; max-width: 280px;
+  padding: 12px 14px; background: #ffffff; color: #14213d; border: 1px solid #e3dccf;
+  border-radius: 10px; box-shadow: 0 8px 24px rgba(12, 35, 64, 0.16); pointer-events: none;
+  font: 13px/1.35 Inter, system-ui, sans-serif; }
+.fdsl-tip.on { display: block; }
+.fdsl-tip-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.fdsl-tip-head img { width: 30px; height: 30px; object-fit: contain; }
+.fdsl-tip-name { font: 600 17px/1.15 'Oswald', 'Arial Narrow', sans-serif; letter-spacing: 0.2px; }
+.fdsl-tip-row { display: flex; justify-content: space-between; gap: 16px; padding: 2px 0; }
+.fdsl-tip-row span:first-child { color: #5f6b7a; }
+.fdsl-tip-row span:last-child { font-variant-numeric: tabular-nums; text-align: right; }
+.fdsl-tip-swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  margin-right: 6px; vertical-align: 0; }
+.fdsl-tip-more { margin-top: 8px; padding-top: 7px; border-top: 1px solid #eee7da; color: #c25e10;
+  font-weight: 500; font-size: 12px; }
+g.crest { cursor: pointer; }
+
+/* A real dropdown laid over each drawn picker field. Invisible itself: the
+   field drawn under it shows the pick, and the outline shows focus. */
+.fdsl-pick { position: absolute; z-index: 5; opacity: 0; cursor: pointer; margin: 0;
+  font-size: 16px; }
+.fdsl-pick-focus { stroke: #f47b20; stroke-width: 2; }
+</style>
+<script id="board-ux">
+(function () {
+    "use strict";
+    var root = document.documentElement;
+
+    // ------------------------------------------------------------------
+    // Loading. The scorecard and matchup boards are drawn on request by a
+    // function that may have to wake up and fetch the warehouse first, which
+    // can take several seconds with the old page sitting there unchanged. So
+    // any move to another page starts the bar at once, and after a moment
+    // says what is happening.
+    // ------------------------------------------------------------------
+    var slowTimer = null;
+
+    function pageName(url) {
+        var parts = url.pathname.split("/").filter(Boolean);
+        var last = parts[parts.length - 1] || "";
+        if (parts[0] !== "charts" || !last || last === "charts" || /^\d{4}-\d{2}$/.test(last)) return "the home board";
+        return "the " + last + " board";
+    }
+
+    function startLoading(url, label) {
+        if (!document.querySelector(".fdsl-progress")) {
+            var bar = document.createElement("div");
+            bar.className = "fdsl-progress";
+            var wait = document.createElement("div");
+            wait.className = "fdsl-wait";
+            wait.setAttribute("role", "status");
+            wait.setAttribute("aria-live", "polite");
+            wait.innerHTML = '<div class="fdsl-wait-card"><div class="fdsl-spinner"></div>' +
+                "<div><b></b><span></span></div></div>";
+            document.body.appendChild(bar);
+            document.body.appendChild(wait);
+        }
+        var live = /\/charts\/(scorecard|matchup)\/?$/.test(url.pathname);
+        document.querySelector(".fdsl-wait-card b").textContent = "Loading " + (label || pageName(url));
+        document.querySelector(".fdsl-wait-card span").textContent = live
+            ? "This board is drawn fresh for each pick, so it can take a few seconds."
+            : "";
+        root.classList.add("fdsl-loading");
+        clearTimeout(slowTimer);
+        slowTimer = setTimeout(function () { root.classList.add("fdsl-slow"); }, 600);
+    }
+
+    function stopLoading() {
+        clearTimeout(slowTimer);
+        root.classList.remove("fdsl-loading", "fdsl-slow");
+    }
+
+    // Coming back with the browser's back button can restore this page as it
+    // was left, overlay and all.
+    window.addEventListener("pageshow", stopLoading);
+
+    function hrefOf(a) {
+        return a.getAttribute("href") || a.getAttribute("xlink:href") || "";
+    }
+
+    // On window, in the bubble phase, so anything on the board that handles
+    // the click itself (and calls preventDefault) has already had its turn.
+    window.addEventListener("click", function (event) {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey ||
+            event.shiftKey || event.altKey) return;
+        var a = event.target.closest && event.target.closest("a");
+        if (!a) return;
+        var href = hrefOf(a);
+        if (!href || href.charAt(0) === "#" || a.hasAttribute("download")) return;
+        var target = a.getAttribute("target");
+        if (target && target !== "_self") return;
+        var url;
+        try { url = new URL(href, location.href); } catch (e) { return; }
+        if (url.origin !== location.origin) return;
+        if (url.pathname === location.pathname && url.search === location.search) return;
+        var team = url.searchParams.get("team");
+        startLoading(url, team && /scorecard/.test(url.pathname) ? "the scorecard for " + team : null);
+    });
+
+    // ------------------------------------------------------------------
+    // Hover cards. A scatter's teams carry their details as hidden text
+    // (templates/team_scatter.svg.j2); this shows them in a card by the
+    // pointer. On a touch screen the first tap shows the card and a second
+    // tap follows the link.
+    // ------------------------------------------------------------------
+    var tip = null;
+    var tipFor = null;
+    var lastPointer = "mouse";
+    var tapped = null;
+
+    function tipCard() {
+        if (!tip) {
+            tip = document.createElement("div");
+            tip.className = "fdsl-tip";
+            tip.setAttribute("role", "tooltip");
+            document.body.appendChild(tip);
+        }
+        return tip;
+    }
+
+    function fill(crest) {
+        var card = tipCard();
+        card.textContent = "";
+        var head = document.createElement("div");
+        head.className = "fdsl-tip-head";
+        var image = crest.querySelector("image");
+        if (image) {
+            var img = document.createElement("img");
+            img.src = image.getAttribute("href");
+            img.alt = "";
+            head.appendChild(img);
+        }
+        var name = document.createElement("div");
+        name.className = "fdsl-tip-name";
+        name.textContent = crest.getAttribute("aria-label") || "";
+        head.appendChild(name);
+        card.appendChild(head);
+        crest.querySelectorAll("g.tip text.tip-row").forEach(function (row) {
+            var k = row.querySelector(".tip-k");
+            var v = row.querySelector(".tip-v");
+            var c = row.querySelector(".tip-c");
+            var line = document.createElement("div");
+            line.className = "fdsl-tip-row";
+            var key = document.createElement("span");
+            key.textContent = k ? k.textContent : "";
+            var value = document.createElement("span");
+            if (c) {
+                var swatch = document.createElement("i");
+                swatch.className = "fdsl-tip-swatch";
+                swatch.style.background = c.textContent;
+                value.appendChild(swatch);
+            }
+            value.appendChild(document.createTextNode(v ? v.textContent : ""));
+            line.appendChild(key);
+            line.appendChild(value);
+            card.appendChild(line);
+        });
+        var more = crest.querySelector("g.tip text.tip-more");
+        if (more && lastPointer !== "touch") {
+            var foot = document.createElement("div");
+            foot.className = "fdsl-tip-more";
+            foot.textContent = more.textContent;
+            card.appendChild(foot);
+        } else if (more) {
+            var tap = document.createElement("div");
+            tap.className = "fdsl-tip-more";
+            tap.textContent = "Tap again for the full scorecard";
+            card.appendChild(tap);
+        }
+    }
+
+    function place(x, y) {
+        var card = tipCard();
+        var w = card.offsetWidth;
+        var h = card.offsetHeight;
+        var left = x + 16;
+        var top = y + 16;
+        if (left + w > window.innerWidth - 8) left = x - w - 16;
+        if (top + h > window.innerHeight - 8) top = y - h - 16;
+        card.style.left = Math.max(8, left) + "px";
+        card.style.top = Math.max(8, top) + "px";
+    }
+
+    function show(crest, x, y) {
+        if (tipFor !== crest) {
+            tipFor = crest;
+            fill(crest);
+        }
+        tipCard().classList.add("on");
+        place(x, y);
+    }
+
+    function hide() {
+        tipFor = null;
+        if (tip) tip.classList.remove("on");
+    }
+
+    function crestOf(node) {
+        var crest = node && node.closest && node.closest("g.crest");
+        return crest && crest.querySelector("g.tip") ? crest : null;
+    }
+
+    function prepareCrests() {
+        // The browser's own tooltip would show the bare name on top of the
+        // card, so the <title> becomes the label the card and screen readers
+        // read instead.
+        document.querySelectorAll("g.crest").forEach(function (crest) {
+            if (!crest.querySelector("g.tip")) return;
+            var title = crest.querySelector("title");
+            if (title) {
+                crest.setAttribute("aria-label", title.textContent);
+                title.remove();
+            }
+        });
+    }
+
+    // Capture phase throughout: the board's own scripts stop some pointer
+    // events before they bubble this far.
+    document.addEventListener("pointermove", function (event) {
+        lastPointer = event.pointerType || "mouse";
+        if (lastPointer === "touch") return;
+        var crest = crestOf(event.target);
+        if (crest) show(crest, event.clientX, event.clientY);
+        else if (tipFor) hide();
+    }, true);
+    document.addEventListener("pointerdown", function (event) {
+        lastPointer = event.pointerType || "mouse";
+    }, true);
+    document.addEventListener("click", function (event) {
+        var crest = crestOf(event.target);
+        if ((event.pointerType || lastPointer) !== "touch") return;
+        lastPointer = "touch";
+        if (!crest) { tapped = null; hide(); return; }
+        // Kept apart from tipFor, because a tap also focuses the link, and
+        // focus opens the card before this click arrives.
+        if (tapped !== crest) {
+            event.preventDefault();
+            tapped = crest;
+            tipFor = null;
+            show(crest, event.clientX, event.clientY);
+        }
+    }, true);
+    document.addEventListener("focusin", function (event) {
+        var crest = crestOf(event.target) || crestOf(event.target.querySelector && event.target.querySelector("g.crest"));
+        if (!crest) return;
+        var box = crest.getBoundingClientRect();
+        show(crest, box.right, box.bottom);
+    });
+    document.addEventListener("focusout", hide);
+    window.addEventListener("scroll", function () { if (lastPointer === "touch") hide(); }, { passive: true });
+
+    // ------------------------------------------------------------------
+    // Pickers. templates/team_picker.svg.j2 draws a field per variable and
+    // hides the list of teams beside it. A native <select> goes over each
+    // field, so it works with a keyboard, a screen reader and a phone's own
+    // picker, and choosing a team reloads the board with it in the URL.
+    // ------------------------------------------------------------------
+    var pickers = [];
+
+    function preparePickers() {
+        document.querySelectorAll("g.picker-field").forEach(function (field) {
+            var name = field.id.split("-pick-").pop();
+            var group = field.closest("g.picker");
+            var rect = field.querySelector("rect");
+            if (!name || !group || !rect) return;
+            var current = new URL(location.href).searchParams.get(name);
+            var shown = field.querySelector(".picker-value");
+            var value = current || (shown ? shown.textContent : "");
+            var select = document.createElement("select");
+            select.className = "fdsl-pick";
+            select.setAttribute("aria-label", "Pick the " + (name === "opponent" ? "opponent" : "team"));
+            group.querySelectorAll(".picker-options text").forEach(function (option) {
+                var o = document.createElement("option");
+                o.value = o.textContent = option.textContent;
+                if (o.value === value) o.selected = true;
+                select.appendChild(o);
+            });
+            select.addEventListener("focus", function () { rect.classList.add("fdsl-pick-focus"); });
+            select.addEventListener("blur", function () { rect.classList.remove("fdsl-pick-focus"); });
+            select.addEventListener("change", function () {
+                var url = new URL(location.href);
+                url.searchParams.set(name, select.value);
+                if (shown) shown.textContent = select.value;
+                startLoading(url, select.value);
+                location.assign(url.toString());
+            });
+            document.body.appendChild(select);
+            pickers.push([select, rect]);
+        });
+        layoutPickers();
+    }
+
+    function layoutPickers() {
+        pickers.forEach(function (pair) {
+            var box = pair[1].getBoundingClientRect();
+            var s = pair[0].style;
+            s.left = box.left + window.scrollX + "px";
+            s.top = box.top + window.scrollY + "px";
+            s.width = box.width + "px";
+            s.height = box.height + "px";
+        });
+    }
+
+    window.addEventListener("resize", layoutPickers);
+    window.addEventListener("load", layoutPickers);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutPickers);
+
+    document.addEventListener("DOMContentLoaded", function () {
+        prepareCrests();
+        preparePickers();
+        if (window.ResizeObserver) {
+            var board = document.querySelector(".dbt-charts-board");
+            if (board) new ResizeObserver(layoutPickers).observe(board);
+        }
     });
 })();
 </script>

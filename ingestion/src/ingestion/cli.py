@@ -26,13 +26,20 @@ SOURCES = [
 ]
 
 # What a scheduled run asks for: everything that changes between one night and
-# the next. The team dimension is deliberately absent. Conference membership
-# changes once a year, in July, which is why the Dagster schedule refreshes it
-# monthly rather than nightly, and re-reading it every night spends the run's
-# first requests on 365 rows that cannot have moved. That is not free: it is
-# the first call the run makes, so when the source throttles it, the run dies
-# there and never reaches a game.
-NIGHTLY = ("games", "boxscores", "lines", "ratings")
+# the next and that a model reads. The team dimension is deliberately absent.
+# Conference membership changes once a year, in July, which is why the Dagster
+# schedule refreshes it monthly rather than nightly, and re-reading it every
+# night spends the run's first requests on 365 rows that cannot have moved.
+# That is not free: it is the first call the run makes, so when the source
+# throttles it, the run dies there and never reaches a game.
+#
+# Box scores are absent too. The walk is one request per conference, 32 of
+# the 59 a nightly run used to make, and no model reads the table: the four
+# factors come from the season stats endpoint alongside the ratings. CBD's
+# free tier is a monthly allowance, not a rate, and 59 calls a night spent it
+# by 12 November 2026, after which every run was refused on its first request
+# until the month turned. The monthly run (`ingest all`) still collects them.
+NIGHTLY = ("games", "lines", "ratings")
 
 
 def _wanted(source: str, extractor: str) -> bool:
@@ -51,9 +58,9 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         choices=SOURCES,
         help=(
             "Which extractor to run. 'all' runs every live extractor. 'daily' "
-            "runs the four that change overnight — games, box scores, lines "
-            "and ratings — and leaves the team dimension alone, which is what "
-            "a scheduled run wants. 'demo' "
+            "runs the three that change overnight and feed a model (games, "
+            "lines and ratings) and leaves the team dimension and box scores "
+            "alone, which is what a scheduled run wants. 'demo' "
             "simulates deterministic synthetic seasons so the whole pipeline "
             "runs with no network access and no API key. 'preflight' checks "
             "the live APIs against one season and writes nothing — run it "
@@ -91,6 +98,18 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
             "Box scores cannot be filtered by date, so they are skipped "
             "entirely when no game was played in the window; ratings are one "
             "row per team per snapshot and are fetched for any live season."
+        ),
+    )
+    parser.add_argument(
+        "--ahead-days",
+        type=int,
+        metavar="N",
+        help=(
+            "Only extract games and lines up to N days ahead. A nightly run "
+            "wants the games the forecast can show (picks_window_days, 7), "
+            "not the rest of the season: later fixtures are already in the "
+            "warehouse and are refreshed by the weekly full-schedule run. "
+            "Omit it to read to the end of the season."
         ),
     )
     parser.add_argument(
@@ -235,8 +254,17 @@ def main(argv: list[str] | None = None) -> int:
     since = (
         args.snapshot_date - timedelta(days=args.since_days) if args.since_days else None
     )
+    until = (
+        args.snapshot_date + timedelta(days=args.ahead_days)
+        if args.ahead_days is not None
+        else None
+    )
     if since:
-        log.info("Extracting games and lines from %s onward", since)
+        log.info(
+            "Extracting games and lines from %s to %s",
+            since,
+            until or "the end of the season",
+        )
 
     # Everything below is season-scoped, so a season that stopped producing
     # rows months ago is not asked for again.
@@ -261,7 +289,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if _wanted(args.source, "games"):
-        tables.update(cbd.extract_games(seasons, since=since))
+        tables.update(cbd.extract_games(seasons, since=since, until=until))
 
     if _wanted(args.source, "boxscores"):
         # The box score endpoint takes no date filter, so it cannot be narrowed
@@ -285,7 +313,7 @@ def main(argv: list[str] | None = None) -> int:
             )
 
     if _wanted(args.source, "lines"):
-        tables.update(cbd.extract_lines(seasons, since=since))
+        tables.update(cbd.extract_lines(seasons, since=since, until=until))
 
     if _wanted(args.source, "ratings"):
         tables.update(cbd.extract_ratings(seasons, args.snapshot_date))

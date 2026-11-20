@@ -31,7 +31,14 @@ def test_daily_leaves_the_team_dimension_alone():
     # and it is the first call the run makes, so a throttle there costs every
     # table behind it.
     assert "teams" not in _asked_for("daily")
-    assert _asked_for("daily") == {"games", "boxscores", "lines", "ratings"}
+    assert _asked_for("daily") == {"games", "lines", "ratings"}
+
+
+def test_daily_skips_the_box_score_walk():
+    # One request per conference, 32 of the 59 a night used to cost, for a
+    # table no model reads. CBD's free tier is a monthly allowance, and that
+    # walk is what spent it by the 12th.
+    assert "boxscores" not in _asked_for("daily")
 
 
 @pytest.mark.parametrize("source", EXTRACTORS)
